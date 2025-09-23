@@ -1,27 +1,33 @@
 import Filters from "@/components/Filters";
 import SearchBar from "@/components/SearchBar";
+import { filterBooks, type Book } from "@/utils";
 import { createFileRoute } from "@tanstack/react-router";
-import React, { useState, useTransition, useEffect } from "react";
+import { useState, useTransition, useEffect, useMemo } from "react";
 
-export const Route = createFileRoute()({
+import DB from "../utils/db.json";
+import BookCard from "@/components/BookCard";
+
+export const Route = createFileRoute("/")({
   component: App,
 });
 
-let db = [];
+let db: Book[] = DB;
 
 function App() {
   const [isInteracted, setIsInteracted] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isPending, startTransition] = useTransition();
 
-  useEffect(() => {
-    
-  });
+  let books = useMemo(() => filterBooks(db, searchQuery), [db, searchQuery]);
 
+  useEffect(() => {}, []);
 
   function handleChange(value: string) {
     if (!isInteracted) setIsInteracted(true);
-    setSearchQuery(value);
+    startTransition(() => {
+      setSearchQuery(value);
+    });
   }
 
   return (
@@ -32,7 +38,21 @@ function App() {
       />
       <div>
         {showFilters && <Filters />}
-        <div></div>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+            gap: "16px",
+            padding: "16px",
+            justifyItems: "center",
+          }}
+        >
+          {books.length !== 0 ? (
+            books.map((book, index) => <BookCard key={index} book={book} />)
+          ) : (
+            <p>No books found</p>
+          )}
+        </div>
       </div>
     </div>
   );

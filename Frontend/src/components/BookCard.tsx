@@ -6,7 +6,7 @@ export default function BookCard({
   book: Book;
 }) {
   return (
-    <div
+    <a
       style={{
         border: "1px solid #ccc",
         borderRadius: "8px",
@@ -17,17 +17,12 @@ export default function BookCard({
         cursor: "pointer",
         maxWidth: "300px",
         backgroundColor: "#f9f9f9",
-        display: "flex"
+        display: "flex",
       }}
+      href={`/${link}`}
     >
       <div>
-        <a
-          href={`https://www.gutenberg.org/ebooks/${link}`}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>{Title}</h2>
-        </a>
+        <h2>{Title}</h2>
         <p>Author: {Author}</p>
         <p>Language: {Language}</p>
       </div>
@@ -37,6 +32,6 @@ export default function BookCard({
         style={{ marginLeft: "auto", height: "150px", objectFit: "contain" }}
         loading="lazy"
       />
-    </div>
+    </a>
   );
 }

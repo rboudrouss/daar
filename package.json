@@ -1,0 +1,20 @@
+{
+  "name": "monorepo-root",
+  "private": true,
+  "workspaces": [
+    "Backend/",
+    "Frontend/",
+    "cli/",
+    "lib/"
+  ],
+  "scripts": {
+    "build": "pnpm -r build",
+    "dev": "pnpm -r dev",
+    "test": "pnpm -r test",
+    "format": "prettier --write \"**/*.{ts,tsx,md,json}\""
+  },
+  "devDependencies": {
+    "typescript": "^5.2.2",
+    "prettier": "^3.0.3"
+  }
+}

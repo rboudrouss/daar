@@ -1,0 +1,5 @@
+packages:
+  - "Backend"
+  - "Frontend"
+  - "cli"
+  - "lib"

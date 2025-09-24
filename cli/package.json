@@ -1,0 +1,14 @@
+{
+  "name": "@monorepo/cli",
+  "version": "1.0.0",
+  "dependencies": {
+    "@monorepo/lib": "workspace:*"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "ts-node-dev src/index.ts"
+  },
+  "devDependencies": {
+    "ts-node-dev": "^2.0.0"
+  }
+}

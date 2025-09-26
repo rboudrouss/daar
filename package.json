@@ -8,10 +8,8 @@
     "lib/"
   ],
   "scripts": {
-    "build": "pnpm -r build",
-    "dev": "pnpm -r dev",
-    "test": "pnpm -r test",
-    "format": "prettier --write \"**/*.{ts,tsx,md,json}\""
+    "cli": "npm run start --workspace=cli",
+    "build": "npm run build --workspaces"
   },
   "devDependencies": {
     "typescript": "^5.2.2",

@@ -7,7 +7,8 @@
   },
   "scripts": {
     "build": "tsc",
-    "dev": "tsx src/index.ts"
+    "dev": "tsx src/index.ts --watch",
+    "start": "tsx src/index.ts"
   },
   "devDependencies": {
     "tsx": "^4.20.5"

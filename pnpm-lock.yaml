@@ -89,7 +89,11 @@ importers:
         specifier: ^4.20.5
         version: 4.20.5
 
-  lib: {}
+  lib:
+    devDependencies:
+      esbuild:
+        specifier: 0.25.10
+        version: 0.25.10
 
 packages:
 

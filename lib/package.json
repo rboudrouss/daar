@@ -11,7 +11,10 @@
     }
   },
   "scripts": {
-    "build": "tsc",
+    "build": "esbuild src/index.ts --bundle --platform=node --target=node20 --outfile=dist/index.js --sourcemap --format=esm --external:@monorepo/lib",
     "dev": "tsc -w"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.10"
   }
 }

@@ -20,7 +20,7 @@ export type PSProps<R, D> = {
  */
 export default class ParserState<R, D = any> {
   dataView: DataView;
-  inputType: InputType;
+  inputType: InputTypes;
 
   target: InputType;
   isError: boolean;

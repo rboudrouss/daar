@@ -1,8 +1,34 @@
 import Parser, { ParserTuple } from "./parser.ts";
 import ParserState from "./pState.ts";
 
+/** Takes an array of parsers and composes them left to right, so each parser's return value is passed into the next one in the chain. The result is a new parser that, when run, yields the result of the final parser in the chain. */
+export const pipe = <D, R extends any[]>(parsers: ParserTuple<R, D>) =>
+  new Parser((s) => {
+    for (const parser of parsers)
+      s = parser.pf(s as ParserState<unknown, unknown>);
+    return s;
+  }) as Parser<D, R[typeof parsers.length]>;
+
+/** Takes an array of parsers and composes them right to left, so each parsers return value is passed into the next one in the chain. The result is a new parser that, when run, yields the result of the final parser in the chain. */
+export const compose = <R extends any[], D>(parsers: ParserTuple<R, D>) =>
+  pipe([...parsers].reverse() as ParserTuple<R, D>) as Parser<R[0], D>;
+
+/** Takes an array of parsers, and pipes the **result** of the previous one as the **target** of the next one. As a consequence, every parser except the last one has to have a return type extending the `PStream` class. */
+export const pipeResult = <R, D>(
+  parsers: ParserTuple<R[],D>
+) =>
+  new Parser(s => {
+    if (s.error) return s;
+    for (const parser of parsers) {
+      if (s.error) break;
+      s = parser.run(s.result);
+    }
+    return s;
+  }) as Parser<R, D>;
+
+
 /** Takes an array of parsers, and returns a new parser that matches each of them sequentially, collecting up the results into an array. */
-export const sequence = <R extends any[], D>(parsers: ParserTuple<R, D>) =>
+export const sequence = <D, R extends any[]>(parsers: ParserTuple<R, D>) =>
   new Parser((s) => {
     if (s.error) return s;
     const results = [];

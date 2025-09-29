@@ -14,10 +14,8 @@ export const compose = <R extends any[], D>(parsers: ParserTuple<R, D>) =>
   pipe([...parsers].reverse() as ParserTuple<R, D>) as Parser<R[0], D>;
 
 /** Takes an array of parsers, and pipes the **result** of the previous one as the **target** of the next one. As a consequence, every parser except the last one has to have a return type extending the `PStream` class. */
-export const pipeResult = <R, D>(
-  parsers: ParserTuple<R[],D>
-) =>
-  new Parser(s => {
+export const pipeResult = <R, D>(parsers: ParserTuple<R[], D>) =>
+  new Parser((s) => {
     if (s.error) return s;
     for (const parser of parsers) {
       if (s.error) break;
@@ -25,7 +23,6 @@ export const pipeResult = <R, D>(
     }
     return s;
   }) as Parser<R, D>;
-
 
 /** Takes an array of parsers, and returns a new parser that matches each of them sequentially, collecting up the results into an array. */
 export const sequence = <D, R extends any[]>(parsers: ParserTuple<R, D>) =>
@@ -111,5 +108,24 @@ export function coroutine<T>(parserFn: ParserFn<T>): Parser<T> {
         return e as ParserState<any, any>;
       }
     }
+  });
+}
+
+export function anyOf<R, D>(...parsers: Parser<R, D>[]) {
+  return new Parser(function anyOf$state(state) {
+    if (state.isError) return state;
+
+    let nextState = state;
+
+    for (let parser of parsers) {
+      const out = parser.pf(nextState);
+      if (!out.isError) {
+        return out;
+      }
+    }
+
+    return nextState.updateError(
+      `[anyOf] unable to match any possible parsers at index ${state.index}`
+    );
   });
 }

@@ -19,22 +19,6 @@ export const satisfy = (predicate: (char: string) => boolean): Parser<string> =>
     return state.updateError(`Unexpected end of input`);
   });
 
-/** Matches one of multiple parsers */
-export const oneOf = <R, D>(parsers: Parser<R, D>[]): Parser<R, D> =>
-  new Parser((state) => {
-    if (state.error) return state;
-    const initialState = state.clone();
-    let lastError = state;
-
-    for (const parser of parsers) {
-      const result = parser.pf(state);
-      if (!result.error) return result;
-      lastError = result;
-      state = initialState; // Reset state for next parser
-    }
-    return lastError;
-  });
-
 export const str = (s: string) => {
   if (!(s && typeof s === "string"))
     throw new TypeError(

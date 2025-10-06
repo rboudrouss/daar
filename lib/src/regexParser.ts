@@ -189,6 +189,7 @@ concatParser = new Parser((state) => {
 /**
  * Parses alternation: expressions separated by |.
  * Example: a|b, abc|def, a*|b*
+ * Note: this parser is also the highest level and combines all others
  */
 altParser = new Parser((state) => {
   if (state.isError) return state;

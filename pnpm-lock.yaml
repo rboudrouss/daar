@@ -90,6 +90,10 @@ importers:
         version: 4.20.5
 
   lib:
+    dependencies:
+      tsx:
+        specifier: ^4.20.5
+        version: 4.20.5
     devDependencies:
       esbuild:
         specifier: 0.25.10

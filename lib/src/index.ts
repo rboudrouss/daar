@@ -1,3 +1,4 @@
+import { regexParser } from "./regexParser.ts";
 
 // 1. Parseur ERE (parenthèses, alternative, concaténation, étoile, point, lettre ASCII)
 export function parseRegex(pattern: string): SyntaxTree {
@@ -370,3 +371,8 @@ export function kmpSearch(pattern: string, text: string): number[] {
   }
   return res;
 }
+
+
+const parser = regexParser();
+const result = parser.run("a*(b)");
+console.log(JSON.stringify(result, null, 2));

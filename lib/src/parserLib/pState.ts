@@ -202,6 +202,24 @@ export default class ParserState<R, D = any> {
     });
   }
 
+  setByteIndex(n: number) {
+    return new ParserState({
+      ...this.props,
+      bitIndex: n * 8,
+    });
+  }
+
+  setBitIndex(n: number) {
+    return new ParserState({
+      ...this.props,
+      bitIndex: n,
+    });
+  }
+
+  clone() {
+    return new ParserState(this.props);
+  }
+
   static init<D>(
     target: InputType,
     data: D | null = null

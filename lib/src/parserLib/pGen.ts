@@ -1,7 +1,39 @@
 import Parser, { ParsingFunction } from "./parser.ts";
+import ParserState from "./pState.ts";
+import { InputType } from "./utils.ts";
 
 let decoder = new TextDecoder("utf-8");
 let encoder = new TextEncoder();
+
+/** Matches a single character using a predicate function */
+export const satisfy = (predicate: (char: string) => boolean): Parser<string> =>
+  new Parser((state) => {
+    if (state.error) return state;
+    const { target, index } = state;
+    if (typeof target === "string" && index < target.length) {
+      const char = target[index];
+      return predicate(char)
+        ? state.updateByteIndex(1).updateResult(char)
+        : state.updateError(`Unexpected character "${char}"`);
+    }
+    return state.updateError(`Unexpected end of input`);
+  });
+
+/** Matches one of multiple parsers */
+export const oneOf = <R, D>(parsers: Parser<R, D>[]): Parser<R, D> =>
+  new Parser((state) => {
+    if (state.error) return state;
+    const initialState = state.clone();
+    let lastError = state;
+
+    for (const parser of parsers) {
+      const result = parser.pf(state);
+      if (!result.error) return result;
+      lastError = result;
+      state = initialState; // Reset state for next parser
+    }
+    return lastError;
+  });
 
 export const str = (s: string) => {
   if (!(s && typeof s === "string"))
@@ -37,42 +69,6 @@ export const str = (s: string) => {
 export const fail = (e: string) => new Parser((s) => s.updateError(e));
 
 export const succeed = <T>(e: T) => new Parser((s) => s.updateResult(e));
-
-export function regex(re: RegExp): Parser<string> {
-  const typeofre = Object.prototype.toString.call(re);
-  if (typeofre !== "[object RegExp]") {
-    throw new TypeError(
-      `regex must be called with a Regular Expression, but got ${typeofre}`
-    );
-  }
-
-  if (re.toString()[1] !== "^") {
-    throw new Error(`regex parsers must contain '^' start assertion.`);
-  }
-
-  return new Parser(function regex$state(state) {
-    if (state.isError) return state;
-    const { dataView, index } = state;
-    const rest = state.getString(index, dataView.byteLength - index);
-
-    if (rest.length >= 1) {
-      const match = rest.match(re);
-      return match
-        ? state
-            .updateResult(match[0])
-            .updateByteIndex(encoder.encode(match[0]).byteLength)
-        : state.updateError(
-            `ParseError (position ${index}): Expecting string matching '${re}', got '${rest.slice(
-              0,
-              5
-            )}...'`
-          );
-    }
-    return state.updateError(
-      `ParseError (position ${index}): Expecting string matching '${re}', but got end of input.`
-    );
-  });
-}
 
 export const logState = (msg = "") =>
   new Parser((PS) => {
@@ -125,7 +121,6 @@ export const anyChar = new Parser(function anyChar$state(state) {
   return nextState.updateResult(results);
 });
 
-
 export const char = (c: string) => {
   if (!(c && typeof c === "string" && c.length === 1))
     throw new TypeError(
@@ -160,5 +155,6 @@ export const char = (c: string) => {
 export const updateData = <D>(d: D) =>
   new Parser((s) => (s.isError ? s : s.updateData(d)));
 
-export const getData = new Parser((s) => (s.isError ? s : s.updateResult(s.data)));
-
+export const getData = new Parser((s) =>
+  s.isError ? s : s.updateResult(s.data)
+);

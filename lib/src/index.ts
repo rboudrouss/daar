@@ -374,5 +374,5 @@ export function kmpSearch(pattern: string, text: string): number[] {
 
 
 const parser = regexParser();
-const result = parser.run("a*(b)");
+const result = parser.run("a*(bcdd)");
 console.log(JSON.stringify(result, null, 2));

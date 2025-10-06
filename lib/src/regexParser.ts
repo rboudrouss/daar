@@ -1,8 +1,8 @@
 import Parser from "./parserLib/parser.ts";
 import { str } from "./parserLib/pGen.ts";
 
-type SyntaxTree =
-  | { type: "char"; value: string }
+export type SyntaxTree =
+  | { type: "string"; value: string } // Replaced char with string so that we reconize sequences of non-special characters
   | { type: "dot" }
   | { type: "concat"; left: SyntaxTree; right: SyntaxTree }
   | { type: "alt"; left: SyntaxTree; right: SyntaxTree }
@@ -12,21 +12,41 @@ type SyntaxTree =
 const lazy = <T>(parserThunk: () => Parser<T>): Parser<T> =>
   new Parser((state) => parserThunk().pf(state));
 
-// Single character parser (matches any alphanumeric character)
-const charParser = new Parser<SyntaxTree>((state) => {
+// Check if a character is special
+const isSpecialChar = (char: string): boolean => {
+  return (
+    char === "." || char === "*" || char === "(" || char === ")" || char === "|"
+  );
+};
+
+// String parser (matches sequence of non-special characters)
+const stringParser = new Parser<SyntaxTree>((state) => {
   if (state.isError) return state;
   const { dataView, index } = state;
-  
+
   if (index >= dataView.byteLength) {
     return state.updateError("Unexpected end of input");
   }
 
-  const char = state.getString(index, 1);
-  const isAlphanumeric = /^[a-zA-Z0-9]$/.test(char);
-  
-  return isAlphanumeric
-    ? state.updateByteIndex(1).updateResult({ type: "char", value: char })
-    : state.updateError(`Expected alphanumeric character, got "${char}"`);
+  let value = "";
+  let currentIndex = index;
+
+  // Keep reading characters until we hit a special character or end of input
+  while (currentIndex < dataView.byteLength) {
+    const char = state.getString(currentIndex, 1);
+    if (isSpecialChar(char)) break;
+    value += char;
+    currentIndex++;
+  }
+
+  // If we didn't read any characters, return an error
+  if (value.length === 0) {
+    return state.updateError("Expected a sequence of non-special characters");
+  }
+
+  return state
+    .updateByteIndex(value.length)
+    .updateResult({ type: "string", value });
 });
 
 // Dot parser (matches any character)
@@ -38,13 +58,13 @@ let starParser: Parser<SyntaxTree>;
 let concatParser: Parser<SyntaxTree>;
 let altParser: Parser<SyntaxTree>;
 
-// Atom parser (single character, dot, or group)
+// Atom parser (string, dot, or group)
 atomParser = new Parser((state) => {
   if (state.isError) return state;
 
-  // Try parsing a character
-  const charResult = charParser.pf(state);
-  if (!charResult.isError) return charResult;
+  // Try parsing a string of non-special characters
+  const stringResult = stringParser.pf(state);
+  if (!stringResult.isError) return stringResult;
 
   // Try parsing a dot
   const dotResult = dotParser.pf(state);
@@ -52,13 +72,15 @@ atomParser = new Parser((state) => {
 
   // Try parsing a group
   const openResult = str("(").pf(state);
-  if (openResult.isError) return state.updateError("Expected character, dot, or group");
+  if (openResult.isError)
+    return state.updateError("Expected string, dot, or group");
 
   const groupResult = altParser.pf(openResult);
   if (groupResult.isError) return groupResult;
 
   const closeResult = str(")").pf(groupResult);
-  if (closeResult.isError) return closeResult.updateError("Expected closing parenthesis");
+  if (closeResult.isError)
+    return closeResult.updateError("Expected closing parenthesis");
 
   return closeResult.updateResult(groupResult.result);
 });
@@ -138,7 +160,9 @@ export function regexParser(): Parser<SyntaxTree> {
     const result = altParser.pf(state);
     if (result.isError) return result;
     if (result.index < result.dataView.byteLength) {
-      return result.updateError(`Unexpected character at position ${result.index}`);
+      return result.updateError(
+        `Unexpected character at position ${result.index}`
+      );
     }
     return result;
   });

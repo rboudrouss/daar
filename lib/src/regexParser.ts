@@ -1,25 +1,52 @@
+/**
+ * Regular Expression Parser using Parser Combinators
+ *
+ * This module implements a parser for regular expressions that supports:
+ * - Literal strings (e.g., "abc")
+ * - Wildcards (dot operator: ".")
+ * - Repetition (star operator: "*")
+ * - Grouping (parentheses: "()")
+ * - Alternation (pipe operator: "|")
+ */
+
 import Parser from "./parserLib/parser.ts";
 import { str } from "./parserLib/pGen.ts";
 
+//=============================================================================
+// Types
+//=============================================================================
+
+/**
+ * Represents a node in the regular expression syntax tree.
+ * Each node represents a different regular expression construct.
+ */
 export type SyntaxTree =
-  | { type: "string"; value: string } // Replaced char with string so that we reconize sequences of non-special characters
-  | { type: "dot" }
-  | { type: "concat"; left: SyntaxTree; right: SyntaxTree }
-  | { type: "alt"; left: SyntaxTree; right: SyntaxTree }
-  | { type: "star"; child: SyntaxTree };
+  | { type: "string"; value: string } // Literal string (e.g., "abc")
+  | { type: "dot" } // Wildcard (matches any character)
+  | { type: "concat"; left: SyntaxTree; right: SyntaxTree } // Concatenation
+  | { type: "alt"; left: SyntaxTree; right: SyntaxTree } // Alternation
+  | { type: "star"; child: SyntaxTree }; // Repetition
 
-// Helper to create a lazy parser (for recursive definitions)
-const lazy = <T>(parserThunk: () => Parser<T>): Parser<T> =>
-  new Parser((state) => parserThunk().pf(state));
+//=============================================================================
+// Helper Functions
+//=============================================================================
 
-// Check if a character is special
+/**
+ * Checks if a character is a special regex operator.
+ * Special characters: . * ( ) |
+ */
 const isSpecialChar = (char: string): boolean => {
-  return (
-    char === "." || char === "*" || char === "(" || char === ")" || char === "|"
-  );
+  return [".", "*", "(", ")", "|"].includes(char);
 };
 
-// String parser (matches sequence of non-special characters)
+//=============================================================================
+// Basic Parsers
+//=============================================================================
+
+/**
+ * Parses a sequence of non-special characters as a single string.
+ * For example: "abc" is parsed as a single string node.
+ */
 const stringParser = new Parser<SyntaxTree>((state) => {
   if (state.isError) return state;
   const { dataView, index } = state;
@@ -31,7 +58,6 @@ const stringParser = new Parser<SyntaxTree>((state) => {
   let value = "";
   let currentIndex = index;
 
-  // Keep reading characters until we hit a special character or end of input
   while (currentIndex < dataView.byteLength) {
     const char = state.getString(currentIndex, 1);
     if (isSpecialChar(char)) break;
@@ -39,7 +65,6 @@ const stringParser = new Parser<SyntaxTree>((state) => {
     currentIndex++;
   }
 
-  // If we didn't read any characters, return an error
   if (value.length === 0) {
     return state.updateError("Expected a sequence of non-special characters");
   }
@@ -49,32 +74,53 @@ const stringParser = new Parser<SyntaxTree>((state) => {
     .updateResult({ type: "string", value });
 });
 
-// Dot parser (matches any character)
+/**
+ * Parses the dot operator (.) which matches any character.
+ */
 const dotParser = str(".").map((): SyntaxTree => ({ type: "dot" }));
 
-// Forward declarations for recursive parsers
-let atomParser: Parser<SyntaxTree>;
-let starParser: Parser<SyntaxTree>;
-let concatParser: Parser<SyntaxTree>;
-let altParser: Parser<SyntaxTree>;
+//=============================================================================
+// Forward Declarations for Recursive Parsers
+//=============================================================================
 
-// Atom parser (string, dot, or group)
+// These parsers are mutually recursive, so we need to declare them before defining them
+let atomParser: Parser<SyntaxTree>; // Parses atomic expressions (strings, dots, groups)
+let starParser: Parser<SyntaxTree>; // Parses star repetition
+let concatParser: Parser<SyntaxTree>; // Parses concatenation
+let altParser: Parser<SyntaxTree>; // Parses alternation
+
+//=============================================================================
+// Core Parser Implementation
+//=============================================================================
+
+/**
+ * Parses atomic expressions: strings, dots, or groups.
+ * This is the lowest level of the parsing hierarchy.
+ */
 atomParser = new Parser((state) => {
   if (state.isError) return state;
 
-  // Try parsing a string of non-special characters
+  // First try: Parse a literal string
   const stringResult = stringParser.pf(state);
   if (!stringResult.isError) return stringResult;
 
-  // Try parsing a dot
+  // Second try: Parse a dot wildcard
   const dotResult = dotParser.pf(state);
   if (!dotResult.isError) return dotResult;
 
-  // Try parsing a group
+  // Third try: Parse a grouped expression
   const openResult = str("(").pf(state);
   if (openResult.isError)
     return state.updateError("Expected string, dot, or group");
 
+  // Handle empty group case first
+  const peekClose = openResult.getChar(openResult.index);
+  if (peekClose === ")") {
+    // Empty group - return an empty string node
+    return str(")").pf(openResult).updateResult({ type: "string", value: "" });
+  }
+
+  // Parse group contents if not empty
   const groupResult = altParser.pf(openResult);
   if (groupResult.isError) return groupResult;
 
@@ -85,13 +131,18 @@ atomParser = new Parser((state) => {
   return closeResult.updateResult(groupResult.result);
 });
 
-// Star parser
+/**
+ * Parses star repetition: expression followed by zero or more stars.
+ * Example: a*, (ab)*, (a|b)*
+ */
 starParser = new Parser((state) => {
   if (state.isError) return state;
 
+  // First parse the expression to be repeated
   const atomResult = atomParser.pf(state);
   if (atomResult.isError) return atomResult;
 
+  // Then parse any following stars
   let node = atomResult.result;
   let currentState = atomResult;
 
@@ -105,19 +156,24 @@ starParser = new Parser((state) => {
   return currentState.updateResult(node);
 });
 
-// Concat parser
+/**
+ * Parses concatenation: sequence of expressions without operators between them.
+ * Example: ab, a*b, (ab)c
+ */
 concatParser = new Parser((state) => {
   if (state.isError) return state;
 
+  // Parse the first expression
   const firstResult = starParser.pf(state);
   if (firstResult.isError) return firstResult;
 
+  // Keep concatenating while there are more expressions
   let left = firstResult.result;
   let currentState = firstResult;
 
   while (!currentState.isError) {
-    // Peek next character
     const peek = currentState.getChar(currentState.index);
+    // Stop if we hit end, alternation, or group end
     if (peek === "" || peek === "|" || peek === ")") break;
 
     const rightResult = starParser.pf(currentState);
@@ -130,13 +186,18 @@ concatParser = new Parser((state) => {
   return currentState.updateResult(left);
 });
 
-// Alt parser
+/**
+ * Parses alternation: expressions separated by |.
+ * Example: a|b, abc|def, a*|b*
+ */
 altParser = new Parser((state) => {
   if (state.isError) return state;
 
+  // Parse the first alternative
   const firstResult = concatParser.pf(state);
   if (firstResult.isError) return firstResult;
 
+  // Keep adding alternatives while we see pipes
   let left = firstResult.result;
   let currentState = firstResult;
 

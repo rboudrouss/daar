@@ -2,17 +2,21 @@
   "name": "@monorepo/cli",
   "version": "1.0.0",
   "type": "module",
+  "bin": {
+    "cli": "./dist/index.js"
+  },
   "dependencies": {
     "@monorepo/lib": "workspace:*",
     "commander": "^14.0.1"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsup src/index.ts --format esm --dts --sourcemap --clean",
     "dev": "tsx src/index.ts --watch",
     "start": "tsx src/index.ts"
   },
   "devDependencies": {
     "@types/node": "^24.7.1",
+    "tsup": "^8.0.0",
     "tsx": "^4.20.5"
   }
 }

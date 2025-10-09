@@ -1,5 +1,5 @@
-import { EPSILON, type state_ID } from "./const.ts";
-import { NFA } from "./NFA.ts";
+import { EPSILON, type state_ID } from "./const";
+import { NFA } from "./NFA";
 
 /**
  * Type representing a Deterministic Finite Automaton (DFA)

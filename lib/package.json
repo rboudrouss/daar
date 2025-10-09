@@ -11,11 +11,11 @@
     }
   },
   "scripts": {
-    "build": "esbuild src/index.ts --bundle --platform=node --target=node20 --outfile=dist/index.js --sourcemap --format=esm --external:@monorepo/lib",
-    "dev": "tsx --watch src/main.ts"
+    "build": "tsup src/index.ts --format esm --dts --sourcemap --clean",
+    "dev": "tsup src/index.ts --format esm --watch"
   },
   "devDependencies": {
-    "esbuild": "0.25.10",
-    "tsx": "^4.20.5"
+    "@types/node": "^24.7.1",
+    "tsup": "^8.0.0"
   }
 }

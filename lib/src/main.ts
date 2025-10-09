@@ -5,7 +5,7 @@ import {
   minimizeDfa,
   nfaFromSyntaxTree,
   parseRegex,
-} from "./index.ts";
+} from "./index";
 
 let result = parseRegex("a(b|c)*d");
 console.log(JSON.stringify(result, null, 2));

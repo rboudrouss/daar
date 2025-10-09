@@ -17,7 +17,7 @@ function App() {
   const [isInteracted, setIsInteracted] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [isPending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
 
   let books = useMemo(() => filterBooks(db, searchQuery), [db, searchQuery]);
 

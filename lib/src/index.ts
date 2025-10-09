@@ -1,6 +1,6 @@
-import { DOT } from "./const.ts";
-import { DFA } from "./DFA.ts";
-import type { SyntaxTree } from "./RegexParser.ts";
+import { DOT } from "./const";
+import { DFA } from "./DFA";
+import type { SyntaxTree } from "./RegexParser";
 
 export function matchDfa(dfa: DFA, input: string): boolean {
   let state = dfa.start;
@@ -45,7 +45,7 @@ export function kmpSearch(pattern: string, text: string): number[] {
   return res;
 }
 
-export * from "./const.ts";
-export * from "./RegexParser.ts";
-export * from "./NFA.ts";
-export * from "./DFA.ts";
+export * from "./const";
+export * from "./RegexParser";
+export * from "./NFA";
+export * from "./DFA";

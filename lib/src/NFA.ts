@@ -1,5 +1,5 @@
-import { DOT, EPSILON, type state_ID } from "./const.ts";
-import { SyntaxTree } from "./RegexParser.ts";
+import { DOT, EPSILON, type state_ID } from "./const";
+import { SyntaxTree } from "./RegexParser";
 
 /**
  * Type representing a Non-deterministic Finite Automaton (NFA)

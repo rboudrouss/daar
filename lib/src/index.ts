@@ -1,68 +1,5 @@
-import { regexParser } from "./regexParser.ts";
-
 // 1. Parseur ERE (parenthèses, alternative, concaténation, étoile, point, lettre ASCII)
-export function parseRegex(pattern: string): SyntaxTree {
-  let i = 0;
-  function peek() {
-    return pattern[i];
-  }
-  function next() {
-    return pattern[i++];
-  }
-
-  function parseChar(): SyntaxTree {
-    if (peek() === ".") {
-      next();
-      return { type: "dot" };
-    }
-    const c = next();
-    return { type: "char", value: c };
-  }
-
-  function parseStar(): SyntaxTree {
-    let node = parseAtom();
-    while (peek() === "*") {
-      next();
-      node = { type: "star", child: node };
-    }
-    return node;
-  }
-
-  function parseAtom(): SyntaxTree {
-    if (peek() === "(") {
-      next();
-      const node = parseAlt();
-      if (peek() !== ")") throw new Error("Parenthèse fermante attendue");
-      next();
-      return node;
-    }
-    if (peek() === "." || /[a-zA-Z0-9]/.test(peek())) {
-      return parseChar();
-    }
-    throw new Error("Caractère inattendu: " + peek());
-  }
-
-  function parseConcat(): SyntaxTree {
-    let left = parseStar();
-    while (peek() && peek() !== "|" && peek() !== ")") {
-      left = { type: "concat", left, right: parseStar() };
-    }
-    return left;
-  }
-
-  function parseAlt(): SyntaxTree {
-    let left = parseConcat();
-    while (peek() === "|") {
-      next();
-      left = { type: "alt", left, right: parseConcat() };
-    }
-    return left;
-  }
-
-  const tree = parseAlt();
-  if (i < pattern.length) throw new Error("Fin inattendue du motif");
-  return tree;
-}
+import { parseRegex } from "./RegexParser.ts";
 
 // 2. Construction de l'arbre de syntaxe
 export type SyntaxTree =
@@ -372,7 +309,8 @@ export function kmpSearch(pattern: string, text: string): number[] {
   return res;
 }
 
-let result = parseRegex("uwuwu");
+let result = parseRegex("uwu*");
+console.log(JSON.stringify(result, null, 2));
 let nfa = nfaFromSyntaxTree(result);
 let dfa = dfaFromNfa(nfa);
 let minDfa = minimizeDfa(dfa);

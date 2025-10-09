@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "type": "module",
   "dependencies": {
-    "@monorepo/lib": "workspace:*"
+    "@monorepo/lib": "workspace:*",
+    "commander": "^14.0.1"
   },
   "scripts": {
     "build": "tsc",
@@ -11,6 +12,7 @@
     "start": "tsx src/index.ts"
   },
   "devDependencies": {
+    "@types/node": "^24.7.1",
     "tsx": "^4.20.5"
   }
 }

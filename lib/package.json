@@ -12,7 +12,7 @@
   },
   "scripts": {
     "build": "esbuild src/index.ts --bundle --platform=node --target=node20 --outfile=dist/index.js --sourcemap --format=esm --external:@monorepo/lib",
-    "dev": "tsx --watch src/index.ts"
+    "dev": "tsx --watch src/main.ts"
   },
   "devDependencies": {
     "esbuild": "0.25.10",

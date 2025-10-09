@@ -1,7 +1,6 @@
 import { DOT } from "./const.ts";
-import { DFA, dfaFromNfa, minimizeDfa } from "./DFA.ts";
-import { nfaFromSyntaxTree } from "./NFA.ts";
-import { parseRegex, type SyntaxTree } from "./RegexParser.ts";
+import { DFA } from "./DFA.ts";
+import type { SyntaxTree } from "./RegexParser.ts";
 
 export function matchDfa(dfa: DFA, input: string): boolean {
   let state = dfa.start;
@@ -46,11 +45,7 @@ export function kmpSearch(pattern: string, text: string): number[] {
   return res;
 }
 
-let result = parseRegex("\\|");
-let nfa = nfaFromSyntaxTree(result);
-console.log(nfa);
-let dfa = dfaFromNfa(nfa);
-console.log(dfa);
-let minDfa = minimizeDfa(dfa);
-console.log(minDfa);
-console.log(matchDfa(minDfa, "cdcdcd"));
+export * from "./const.ts";
+export * from "./RegexParser.ts";
+export * from "./NFA.ts";
+export * from "./DFA.ts";

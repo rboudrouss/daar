@@ -1,6 +1,16 @@
 import { DOT, EPSILON, type state_ID } from "./const.ts";
 import { SyntaxTree } from "./RegexParser.ts";
 
+/**
+ * Type representing a Non-deterministic Finite Automaton (NFA)
+ * An NFA can have multiple transitions for the same input symbol from a given state,
+ * and can also have epsilon (ε) transitions that don't consume any input.
+ * 
+ * @property {} states - Array of all states in the NFA
+ * @property {} transitions - Transition function mapping states and input symbols to arrays of possible next states
+ * @property {} start - The initial state of the NFA
+ * @property {} accepts - Array of accepting (final) states
+ */
 export type NFA = {
   states: state_ID[];
   transitions: { [key: state_ID]: { [key: string]: state_ID[] } };
@@ -16,15 +26,24 @@ export type NFA = {
  */
 export function nfaFromSyntaxTree(tree: SyntaxTree): NFA {
   let stateId = 0;
+  /**
+   * Génère un nouvel identifiant d'état unique
+   * @returns Un nouvel identifiant d'état unique
+   */
   function newState() {
     return stateId++;
   }
 
   /**
-   * Fonction récursive pour construire un NFA à partir d'un arbre syntaxique
+   * Construit récursivement un NFA à partir d'un nœud de l'arbre syntaxique
+   * Cette fonction implémente les constructions de Thompson pour chaque opérateur
    * 
-   * @param t le noeud de l'arbre syntaxique
-   * @returns un fragment d'NFA avec les états de début et de fin
+   * @param t - Le nœud de l'arbre syntaxique à traiter
+   * @returns Un objet contenant :
+   *          - start: l'état initial du fragment
+   *          - end: l'état final du fragment
+   *          - nfa: le fragment d'NFA construit
+   * @throws {Error} Si le type de nœud n'est pas reconnu
    */
   function build(t: SyntaxTree): { start: state_ID; end: state_ID; nfa: NFA } {
     if (t.type === "char") {

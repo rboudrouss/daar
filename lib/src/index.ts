@@ -372,7 +372,9 @@ export function kmpSearch(pattern: string, text: string): number[] {
   return res;
 }
 
-
-const parser = regexParser();
-const result = parser.run("()a");
-console.log(JSON.stringify(result, null, 2));
+let result = parseRegex("uwuwu");
+let nfa = nfaFromSyntaxTree(result);
+let dfa = dfaFromNfa(nfa);
+let minDfa = minimizeDfa(dfa);
+console.log(matchDfa(minDfa, "uwuwuw"));
+console.log(matchDfa(minDfa, "uwuwu"));

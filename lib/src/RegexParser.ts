@@ -5,52 +5,60 @@ export type SyntaxTree =
   | { type: "alt"; left: SyntaxTree; right: SyntaxTree }
   | { type: "star"; child: SyntaxTree };
 
-class RegexParser {
-  private input: string;
-  private position: number;
+export function parseRegex(input: string): SyntaxTree {
+  let position = 0;
 
-  constructor(input: string) {
-    this.input = input;
-    this.position = 0;
+  /**
+   * @returns le caractère courant sans avancer la position
+   */
+  function peek() {
+    return input[position];
   }
 
-  parse(): SyntaxTree {
-    if (this.input.length === 0) {
-      throw new Error("Empty regex");
-    }
-
-    const result = this.parseAlternation();
-
-    if (this.position < this.input.length) {
-      throw new Error(
-        `Unexpected character at position ${this.position}: ${this.input[this.position]}`
-      );
-    }
-
-    return result;
+  /**
+   * @returns le caractère courant et avance la position
+   */
+  function next() {
+    return input[position++];
   }
 
-  private parseAlternation(): SyntaxTree {
-    let left = this.parseConcatenation();
+  /**
+   * @returns true s'il reste des caractères à lire dans l'input
+   */
+  function hasMore() {
+    return position < input.length;
+  }
 
-    while (this.position < this.input.length && this.current() === "|") {
-      this.position++; // consume '|'
-      const right = this.parseConcatenation();
+  /**
+   * Parse une expression d'alternation (séparée par '|', ex: 'a|b')
+   * Ce parseur est aussi le parseur le plus haut niveau (point d'entrée qui appel les autres fonctions de parsing)
+   * @returns l'arbre syntaxique de l'expression régulière
+   */
+  function parseAlternation(): SyntaxTree {
+    let left = parseConcatenation();
+
+    while (hasMore() && peek() === "|") {
+      next(); // consume '|'
+      const right = parseConcatenation();
       left = { type: "alt", left, right };
     }
 
     return left;
   }
 
-  private parseConcatenation(): SyntaxTree {
+  /**
+   * Parse une expression de concaténation (séparée par rien, ex: 'ab')
+   *
+   * @returns l'arbre syntaxique de l'expression régulière
+   */
+  function parseConcatenation(): SyntaxTree {
     const factors: SyntaxTree[] = [];
 
-    while (
-      this.position < this.input.length &&
-      this.current() !== "|" &&
-      this.current() !== ")"
-    ) {
-      factors.push(this.parseFactor());
+    // peek !== "|" && peek() !== ")" car l'aternation est le seul parseur non encore appelé que
+    // l'ont risque de rencontrer, et ")" peut être rencontré notamment quand on est appelé par
+    // parseAlternation qui a été appelé par parseBase.
+    while (hasMore() && peek() !== "|" && peek() !== ")") {
+      factors.push(parseFactor());
     }
 
     if (factors.length === 0) {
@@ -60,68 +68,81 @@ class RegexParser {
     return factors.reduce((left, right) => ({ type: "concat", left, right }));
   }
 
-  private parseFactor(): SyntaxTree {
-    let base = this.parseBase();
+  /**
+   * Parse une expression factor (ex: 'a*')
+   * 
+   * @returns l'arbre syntaxique de l'expression régulière
+   */
+  function parseFactor(): SyntaxTree {
+    let base = parseBase();
 
-    while (this.position < this.input.length && this.current() === "*") {
-      this.position++; // consume '*'
+    while (hasMore() && peek() === "*") {
+      next(); // consume '*'
       base = { type: "star", child: base };
     }
 
     return base;
   }
 
-  private parseBase(): SyntaxTree {
-    const char = this.current();
+  /**
+   * Parse une expression de base, gère surtout les cas spéciaux: parenthèses, '.', échappement, et caractères simples
+   * @returns l'arbre syntaxique de l'expression régulière
+   */
+  function parseBase(): SyntaxTree {
+    const char = peek();
 
     if (char === "(") {
-      this.position++; // consume '('
-      const subExpr = this.parseAlternation();
+      next(); // consume '('
+      if (peek() === ")") {
+        next(); // consume ')'
+        return { type: "char", value: "" }; // empty string
+      }
+      const subExpr = parseAlternation();
 
-      if (this.current() !== ")") {
-        throw new Error(`Expected ')' at position ${this.position}`);
+      if (peek() !== ")") {
+        throw new Error(`Expected ')' at position ${position}`);
       }
 
-      this.position++; // consume ')'
+      next(); // consume ')'
       return subExpr;
     }
 
     if (char === ".") {
-      this.position++; // consume '.'
+      next(); // consume '.'
       return { type: "dot" };
     }
 
     if (char === "\\") {
-      this.position++; // consume '\'
+      next(); // consume '\'
 
-      if (this.position >= this.input.length) {
+      if (!hasMore()) {
         throw new Error("Backslash at end of regex");
       }
 
-      const escapedChar = this.current();
-      this.position++; // consume escaped character
-
+      const escapedChar = next(); // consume escaped character
       return { type: "char", value: escapedChar };
     }
 
     // Check for special characters that shouldn't be here
     if (char === "*" || char === "|" || char === ")") {
-      throw new Error(
-        `Unexpected character '${char}' at position ${this.position}`
-      );
+      throw new Error(`Unexpected character '${char}' at position ${position}`);
     }
 
     // Regular character
-    this.position++;
+    next();
     return { type: "char", value: char };
   }
 
-  private current(): string {
-    return this.input[this.position];
+  // Main parse function
+  if (input.length === 0) {
+    throw new Error("Empty regex");
   }
-}
 
-export function parseRegex(input: string): SyntaxTree {
-  const parser = new RegexParser(input);
-  return parser.parse();
+  const result = parseAlternation();
+
+  if (hasMore()) {
+    throw new Error(`Unexpected character at position ${position}: ${peek()}`);
+  }
+
+  return result;
 }

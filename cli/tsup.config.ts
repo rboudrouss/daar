@@ -7,9 +7,9 @@ export default defineConfig({
   sourcemap: true,
   clean: true,
   platform: 'node',
-  // Bundle everything including @monorepo/lib and commander
   noExternal: [/.*/],
-  // Add shebang for CLI executable
+  minify: true,
+  treeshake: true,
   shims: true,
   banner: {
     js: '#!/usr/bin/env node',

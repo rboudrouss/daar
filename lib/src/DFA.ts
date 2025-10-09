@@ -1,6 +1,15 @@
 import { EPSILON, type state_ID } from "./const.ts";
 import { NFA } from "./NFA.ts";
 
+/**
+ * Type representing a Deterministic Finite Automaton (DFA)
+ * 
+ * @typedef {Object} DFA
+ * @property {state_ID[]} states - Array of all states in the DFA
+ * @property {{ [key: state_ID]: { [key: string]: state_ID } }} transitions - Transition function mapping states and input symbols to next states
+ * @property {state_ID} start - The initial state of the DFA
+ * @property {state_ID[]} accepts - Array of accepting (final) states
+ */
 export type DFA = {
   states: state_ID[];
   transitions: { [key: state_ID]: { [key: string]: state_ID } };
@@ -10,7 +19,7 @@ export type DFA = {
 
 /**
  * Conversion d'un NFA en un DFA équivalent en utilisant l'algorithme de la clôture ε (epsilon)
- * 
+ *
  * @param nfa l'NFA à convertir en DFA
  * @returns le DFA équivalent à l'NFA donné
  */
@@ -110,61 +119,145 @@ export function dfaFromNfa(nfa: NFA): DFA {
 
 /**
  * Minimisation d'un DFA en utilisant l'algorithme de partitionnement
- * 
+ *
  * @param dfa le DFA à minimiser
  * @returns le DFA minimisé
  */
 export function minimizeDfa(dfa: DFA): DFA {
   const { states, transitions, start, accepts } = dfa;
-  let nonAccepts = states.filter((s) => !accepts.includes(s));
-  let partitions = [accepts.slice(), nonAccepts.slice()].filter(
+
+  /**
+   * @returns l'ensemble des symboles utilisés dans les transitions du DFA
+   */
+  function getSymbols(): Set<string> {
+    const symbols = new Set<string>();
+    for (let s of states) {
+      for (let sym in transitions[s] || {}) {
+        symbols.add(sym);
+      }
+    }
+    return symbols;
+  }
+
+  /**
+   * Calcule la signature d'un état basée sur ses transitions
+   * Une signature représente le comportement de l'état en fonction de ses transitions.
+   * Deux états ayant la même signature sont potentiellement équivalents.
+   * 
+   * @param state - L'état dont on veut obtenir la signature
+   * @param partitions - Les partitions actuelles des états
+   * @param symbols - L'ensemble des symboles de l'alphabet
+   * @returns Une chaîne représentant les groupes cibles pour chaque symbole.
+   *          Cette signature est utilisée pour identifier les états équivalents lors de la minimisation du DFA.
+   *          Chaque symbole est mappé à l'index du groupe dans lequel se trouve l'état cible.
+   */
+  function getStateSignature(
+    state: state_ID,
+    partitions: state_ID[][],
+    symbols: Set<string>
+  ): string {
+    return Array.from(symbols)
+      .map((sym) => {
+        const targetState = transitions[state]?.[sym];
+        return partitions.findIndex((p) => p.includes(targetState));
+      })
+      .join(",");
+  }
+
+  /**
+   * Raffine un groupe d'états en sous-groupes basés sur leurs signatures de transition
+   * 
+   * @param group - Le groupe d'états à raffiner
+   * @param partitions - Les partitions actuelles des états
+   * @param symbols - L'ensemble des symboles de l'alphabet
+   * @returns Un tableau de nouveaux groupes d'états, chacun contenant des états avec des signatures identiques
+   */
+  function refineGroup(
+    group: state_ID[],
+    partitions: state_ID[][],
+    symbols: Set<string>
+  ): state_ID[][] {
+    const splits: { [key: string]: state_ID[] } = {};
+
+    for (const state of group) {
+      const signature = getStateSignature(state, partitions, symbols);
+      if (!splits[signature]) splits[signature] = [];
+      splits[signature].push(state);
+    }
+
+    return Object.values(splits);
+  }
+
+  /**
+   * Raffine récursivement les partitions jusqu'à ce qu'aucun raffinement supplémentaire ne soit possible
+   * Cette fonction implémente l'étape clé de l'algorithme de minimisation de Hopcroft
+   * 
+   * @param currentPartitions - Les partitions actuelles des états
+   * @param symbols - L'ensemble des symboles de l'alphabet
+   * @returns Les partitions finales où tous les états dans une même partition sont équivalents
+   */
+  function refinePartitions(
+    currentPartitions: state_ID[][],
+    symbols: Set<string>
+  ): state_ID[][] {
+    let newPartitions: state_ID[][] = [];
+    let changed = false;
+
+    for (const group of currentPartitions) {
+      const refinedGroups = refineGroup(group, currentPartitions, symbols);
+      newPartitions.push(...refinedGroups);
+      if (refinedGroups.length > 1) changed = true;
+    }
+
+    return changed ? refinePartitions(newPartitions, symbols) : newPartitions;
+  }
+
+  /**
+   * Construit le DFA minimisé à partir des partitions finales
+   * Chaque partition devient un état dans le DFA minimisé
+   * 
+   * @param partitions - Les partitions finales des états équivalents
+   * @returns Le DFA minimisé où chaque état représente une classe d'équivalence des états originaux
+   */
+  function buildMinimizedDfa(partitions: state_ID[][]): DFA {
+    const stateMap: { [key: state_ID]: state_ID } = {};
+    partitions.forEach((group, idx) =>
+      group.forEach((s) => (stateMap[s] = idx))
+    );
+
+    const minTransitions: { [key: state_ID]: { [key: string]: state_ID } } = {};
+    const symbols = getSymbols();
+
+    for (let idx = 0; idx < partitions.length; idx++) {
+      const rep = partitions[idx][0];
+      minTransitions[idx] = {};
+      for (const sym of symbols) {
+        const target = transitions[rep]?.[sym];
+        if (target !== undefined) {
+          minTransitions[idx][sym] = stateMap[target];
+        }
+      }
+    }
+
+    return {
+      states: partitions.map((_, i) => i),
+      transitions: minTransitions,
+      start: stateMap[start],
+      accepts: partitions
+        .map((g, idx) => (g.some((s) => accepts.includes(s)) ? idx : -1))
+        .filter((x) => x !== -1),
+    };
+  }
+
+  // Initialisation des partitions avec états acceptants et non-acceptants
+  const nonAccepts = states.filter((s) => !accepts.includes(s));
+  const initialPartitions = [accepts.slice(), nonAccepts].filter(
     (p) => p.length
   );
-  let symbols = new Set<string>();
-  for (let s of states) {
-    for (let sym in transitions[s] || {}) symbols.add(sym);
-  }
-  let changed = true;
-  while (changed) {
-    changed = false;
-    let newPartitions: state_ID[][] = [];
-    for (let group of partitions) {
-      let splits: { [key: string]: state_ID[] } = {};
-      for (let s of group) {
-        let key = Array.from(symbols)
-          .map((sym) => {
-            let t = transitions[s]?.[sym];
-            let idx = partitions.findIndex((p) => p.includes(t));
-            return idx;
-          })
-          .join(",");
-        if (!splits[key]) splits[key] = [];
-        splits[key].push(s);
-      }
-      newPartitions.push(...Object.values(splits));
-    }
-    if (newPartitions.length !== partitions.length) changed = true;
-    partitions = newPartitions;
-  }
-  let stateMap: { [key: state_ID]: state_ID } = {};
-  partitions.forEach((group, idx) => group.forEach((s) => (stateMap[s] = idx)));
-  let minTransitions: { [key: state_ID]: { [key: string]: state_ID } } = {};
-  for (let idx = 0; idx < partitions.length; idx++) {
-    let rep = partitions[idx][0];
-    minTransitions[idx] = {};
-    for (let sym of symbols) {
-      let t = transitions[rep]?.[sym];
-      if (t !== undefined) minTransitions[idx][sym] = stateMap[t];
-    }
-  }
-  let minAccepts = partitions
-    .map((g, idx) => (g.some((s) => accepts.includes(s)) ? idx : -1))
-    .filter((x) => x !== -1);
-  let minStart = stateMap[start];
-  return {
-    states: partitions.map((_, i) => i),
-    transitions: minTransitions,
-    start: minStart,
-    accepts: minAccepts,
-  };
+  const symbols = getSymbols();
+
+  // Lancement du processus de minimisation
+  const finalPartitions = refinePartitions(initialPartitions, symbols);
+
+  return buildMinimizedDfa(finalPartitions);
 }

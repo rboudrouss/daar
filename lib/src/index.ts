@@ -1,15 +1,4 @@
-import { type DFA, DOT } from "./utils";
 import type { SyntaxTree } from "./RegexParser";
-
-export function matchDfa(dfa: DFA, input: string): boolean {
-  let state = dfa.start;
-  for (let c of input) {
-    let next = dfa.transitions[state]?.[c] ?? dfa.transitions[state]?.[DOT];
-    if (next === undefined) return false;
-    state = next;
-  }
-  return dfa.accepts.includes(state);
-}
 
 export function isSimpleConcat(tree: SyntaxTree): boolean {
   if (tree.type === "char" || tree.type === "dot") return true;

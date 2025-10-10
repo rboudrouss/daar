@@ -246,3 +246,24 @@ export function minimizeDfa(dfa: DFA): DFA {
 
   return buildMinimizedDfa(finalPartitions);
 }
+
+
+/**
+ * 
+ * @param dfa 
+ * @param input 
+ * @returns 
+ */
+export function matchDfa(dfa: DFA, input: string): boolean {
+  let state = dfa.start;
+  for (let c of input) {
+    let next = dfa.transitions[state]?.[c] ?? dfa.transitions[state]?.[DOT];
+    if (next === undefined) return false;
+    state = next;
+    // Si on est dans un état acceptant et qu'on a une transition DOT vers lui-même, on accepte immédiatement
+    if (dfa.accepts.includes(state) && dfa.transitions[state]?.[DOT] === state) {
+      return true;
+    } 
+  }
+  return dfa.accepts.includes(state);
+}

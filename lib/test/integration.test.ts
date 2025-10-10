@@ -288,3 +288,35 @@ describe("DFA Minimization", () => {
     expect(minDfa.states.length).toBeLessThanOrEqual(dfa.states.length);
   });
 });
+
+describe("Regression - Ensuring Fixes Don't Break Existing Functionality", () => {
+  it("should not break simple patterns without wildcards", () => {
+    // Ensure the fallback transition fix doesn't break simple cases
+    const regex = parseRegex("abc");
+    const nfa = nfaFromSyntaxTree(regex);
+    const dfa = dfaFromNfa(nfa);
+
+    expect(matchDfa(dfa, "abc")).toBe(true);
+    expect(matchDfa(dfa, "ab")).toBe(false);
+    expect(matchDfa(dfa, "abcd")).toBe(false);
+  });
+
+  it("should not break patterns with only wildcards", () => {
+    const regex = parseRegex(".*");
+    const nfa = nfaFromSyntaxTree(regex);
+    const dfa = dfaFromNfa(nfa);
+
+    expect(matchDfa(dfa, "")).toBe(true);
+    expect(matchDfa(dfa, "anything")).toBe(true);
+  });
+
+  it("should not break alternation patterns", () => {
+    const regex = parseRegex("a|b");
+    const nfa = nfaFromSyntaxTree(regex);
+    const dfa = dfaFromNfa(nfa);
+
+    expect(matchDfa(dfa, "a")).toBe(true);
+    expect(matchDfa(dfa, "b")).toBe(true);
+    expect(matchDfa(dfa, "c")).toBe(false);
+  });
+});

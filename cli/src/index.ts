@@ -1,5 +1,5 @@
 import { readFileSync } from "fs";
-import { parseRegex, nfaFromSyntaxTree, dfaFromNfa } from "@monorepo/lib";
+import { parseRegex, nfaFromSyntaxTree, dfaFromNfa, matchDfa, minimizeDfa } from "@monorepo/lib";
 import { Command } from "commander";
 
 function main() {
@@ -13,7 +13,7 @@ function main() {
     .option("-i, --ignore-case", "Ignore case distinctions", false)
     .option("-n, --line-number", "Prefix each line with its line number", false)
     .option("-v, --invert-match", "Select non-matching lines", false)
-    .version("1.0.0");
+    .version("0.0.1");
 
   program.parse();
 
@@ -25,35 +25,16 @@ function main() {
     // Lecture du fichier
     const content = readFileSync(filename, "utf-8");
     const lines = content.split("\n");
+    const internalRegex = `(.*)(${regex})(.*)`; // On veut matcher n'importe quel caractère avant et après le pattern
 
-    // Création du DFA à partir de l'expression régulière
-    const syntaxTree = parseRegex(regex);
+    const syntaxTree = parseRegex(internalRegex);
     const nfa = nfaFromSyntaxTree(syntaxTree);
     const dfa = dfaFromNfa(nfa);
 
-    // Fonction pour vérifier si une ligne contient un mot qui correspond à l'expression régulière
-    const matchesRegex = (line: string): boolean => {
-      const processedLine = options.ignoreCase ? line.toLowerCase() : line;
-      const words = processedLine.split(/\s+/);
-      return words.some((word) => {
-        let currentState = dfa.start;
-        
-        // Parcours des caractères du mot
-        for (const char of word) {
-          if (!dfa.transitions[currentState] || !dfa.transitions[currentState][char]) {
-            return false;
-          }
-          currentState = dfa.transitions[currentState][char];
-        }
-        
-        // Vérifie si on est dans un état final
-        return dfa.accepts.includes(currentState);
-      });
-    };
-
     // Affichage des lignes qui correspondent
     lines.forEach((line, index) => {
-      const matches = matchesRegex(line);
+      const matches = matchDfa(dfa, line);
+      console.log(`Line ${index + 1}: ${matches}`);
       if (matches !== options.invertMatch) {
         if (options.lineNumber) {
           console.log(`${index + 1} ${line}`);

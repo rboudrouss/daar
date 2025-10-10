@@ -298,6 +298,27 @@ describe("NFA - Edge Cases", () => {
     expect(matchNfa(nfa, "a")).toBe(true);
     expect(matchNfa(nfa, "")).toBe(true);
   });
+
+  it("should handle complex nested patterns", () => {
+    const tree = parseRegex("((a|b)*abb)");
+    const nfa = nfaFromSyntaxTree(tree);
+
+    expect(matchNfa(nfa, "abb")).toBe(true);
+    expect(matchNfa(nfa, "aabb")).toBe(true);
+    expect(matchNfa(nfa, "babb")).toBe(true);
+    expect(matchNfa(nfa, "aaabb")).toBe(true);
+  });
+
+  it("should handle .* pattern", () => {
+    const tree = parseRegex(".*abc.*");
+    const nfa = nfaFromSyntaxTree(tree);
+
+    expect(matchNfa(nfa, "abc")).toBe(true);
+    expect(matchNfa(nfa, "xyzabc")).toBe(true);
+    expect(matchNfa(nfa, "abcxyz")).toBe(true);
+    expect(matchNfa(nfa, "xyzabcxyz")).toBe(true);
+
+  });
 });
 
 describe("NFA - Error Handling", () => {

@@ -1,5 +1,4 @@
-import { DOT } from "./const";
-import { DFA } from "./DFA";
+import { type DFA, DOT } from "./utils";
 import type { SyntaxTree } from "./RegexParser";
 
 export function matchDfa(dfa: DFA, input: string): boolean {
@@ -45,7 +44,7 @@ export function kmpSearch(pattern: string, text: string): number[] {
   return res;
 }
 
-export * from "./const";
+export * from "./utils";
 export * from "./RegexParser";
 export * from "./NFA";
 export * from "./DFA";

@@ -34,7 +34,6 @@ function main() {
     // Affichage des lignes qui correspondent
     lines.forEach((line, index) => {
       const matches = matchDfa(dfa, line);
-      console.log(`Line ${index + 1}: ${matches}`);
       if (matches !== options.invertMatch) {
         if (options.lineNumber) {
           console.log(`${index + 1} ${line}`);

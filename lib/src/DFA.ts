@@ -1,21 +1,11 @@
-import { DOT, EPSILON, type state_ID } from "./const";
-import { NFA } from "./NFA";
-
-/**
- * Type representing a Deterministic Finite Automaton (DFA)
- * 
- * @typedef {Object} DFA
- * @property {state_ID[]} states - Array of all states in the DFA
- * @property {{ [key: state_ID]: { [key: string]: state_ID } }} transitions - Transition function mapping states and input symbols to next states
- * @property {state_ID} start - The initial state of the DFA
- * @property {state_ID[]} accepts - Array of accepting (final) states
- */
-export type DFA = {
-  states: state_ID[];
-  transitions: { [key: state_ID]: { [key: string]: state_ID } };
-  start: state_ID;
-  accepts: state_ID[];
-};
+import {
+  EPSILON,
+  type NFA,
+  type DFA,
+  type state_ID,
+  epsilonClosure,
+  DOT,
+} from "./utils";
 
 /**
  * Conversion d'un NFA en un DFA équivalent en utilisant l'algorithme de la clôture ε (epsilon)
@@ -32,36 +22,27 @@ export function dfaFromNfa(nfa: NFA): DFA {
 
   /**
    * @param states les états de l'NFA
-   * @returns l'ensemble des états accessibles par des transitions ε (epsilon) à partir de l'ensemble states
-   */
-  function epsilonClosure(states: state_ID[]): state_ID[] {
-    let closure = new Set(states);
-    let stack = [...states];
-    while (stack.length) {
-      let s = stack.pop()!;
-      let trans = nfa.transitions[s]?.[EPSILON] || [];
-      for (let t of trans) {
-        if (!closure.has(t)) {
-          closure.add(t);
-          stack.push(t);
-        }
-      }
-    }
-    return Array.from(closure);
-  }
-
-  /**
-   * @param states les états de l'NFA
    * @param symbol le symbole de transition
    * @returns tous les états accessibles à partir de states par une transition étiquetée par symbol, suivie de transitions ε (epsilon)
+   *
+   * Note: Si le symbole n'est pas DOT, cette fonction considère également les transitions DOT
+   * car DOT peut matcher n'importe quel caractère, y compris le symbole spécifique.
    */
   function getTransitions(states: state_ID[], symbol: string): state_ID[] {
     let result: state_ID[] = [];
     for (let s of states) {
+      // Transitions pour le symbole spécifique
       let trans = nfa.transitions[s]?.[symbol] || [];
       result.push(...trans);
+
+      // Si le symbole n'est pas DOT lui-même, ajouter aussi les transitions DOT
+      // car DOT peut matcher n'importe quel caractère, y compris ce symbole
+      if (symbol !== DOT) {
+        let dotTrans = nfa.transitions[s]?.[DOT] || [];
+        result.push(...dotTrans);
+      }
     }
-    return epsilonClosure(result);
+    return epsilonClosure(nfa, result);
   }
 
   /**
@@ -110,37 +91,8 @@ export function dfaFromNfa(nfa: NFA): DFA {
   }
 
   // Start the recursive process
-  let startSet = epsilonClosure([nfa.start]);
+  let startSet = epsilonClosure(nfa, [nfa.start]);
   processState(startSet);
-
-  // HACK
-  // Post-process: Add fallback transitions for states without DOT
-  // This is needed for patterns like (.*)(abc)(.*) where we need to fall back
-  // to the .* state when a specific character match fails
-  const dotFallbackState = dfaTransitions[0]?.[DOT];
-  if (dotFallbackState !== undefined) {
-    // Collect all specific character transitions from the fallback state
-    const fallbackStateTransitions = dfaTransitions[dotFallbackState] || {};
-
-    for (let stateId = 0; stateId < dfaStates.length; stateId++) {
-      // Skip states that already have DOT transitions
-      if (dfaTransitions[stateId]?.[DOT] !== undefined) continue;
-
-      // Skip the start state and the fallback state itself
-      if (stateId === 0 || stateId === dotFallbackState) continue;
-
-      // Add DOT fallback transition
-      dfaTransitions[stateId][DOT] = dotFallbackState;
-
-      // Also add specific character transitions from the fallback state
-      // This allows us to restart pattern matching when we see a character that could start the pattern
-      for (const char in fallbackStateTransitions) {
-        if (char !== DOT && !dfaTransitions[stateId][char]) {
-          dfaTransitions[stateId][char] = fallbackStateTransitions[char];
-        }
-      }
-    }
-  }
 
   return {
     states: dfaStates.map((_, i) => i),
@@ -176,7 +128,7 @@ export function minimizeDfa(dfa: DFA): DFA {
    * Calcule la signature d'un état basée sur ses transitions
    * Une signature représente le comportement de l'état en fonction de ses transitions.
    * Deux états ayant la même signature sont potentiellement équivalents.
-   * 
+   *
    * @param state - L'état dont on veut obtenir la signature
    * @param partitions - Les partitions actuelles des états
    * @param symbols - L'ensemble des symboles de l'alphabet
@@ -199,7 +151,7 @@ export function minimizeDfa(dfa: DFA): DFA {
 
   /**
    * Raffine un groupe d'états en sous-groupes basés sur leurs signatures de transition
-   * 
+   *
    * @param group - Le groupe d'états à raffiner
    * @param partitions - Les partitions actuelles des états
    * @param symbols - L'ensemble des symboles de l'alphabet
@@ -224,7 +176,7 @@ export function minimizeDfa(dfa: DFA): DFA {
   /**
    * Raffine récursivement les partitions jusqu'à ce qu'aucun raffinement supplémentaire ne soit possible
    * Cette fonction implémente l'étape clé de l'algorithme de minimisation de Hopcroft
-   * 
+   *
    * @param currentPartitions - Les partitions actuelles des états
    * @param symbols - L'ensemble des symboles de l'alphabet
    * @returns Les partitions finales où tous les états dans une même partition sont équivalents
@@ -248,7 +200,7 @@ export function minimizeDfa(dfa: DFA): DFA {
   /**
    * Construit le DFA minimisé à partir des partitions finales
    * Chaque partition devient un état dans le DFA minimisé
-   * 
+   *
    * @param partitions - Les partitions finales des états équivalents
    * @returns Le DFA minimisé où chaque état représente une classe d'équivalence des états originaux
    */

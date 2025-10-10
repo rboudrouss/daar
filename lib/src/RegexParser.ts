@@ -70,7 +70,7 @@ export function parseRegex(input: string): SyntaxTree {
 
   /**
    * Parse une expression factor (ex: 'a*')
-   * 
+   *
    * @returns l'arbre syntaxique de l'expression régulière
    */
   function parseFactor(): SyntaxTree {

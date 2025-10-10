@@ -1,12 +1,15 @@
 import { readFileSync } from "fs";
-import { parseRegex, nfaFromSyntaxTree, dfaFromNfa, matchDfa, minimizeDfa } from "@monorepo/lib";
+import { parseRegex, nfaFromSyntaxTree, dfaFromNfa, matchDfa, minimizeDfa, matchNfa, type DFA } from "@monorepo/lib";
 import { Command } from "commander";
+
+type OptimizationLevel = "nfa" | "dfa" | "min-dfa";
 
 interface PerformanceMetrics {
   totalTime: number;
   parseTime: number;
   nfaTime: number;
-  dfaTime: number;
+  dfaTime?: number;
+  minDfaTime?: number;
   matchTime: number;
   memoryUsed: number;
   peakMemory: number;
@@ -14,10 +17,13 @@ interface PerformanceMetrics {
 
 function formatBytes(bytes: number): string {
   if (bytes === 0) return '0 Bytes';
+  const absBytes = Math.abs(bytes);
   const k = 1024;
   const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
+  const i = Math.floor(Math.log(absBytes) / Math.log(k));
+  const value = Math.round((absBytes / Math.pow(k, i)) * 100) / 100;
+  const sign = bytes < 0 ? '-' : '';
+  return sign + value + ' ' + sizes[i];
 }
 
 function formatTime(ms: number): string {
@@ -31,7 +37,12 @@ function printPerformanceMetrics(metrics: PerformanceMetrics): void {
   console.error(`Total execution time: ${formatTime(metrics.totalTime)}`);
   console.error(`  - Regex parsing:    ${formatTime(metrics.parseTime)}`);
   console.error(`  - NFA construction: ${formatTime(metrics.nfaTime)}`);
-  console.error(`  - DFA construction: ${formatTime(metrics.dfaTime)}`);
+  if (metrics.dfaTime !== undefined) {
+    console.error(`  - DFA construction: ${formatTime(metrics.dfaTime)}`);
+  }
+  if (metrics.minDfaTime !== undefined) {
+    console.error(`  - DFA minimization: ${formatTime(metrics.minDfaTime)}`);
+  }
   console.error(`  - Pattern matching: ${formatTime(metrics.matchTime)}`);
   console.error(`\nMemory usage:`);
   console.error(`  - Total allocated:  ${formatBytes(metrics.memoryUsed)}`);
@@ -51,6 +62,11 @@ function main() {
     .option("-n, --line-number", "Prefix each line with its line number", false)
     .option("-v, --invert-match", "Select non-matching lines", false)
     .option("-p, --perf", "Display performance metrics (time and memory)", false)
+    .option(
+      "-O, --optimize <level>",
+      "Optimization level: nfa (default), dfa, or min-dfa",
+      "nfa"
+    )
     .version("0.0.1");
 
   program.parse();
@@ -58,6 +74,14 @@ function main() {
   const options = program.opts();
   const [pattern, filename] = program.args;
   const regex = options.ignoreCase ? pattern.toLowerCase() : pattern;
+  const optimizationLevel = options.optimize as OptimizationLevel;
+
+  // Validate optimization level
+  if (!["nfa", "dfa", "min-dfa"].includes(optimizationLevel)) {
+    console.error(`Invalid optimization level: ${optimizationLevel}`);
+    console.error("Valid options are: nfa, dfa, min-dfa");
+    process.exit(1);
+  }
 
   try {
     const startTotal = performance.now();
@@ -81,16 +105,41 @@ function main() {
     const nfaTime = performance.now() - startNfa;
     peakMemory = Math.max(peakMemory, process.memoryUsage().heapUsed);
 
-    // Build DFA
-    const startDfa = performance.now();
-    const dfa = dfaFromNfa(nfa);
-    const dfaTime = performance.now() - startDfa;
-    peakMemory = Math.max(peakMemory, process.memoryUsage().heapUsed);
+    let dfaTime: number | undefined;
+    let minDfaTime: number | undefined;
+    let dfa: DFA | undefined;
+    let minDfa: DFA | undefined;
+
+    // Build DFA if requested
+    if (optimizationLevel === "dfa" || optimizationLevel === "min-dfa") {
+      const startDfa = performance.now();
+      dfa = dfaFromNfa(nfa);
+      dfaTime = performance.now() - startDfa;
+      peakMemory = Math.max(peakMemory, process.memoryUsage().heapUsed);
+    }
+
+    // Minimize DFA if requested
+    if (optimizationLevel === "min-dfa" && dfa) {
+      const startMinDfa = performance.now();
+      minDfa = minimizeDfa(dfa);
+      minDfaTime = performance.now() - startMinDfa;
+      peakMemory = Math.max(peakMemory, process.memoryUsage().heapUsed);
+    }
 
     // Match lines
     const startMatch = performance.now();
     lines.forEach((line, index) => {
-      const matches = matchDfa(dfa, line);
+      let matches: boolean;
+
+      // Choose the appropriate matching function based on optimization level
+      if (optimizationLevel === "min-dfa" && minDfa) {
+        matches = matchDfa(minDfa, line);
+      } else if (optimizationLevel === "dfa" && dfa) {
+        matches = matchDfa(dfa, line);
+      } else {
+        matches = matchNfa(nfa, line);
+      }
+
       if (matches !== options.invertMatch) {
         if (options.lineNumber) {
           console.log(`${index + 1} ${line}`);
@@ -113,6 +162,7 @@ function main() {
         parseTime,
         nfaTime,
         dfaTime,
+        minDfaTime,
         matchTime,
         memoryUsed,
         peakMemory: peakMemory - startMemory.heapUsed,

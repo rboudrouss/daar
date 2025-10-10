@@ -1,4 +1,4 @@
-import { EPSILON, type state_ID } from "./const";
+import { DOT, EPSILON, type state_ID } from "./const";
 import { NFA } from "./NFA";
 
 /**
@@ -87,14 +87,18 @@ export function dfaFromNfa(nfa: NFA): DFA {
     let symbols = new Set<string>();
     for (let s of states) {
       for (let sym in nfa.transitions[s] || {}) {
-        if (sym !== EPSILON) symbols.add(sym);
+        if (sym !== EPSILON) {
+          symbols.add(sym);
+        }
       }
     }
 
     // Recursively process transitions
     for (let sym of symbols) {
       let targetStates = getTransitions(states, sym);
-      dfaTransitions[currentId][sym] = processState(targetStates);
+      if (targetStates.length > 0) {
+        dfaTransitions[currentId][sym] = processState(targetStates);
+      }
     }
 
     // Check if this is an accepting state
@@ -108,6 +112,35 @@ export function dfaFromNfa(nfa: NFA): DFA {
   // Start the recursive process
   let startSet = epsilonClosure([nfa.start]);
   processState(startSet);
+
+  // HACK
+  // Post-process: Add fallback transitions for states without DOT
+  // This is needed for patterns like (.*)(abc)(.*) where we need to fall back
+  // to the .* state when a specific character match fails
+  const dotFallbackState = dfaTransitions[0]?.[DOT];
+  if (dotFallbackState !== undefined) {
+    // Collect all specific character transitions from the fallback state
+    const fallbackStateTransitions = dfaTransitions[dotFallbackState] || {};
+
+    for (let stateId = 0; stateId < dfaStates.length; stateId++) {
+      // Skip states that already have DOT transitions
+      if (dfaTransitions[stateId]?.[DOT] !== undefined) continue;
+
+      // Skip the start state and the fallback state itself
+      if (stateId === 0 || stateId === dotFallbackState) continue;
+
+      // Add DOT fallback transition
+      dfaTransitions[stateId][DOT] = dotFallbackState;
+
+      // Also add specific character transitions from the fallback state
+      // This allows us to restart pattern matching when we see a character that could start the pattern
+      for (const char in fallbackStateTransitions) {
+        if (char !== DOT && !dfaTransitions[stateId][char]) {
+          dfaTransitions[stateId][char] = fallbackStateTransitions[char];
+        }
+      }
+    }
+  }
 
   return {
     states: dfaStates.map((_, i) => i),

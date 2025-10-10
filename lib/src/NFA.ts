@@ -138,3 +138,68 @@ export function nfaFromSyntaxTree(tree: SyntaxTree): NFA {
   const result = build(tree);
   return result.nfa;
 }
+
+/**
+ * Calcule la fermeture epsilon d'un ensemble d'états
+ * La fermeture epsilon d'un état est l'ensemble de tous les états accessibles
+ * depuis cet état en suivant uniquement des transitions epsilon
+ *
+ * @param nfa le NFA
+ * @param states l'ensemble d'états initial
+ * @returns l'ensemble d'états accessibles via des transitions epsilon
+ */
+function epsilonClosure(nfa: NFA, states: state_ID[]): state_ID[] {
+  const closure = new Set<state_ID>(states);
+  const stack = [...states];
+
+  while (stack.length > 0) {
+    const state = stack.pop()!;
+    const epsilonTransitions = nfa.transitions[state]?.[EPSILON] || [];
+
+    for (const nextState of epsilonTransitions) {
+      if (!closure.has(nextState)) {
+        closure.add(nextState);
+        stack.push(nextState);
+      }
+    }
+  }
+
+  return Array.from(closure);
+}
+
+/**
+ * Vérifie si une chaîne de caractères correspond à un motif donné représenté par un NFA
+ *
+ * @param nfa le NFA représentant le motif
+ * @param input la chaîne de caractères à vérifier
+ * @returns true si la chaîne correspond au motif représenté par le NFA, sinon false
+ */
+export function matchNfa(nfa: NFA, input: string): boolean {
+  // Commencer avec la fermeture epsilon de l'état initial
+  let states = epsilonClosure(nfa, [nfa.start]);
+
+  for (let c of input) {
+    let nextStates: state_ID[] = [];
+
+    for (let s of states) {
+      // Transitions pour le caractère exact
+      const charTransitions = nfa.transitions[s]?.[c] || [];
+      nextStates.push(...charTransitions);
+
+      // Transitions pour DOT (correspond à n'importe quel caractère)
+      const dotTransitions = nfa.transitions[s]?.[DOT] || [];
+      nextStates.push(...dotTransitions);
+    }
+
+    // Appliquer la fermeture epsilon après chaque transition
+    states = epsilonClosure(nfa, nextStates);
+
+    // Si aucun état n'est accessible, la correspondance échoue
+    if (states.length === 0) {
+      return false;
+    }
+  }
+
+  // Vérifier si au moins un des états finaux est un état acceptant
+  return states.some((s) => nfa.accepts.includes(s));
+}

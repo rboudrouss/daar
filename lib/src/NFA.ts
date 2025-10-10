@@ -1,26 +1,9 @@
-import { DOT, EPSILON, type state_ID } from "./const";
+import { DOT, EPSILON, epsilonClosure, type NFA, type state_ID } from "./utils";
 import { SyntaxTree } from "./RegexParser";
 
 /**
- * Type representing a Non-deterministic Finite Automaton (NFA)
- * An NFA can have multiple transitions for the same input symbol from a given state,
- * and can also have epsilon (ε) transitions that don't consume any input.
- * 
- * @property {} states - Array of all states in the NFA
- * @property {} transitions - Transition function mapping states and input symbols to arrays of possible next states
- * @property {} start - The initial state of the NFA
- * @property {} accepts - Array of accepting (final) states
- */
-export type NFA = {
-  states: state_ID[];
-  transitions: { [key: state_ID]: { [key: string]: state_ID[] } };
-  start: state_ID;
-  accepts: state_ID[];
-};
-
-/**
  * Construction d'un NFA à partir d'un arbre syntaxique représentant une expression régulière
- * 
+ *
  * @param tree l'arbre syntaxique représentant l'expression régulière
  * @returns un NFA construit à partir de l'arbre syntaxique
  */
@@ -37,7 +20,7 @@ export function nfaFromSyntaxTree(tree: SyntaxTree): NFA {
   /**
    * Construit récursivement un NFA à partir d'un nœud de l'arbre syntaxique
    * Cette fonction implémente les constructions de Thompson pour chaque opérateur
-   * 
+   *
    * @param t - Le nœud de l'arbre syntaxique à traiter
    * @returns Un objet contenant :
    *          - start: l'état initial du fragment
@@ -140,34 +123,6 @@ export function nfaFromSyntaxTree(tree: SyntaxTree): NFA {
 }
 
 /**
- * Calcule la fermeture epsilon d'un ensemble d'états
- * La fermeture epsilon d'un état est l'ensemble de tous les états accessibles
- * depuis cet état en suivant uniquement des transitions epsilon
- *
- * @param nfa le NFA
- * @param states l'ensemble d'états initial
- * @returns l'ensemble d'états accessibles via des transitions epsilon
- */
-function epsilonClosure(nfa: NFA, states: state_ID[]): state_ID[] {
-  const closure = new Set<state_ID>(states);
-  const stack = [...states];
-
-  while (stack.length > 0) {
-    const state = stack.pop()!;
-    const epsilonTransitions = nfa.transitions[state]?.[EPSILON] || [];
-
-    for (const nextState of epsilonTransitions) {
-      if (!closure.has(nextState)) {
-        closure.add(nextState);
-        stack.push(nextState);
-      }
-    }
-  }
-
-  return Array.from(closure);
-}
-
-/**
  * Vérifie si une chaîne de caractères correspond à un motif donné représenté par un NFA
  *
  * @param nfa le NFA représentant le motif
@@ -179,20 +134,20 @@ export function matchNfa(nfa: NFA, input: string): boolean {
   let states = epsilonClosure(nfa, [nfa.start]);
 
   for (let c of input) {
-    let nextStates: state_ID[] = [];
+    const nextStatesSet = new Set<state_ID>();
 
     for (let s of states) {
       // Transitions pour le caractère exact
       const charTransitions = nfa.transitions[s]?.[c] || [];
-      nextStates.push(...charTransitions);
+      charTransitions.forEach((st) => nextStatesSet.add(st));
 
       // Transitions pour DOT (correspond à n'importe quel caractère)
       const dotTransitions = nfa.transitions[s]?.[DOT] || [];
-      nextStates.push(...dotTransitions);
+      dotTransitions.forEach((st) => nextStatesSet.add(st));
     }
 
     // Appliquer la fermeture epsilon après chaque transition
-    states = epsilonClosure(nfa, nextStates);
+    states = epsilonClosure(nfa, Array.from(nextStatesSet));
 
     // Si aucun état n'est accessible, la correspondance échoue
     if (states.length === 0) {

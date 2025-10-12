@@ -15,6 +15,7 @@ import {
   type AlgorithmType,
 } from "@monorepo/lib";
 import { Command } from "commander";
+import { runAllTests } from "./test-all";
 
 type OptimizationLevel = "auto" | "literal-kmp" | "literal-bm" | "nfa" | "dfa" | "min-dfa";
 
@@ -96,8 +97,8 @@ function main() {
   program
     .name("egrep-clone")
     .description("Search for pattern in files using regular expressions")
-    .argument("<pattern>", "Regular expression pattern to search for")
-    .argument("<file>", "File to search in")
+    .argument("[pattern]", "Regular expression pattern to search for")
+    .argument("[file]", "File to search in")
     .option("-i, --ignore-case", "Ignore case distinctions", false)
     .option("-n, --line-number", "Prefix each line with its line number", false)
     .option("-v, --invert-match", "Select non-matching lines", false)
@@ -109,12 +110,38 @@ function main() {
       "auto"
     )
     .option("--no-prefilter", "Disable prefiltering (use only NFA/DFA matching)")
+    .option("--test-all", "Run comprehensive tests on all algorithms with various scenarios")
+    .option("--test-file <file>", "Optional: Use a specific file for testing (with --test-all)")
+    .option("--test-folder <folder>", "Optional: Test on all files in a folder (with --test-all)")
+    .option("--test-only-automata", "Only test automaton-based algorithms (NFA, DFA, min-DFA)")
+    .option("--test-only-literal", "Only test literal search algorithms (KMP, Boyer-Moore, Aho-Corasick)")
     .version("0.0.1");
 
   program.parse();
 
   const options = program.opts();
+
+  // Handle --test-all flag
+  if (options.testAll) {
+    runAllTests({
+      verbose: true,
+      dataFile: options.testFile,
+      dataFolder: options.testFolder,
+      onlyAutomata: options.testOnlyAutomata,
+      onlyLiteral: options.testOnlyLiteral,
+    });
+    process.exit(0);
+  }
+
   const [pattern, filename] = program.args;
+
+  // Validate required arguments when not in test mode
+  if (!pattern || !filename) {
+    console.error("Error: pattern and file arguments are required (unless using --test-all)");
+    program.help();
+    process.exit(1);
+  }
+
   const regex = options.ignoreCase ? pattern.toLowerCase() : pattern;
   const optimizationLevel = options.optimize as OptimizationLevel;
 

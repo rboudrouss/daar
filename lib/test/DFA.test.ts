@@ -265,34 +265,14 @@ describe("DFA - Fallback Transitions", () => {
   });
 
   it("should handle the exact execution trace from the bug", () => {
-    /**
-     * Original bug execution trace for "jdioaabczd" with pattern (.*)(abc)(.*):
-     *
-     * State 1, char 'j' -> 1  (DOT)
-     * State 1, char 'd' -> 1  (DOT)
-     * State 1, char 'i' -> 1  (DOT)
-     * State 1, char 'o' -> 1  (DOT)
-     * State 1, char 'a' -> 2  (specific 'a' transition)
-     * State 2, char 'a' -> undefined  ❌ BUG: No transition!
-     *
-     * After fix:
-     * State 1, char 'a' -> 2  (specific 'a' transition)
-     * State 2, char 'a' -> 2  (fallback 'a' transition added)
-     * State 2, char 'b' -> 3
-     * State 3, char 'c' -> 0  (accepting state)
-     * ... continues matching
-     */
-
     const regex = parseRegex("(.*)(abc)(.*)");
     const nfa = nfaFromSyntaxTree(regex);
     const dfa = dfaFromNfa(nfa);
 
-    // The exact string from the bug report
     const testString = "jdioaabczd";
 
     expect(matchDfa(dfa, testString)).toBe(true);
 
-    // Also test the minimized version
     const minDfa = minimizeDfa(dfa);
     expect(matchDfa(minDfa, testString)).toBe(true);
   });

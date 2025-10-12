@@ -33,7 +33,16 @@ export function kmpSearch(pattern: string, text: string): number[] {
   return res;
 }
 
+
+
 export * from "./utils";
 export * from "./RegexParser";
 export * from "./NFA";
 export * from "./DFA";
+export * from "./LiteralExtractor";
+export * from "./BoyerMoore";
+export * from "./AhoCorasick";
+export * from "./ChunkedLineReader";
+export * from "./GrepMatcher";
+export * from "./Matcher";
+export * from "./AlgorithmSelector";

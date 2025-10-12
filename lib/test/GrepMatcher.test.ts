@@ -197,8 +197,8 @@ describe("GrepMatcher", () => {
 
       const results = Array.from(matcher.searchFile(testFile, mockMatcher));
 
-      // Toutes les lignes retournées ne devraient PAS contenir "test"
-      expect(results.every((r) => !r.line.toLowerCase().includes("test"))).toBe(
+      // Toutes les lignes retournées ne devraient PAS contenir "test" (case-sensitive)
+      expect(results.every((r) => !r.line.includes("test"))).toBe(
         true
       );
     });

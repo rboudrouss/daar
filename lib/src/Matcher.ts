@@ -39,7 +39,13 @@ export function findAllMatchesNfa(nfa: NFA, line: string): Match[] {
       matches.push(match);
       // Sauter après ce match pour éviter les chevauchements
       // (comportement standard de grep)
-      startPos = match.end - 1; // -1 car la boucle va incrémenter
+      // Si le match est vide (start == end), avancer d'au moins 1 pour éviter une boucle infinie
+      if (match.end === match.start) {
+        // Match vide, continuer à la position suivante
+        // startPos sera incrémenté par la boucle
+      } else {
+        startPos = match.end - 1; // -1 car la boucle va incrémenter
+      }
     }
   }
 
@@ -134,7 +140,13 @@ export function findAllMatchesDfa(dfa: DFA, line: string): Match[] {
     if (match) {
       matches.push(match);
       // Sauter après ce match pour éviter les chevauchements
-      startPos = match.end - 1; // -1 car la boucle va incrémenter
+      // Si le match est vide (start == end), avancer d'au moins 1 pour éviter une boucle infinie
+      if (match.end === match.start) {
+        // Match vide, continuer à la position suivante
+        // startPos sera incrémenté par la boucle
+      } else {
+        startPos = match.end - 1; // -1 car la boucle va incrémenter
+      }
     }
   }
 

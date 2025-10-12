@@ -8,8 +8,7 @@
  *   1. Bad character rule: saute en fonction du caractère qui ne correspond pas
  *   2. Good suffix rule: saute en fonction du suffixe qui correspond
  * 
- * Pour simplifier, on implémente seulement la bad character rule qui donne
- * déjà d'excellentes performances.
+ * Pour simplifier, on implémente seulement la bad character rule
  */
 
 /**

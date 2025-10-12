@@ -4,12 +4,8 @@
  * Aho-Corasick est un algorithme de recherche de sous-chaînes qui permet de
  * rechercher plusieurs motifs simultanément en un seul passage sur le texte.
  * 
- * Il construit un automate (trie) avec des liens de failure qui permettent
+ * Il construit un trie avec des liens de failure qui permettent
  * de passer efficacement d'un motif à un autre lors de la recherche.
- * 
- * Complexité:
- * - Construction: O(sum of pattern lengths)
- * - Recherche: O(text length + number of matches)
  */
 
 interface TrieNode {

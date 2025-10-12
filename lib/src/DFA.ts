@@ -1,3 +1,8 @@
+/**
+ * Module pour la conversion d'un NFA en DFA et la minimisation du DFA
+ * 
+ * 
+ */
 import {
   EPSILON,
   type NFA,

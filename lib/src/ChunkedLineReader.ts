@@ -9,10 +9,6 @@ import * as fs from "fs";
  * - Permet un préfiltrage rapide sur les chunks bruts avant de découper en lignes
  * - Gère correctement les lignes qui chevauchent plusieurs chunks
  *
- * Avantages:
- * - Faible empreinte mémoire (ne charge pas tout le fichier)
- * - Permet le préfiltrage rapide sur les chunks
- * - Efficace pour les gros fichiers
  */
 
 export interface LineMatch {

@@ -16,8 +16,19 @@ import {
 } from "@monorepo/lib";
 import { Command } from "commander";
 import { runAllTests } from "./test-all";
+import {
+  MemoryTracker,
+  getSafeMemoryUsage,
+  formatBytes as formatBytesUtil,
+} from "./memory-utils";
 
-type OptimizationLevel = "auto" | "literal-kmp" | "literal-bm" | "nfa" | "dfa" | "min-dfa";
+type OptimizationLevel =
+  | "auto"
+  | "literal-kmp"
+  | "literal-bm"
+  | "nfa"
+  | "dfa"
+  | "min-dfa";
 
 interface PerformanceMetrics {
   totalTime: number;
@@ -38,14 +49,14 @@ interface PerformanceMetrics {
 }
 
 function formatBytes(bytes: number): string {
-  if (bytes === 0) return '0 Bytes';
+  if (bytes === 0) return "0 Bytes";
   const absBytes = Math.abs(bytes);
   const k = 1024;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const sizes = ["Bytes", "KB", "MB", "GB"];
   const i = Math.floor(Math.log(absBytes) / Math.log(k));
   const value = Math.round((absBytes / Math.pow(k, i)) * 100) / 100;
-  const sign = bytes < 0 ? '-' : '';
-  return sign + value + ' ' + sizes[i];
+  const sign = bytes < 0 ? "-" : "";
+  return sign + value + " " + sizes[i];
 }
 
 function formatTime(ms: number): string {
@@ -72,11 +83,19 @@ function printPerformanceMetrics(metrics: PerformanceMetrics): void {
 
   if (metrics.prefilterStats) {
     console.error(`\nPrefilter optimization:`);
-    console.error(`  - Enabled:          ${metrics.prefilterStats.enabled ? 'Yes' : 'No'}`);
+    console.error(
+      `  - Enabled:          ${metrics.prefilterStats.enabled ? "Yes" : "No"}`
+    );
     if (metrics.prefilterStats.enabled) {
-      console.error(`  - Literal count:    ${metrics.prefilterStats.literalCount}`);
-      console.error(`  - Literals:         ${metrics.prefilterStats.literals.join(', ')}`);
-      console.error(`  - Algorithm:        ${metrics.prefilterStats.literalCount === 1 ? 'Boyer-Moore' : 'Aho-Corasick'}`);
+      console.error(
+        `  - Literal count:    ${metrics.prefilterStats.literalCount}`
+      );
+      console.error(
+        `  - Literals:         ${metrics.prefilterStats.literals.join(", ")}`
+      );
+      console.error(
+        `  - Algorithm:        ${metrics.prefilterStats.literalCount === 1 ? "Boyer-Moore" : "Aho-Corasick"}`
+      );
     }
   }
 
@@ -102,19 +121,41 @@ function main() {
     .option("-i, --ignore-case", "Ignore case distinctions", false)
     .option("-n, --line-number", "Prefix each line with its line number", false)
     .option("-v, --invert-match", "Select non-matching lines", false)
-    .option("-p, --perf", "Display performance metrics (time and memory)", false)
+    .option(
+      "-p, --perf",
+      "Display performance metrics (time and memory)",
+      false
+    )
     .option("--color", "Highlight matching text with color", false)
     .option(
       "-O, --optimize <level>",
       "Optimization level: auto (default), literal-kmp, literal-bm, nfa, dfa, or min-dfa",
       "auto"
     )
-    .option("--no-prefilter", "Disable prefiltering (use only NFA/DFA matching)")
-    .option("--test-all", "Run comprehensive tests on all algorithms with various scenarios")
-    .option("--test-file <file>", "Optional: Use a specific file for testing (with --test-all)")
-    .option("--test-folder <folder>", "Optional: Test on all files in a folder (with --test-all)")
-    .option("--test-only-automata", "Only test automaton-based algorithms (NFA, DFA, min-DFA)")
-    .option("--test-only-literal", "Only test literal search algorithms (KMP, Boyer-Moore, Aho-Corasick)")
+    .option(
+      "--no-prefilter",
+      "Disable prefiltering (use only NFA/DFA matching)"
+    )
+    .option(
+      "--test-all",
+      "Run comprehensive tests on all algorithms with various scenarios"
+    )
+    .option(
+      "--test-file <file>",
+      "Optional: Use a specific file for testing (with --test-all)"
+    )
+    .option(
+      "--test-folder <folder>",
+      "Optional: Test on all files in a folder (with --test-all)"
+    )
+    .option(
+      "--test-only-automata",
+      "Only test automaton-based algorithms (NFA, DFA, min-DFA)"
+    )
+    .option(
+      "--test-only-literal",
+      "Only test literal search algorithms (KMP, Boyer-Moore, Aho-Corasick)"
+    )
     .version("0.0.1");
 
   program.parse();
@@ -137,7 +178,9 @@ function main() {
 
   // Validate required arguments when not in test mode
   if (!pattern || !filename) {
-    console.error("Error: pattern and file arguments are required (unless using --test-all)");
+    console.error(
+      "Error: pattern and file arguments are required (unless using --test-all)"
+    );
     program.help();
     process.exit(1);
   }
@@ -146,22 +189,27 @@ function main() {
   const optimizationLevel = options.optimize as OptimizationLevel;
 
   // Validate optimization level
-  if (!["auto", "literal-kmp", "literal-bm", "nfa", "dfa", "min-dfa"].includes(optimizationLevel)) {
+  if (
+    !["auto", "literal-kmp", "literal-bm", "nfa", "dfa", "min-dfa"].includes(
+      optimizationLevel
+    )
+  ) {
     console.error(`Invalid optimization level: ${optimizationLevel}`);
-    console.error("Valid options are: auto, literal-kmp, literal-bm, nfa, dfa, min-dfa");
+    console.error(
+      "Valid options are: auto, literal-kmp, literal-bm, nfa, dfa, min-dfa"
+    );
     process.exit(1);
   }
 
   try {
     const startTotal = performance.now();
-    const startMemory = process.memoryUsage();
-    let peakMemory = startMemory.heapUsed;
+    const memTracker = new MemoryTracker(true);
 
     // Parse regex
     const startParse = performance.now();
     const syntaxTree = parseRegex(regex);
     const parseTime = performance.now() - startParse;
-    peakMemory = Math.max(peakMemory, process.memoryUsage().heapUsed);
+    memTracker.update();
 
     // Analyser le pattern et choisir l'algorithme optimal
     let selectedAlgorithm: AlgorithmType;
@@ -201,16 +249,23 @@ function main() {
     let literalPattern: string | undefined;
 
     // Créer la fonction de matching appropriée selon l'algorithme sélectionné
-    let matcher: (line: string) => Array<{ start: number; end: number; text: string }>;
+    let matcher: (
+      line: string
+    ) => Array<{ start: number; end: number; text: string }>;
 
-    if (selectedAlgorithm === "literal-kmp" || selectedAlgorithm === "literal-bm") {
+    if (
+      selectedAlgorithm === "literal-kmp" ||
+      selectedAlgorithm === "literal-bm"
+    ) {
       // Pour les littéraux, extraire le pattern littéral
       literalPattern = regex; // Le pattern est déjà un littéral
 
       if (selectedAlgorithm === "literal-kmp") {
-        matcher = (line: string) => findAllMatchesLiteralKmp(literalPattern!, line);
+        matcher = (line: string) =>
+          findAllMatchesLiteralKmp(literalPattern!, line);
       } else {
-        matcher = (line: string) => findAllMatchesLiteralBm(literalPattern!, line);
+        matcher = (line: string) =>
+          findAllMatchesLiteralBm(literalPattern!, line);
       }
 
       // Pas besoin de construire NFA/DFA pour les littéraux
@@ -220,21 +275,21 @@ function main() {
       const startNfa = performance.now();
       const nfa = nfaFromSyntaxTree(syntaxTree);
       nfaTime = performance.now() - startNfa;
-      peakMemory = Math.max(peakMemory, process.memoryUsage().heapUsed);
+      memTracker.update();
 
       if (selectedAlgorithm === "dfa" || selectedAlgorithm === "min-dfa") {
         // Build DFA
         const startDfa = performance.now();
         dfa = dfaFromNfa(nfa);
         dfaTime = performance.now() - startDfa;
-        peakMemory = Math.max(peakMemory, process.memoryUsage().heapUsed);
+        memTracker.update();
 
         if (selectedAlgorithm === "min-dfa") {
           // Minimize DFA
           const startMinDfa = performance.now();
           minDfa = minimizeDfa(dfa);
           minDfaTime = performance.now() - startMinDfa;
-          peakMemory = Math.max(peakMemory, process.memoryUsage().heapUsed);
+          memTracker.update();
 
           matcher = (line: string) => findAllMatchesDfa(minDfa!, line);
         } else {
@@ -248,7 +303,10 @@ function main() {
 
     // Match lines avec préfiltrage et lecture par chunks
     const startMatch = performance.now();
-    for (const { line, lineNumber, matches } of grepMatcher.searchFile(filename, matcher)) {
+    for (const { line, lineNumber, matches } of grepMatcher.searchFile(
+      filename,
+      matcher
+    )) {
       let outputLine = line;
 
       // Coloriser les matches si l'option --color est activée
@@ -261,13 +319,12 @@ function main() {
       } else {
         console.log(outputLine);
       }
-      peakMemory = Math.max(peakMemory, process.memoryUsage().heapUsed);
+      memTracker.update();
     }
     const matchTime = performance.now() - startMatch;
 
     const totalTime = performance.now() - startTotal;
-    const endMemory = process.memoryUsage();
-    const memoryUsed = endMemory.heapUsed - startMemory.heapUsed;
+    const memMeasurement = memTracker.getMeasurement();
 
     // Display performance metrics if requested
     if (options.perf) {
@@ -278,14 +335,13 @@ function main() {
         dfaTime,
         minDfaTime,
         matchTime,
-        memoryUsed,
-        peakMemory: peakMemory - startMemory.heapUsed,
+        memoryUsed: getSafeMemoryUsage(memMeasurement),
+        peakMemory: memMeasurement.peak,
         prefilterStats,
         algorithmUsed: getAlgorithmDescription(selectedAlgorithm),
         algorithmReason,
       });
     }
-
   } catch (error) {
     if (error instanceof Error) {
       console.error("Erreur:", error.message);

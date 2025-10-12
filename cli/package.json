@@ -12,7 +12,10 @@
   "scripts": {
     "build": "tsup",
     "dev": "tsx src/index.ts --watch",
-    "start": "tsx src/index.ts"
+    "start": "tsx src/index.ts",
+    "start:gc": "node --expose-gc dist/index.cjs",
+    "cli": "node dist/index.cjs",
+    "cli:gc": "node --expose-gc dist/index.cjs"
   },
   "devDependencies": {
     "@types/node": "^24.7.1",

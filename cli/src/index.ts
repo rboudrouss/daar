@@ -1,8 +1,22 @@
-import { readFileSync } from "fs";
-import { parseRegex, nfaFromSyntaxTree, dfaFromNfa, matchDfa, minimizeDfa, matchNfa, type DFA } from "@monorepo/lib";
+import {
+  parseRegex,
+  nfaFromSyntaxTree,
+  dfaFromNfa,
+  minimizeDfa,
+  type DFA,
+  createGrepMatcher,
+  findAllMatchesNfa,
+  findAllMatchesDfa,
+  findAllMatchesLiteralKmp,
+  findAllMatchesLiteralBm,
+  colorizeMatches,
+  analyzePattern,
+  getAlgorithmDescription,
+  type AlgorithmType,
+} from "@monorepo/lib";
 import { Command } from "commander";
 
-type OptimizationLevel = "nfa" | "dfa" | "min-dfa";
+type OptimizationLevel = "auto" | "literal-kmp" | "literal-bm" | "nfa" | "dfa" | "min-dfa";
 
 interface PerformanceMetrics {
   totalTime: number;
@@ -13,6 +27,13 @@ interface PerformanceMetrics {
   matchTime: number;
   memoryUsed: number;
   peakMemory: number;
+  prefilterStats?: {
+    enabled: boolean;
+    literals: string[];
+    literalCount: number;
+  };
+  algorithmUsed?: string;
+  algorithmReason?: string;
 }
 
 function formatBytes(bytes: number): string {
@@ -47,6 +68,25 @@ function printPerformanceMetrics(metrics: PerformanceMetrics): void {
   console.error(`\nMemory usage:`);
   console.error(`  - Total allocated:  ${formatBytes(metrics.memoryUsed)}`);
   console.error(`  - Peak memory:      ${formatBytes(metrics.peakMemory)}`);
+
+  if (metrics.prefilterStats) {
+    console.error(`\nPrefilter optimization:`);
+    console.error(`  - Enabled:          ${metrics.prefilterStats.enabled ? 'Yes' : 'No'}`);
+    if (metrics.prefilterStats.enabled) {
+      console.error(`  - Literal count:    ${metrics.prefilterStats.literalCount}`);
+      console.error(`  - Literals:         ${metrics.prefilterStats.literals.join(', ')}`);
+      console.error(`  - Algorithm:        ${metrics.prefilterStats.literalCount === 1 ? 'Boyer-Moore' : 'Aho-Corasick'}`);
+    }
+  }
+
+  if (metrics.algorithmUsed) {
+    console.error(`\nAlgorithm selection:`);
+    console.error(`  - Algorithm:        ${metrics.algorithmUsed}`);
+    if (metrics.algorithmReason) {
+      console.error(`  - Reason:           ${metrics.algorithmReason}`);
+    }
+  }
+
   console.error("===========================\n");
 }
 
@@ -62,11 +102,13 @@ function main() {
     .option("-n, --line-number", "Prefix each line with its line number", false)
     .option("-v, --invert-match", "Select non-matching lines", false)
     .option("-p, --perf", "Display performance metrics (time and memory)", false)
+    .option("--color", "Highlight matching text with color", false)
     .option(
       "-O, --optimize <level>",
-      "Optimization level: nfa (default), dfa, or min-dfa",
-      "nfa"
+      "Optimization level: auto (default), literal-kmp, literal-bm, nfa, dfa, or min-dfa",
+      "auto"
     )
+    .option("--no-prefilter", "Disable prefiltering (use only NFA/DFA matching)")
     .version("0.0.1");
 
   program.parse();
@@ -77,9 +119,9 @@ function main() {
   const optimizationLevel = options.optimize as OptimizationLevel;
 
   // Validate optimization level
-  if (!["nfa", "dfa", "min-dfa"].includes(optimizationLevel)) {
+  if (!["auto", "literal-kmp", "literal-bm", "nfa", "dfa", "min-dfa"].includes(optimizationLevel)) {
     console.error(`Invalid optimization level: ${optimizationLevel}`);
-    console.error("Valid options are: nfa, dfa, min-dfa");
+    console.error("Valid options are: auto, literal-kmp, literal-bm, nfa, dfa, min-dfa");
     process.exit(1);
   }
 
@@ -88,67 +130,112 @@ function main() {
     const startMemory = process.memoryUsage();
     let peakMemory = startMemory.heapUsed;
 
-    // Lecture du fichier
-    const content = readFileSync(filename, "utf-8");
-    const lines = content.split("\n");
-    const internalRegex = `(.*)(${regex})(.*)`; // On veut matcher n'importe quel caractère avant et après le pattern
-
     // Parse regex
     const startParse = performance.now();
-    const syntaxTree = parseRegex(internalRegex);
+    const syntaxTree = parseRegex(regex);
     const parseTime = performance.now() - startParse;
     peakMemory = Math.max(peakMemory, process.memoryUsage().heapUsed);
 
-    // Build NFA
-    const startNfa = performance.now();
-    const nfa = nfaFromSyntaxTree(syntaxTree);
-    const nfaTime = performance.now() - startNfa;
-    peakMemory = Math.max(peakMemory, process.memoryUsage().heapUsed);
+    // Analyser le pattern et choisir l'algorithme optimal
+    let selectedAlgorithm: AlgorithmType;
+    let algorithmReason: string;
 
+    if (optimizationLevel === "auto") {
+      const analysis = analyzePattern(syntaxTree);
+      selectedAlgorithm = analysis.recommendedAlgorithm;
+      algorithmReason = analysis.reason;
+    } else {
+      // Mode manuel : utiliser l'algorithme spécifié
+      selectedAlgorithm = optimizationLevel as AlgorithmType;
+      algorithmReason = `Manually selected: ${optimizationLevel}`;
+    }
+
+    // Créer le GrepMatcher avec ou sans préfiltrage
+    // Note: Commander.js transforme --no-prefilter en prefilter: false
+    // Si prefilter est undefined, on l'active par défaut (true)
+    const enablePrefilter = options.prefilter !== false;
+
+    const grepMatcher = createGrepMatcher(syntaxTree, {
+      ignoreCase: options.ignoreCase,
+      invertMatch: options.invertMatch,
+      chunkSize: 64 * 1024, // 64KB chunks comme grep
+      enablePrefilter,
+    });
+
+    // Obtenir les stats du préfiltre
+    const prefilterStats = grepMatcher.getPrefilterStats();
+
+    // Variables pour les différents automates
+    let nfaTime: number | undefined;
     let dfaTime: number | undefined;
     let minDfaTime: number | undefined;
     let dfa: DFA | undefined;
     let minDfa: DFA | undefined;
+    let literalPattern: string | undefined;
 
-    // Build DFA if requested
-    if (optimizationLevel === "dfa" || optimizationLevel === "min-dfa") {
-      const startDfa = performance.now();
-      dfa = dfaFromNfa(nfa);
-      dfaTime = performance.now() - startDfa;
-      peakMemory = Math.max(peakMemory, process.memoryUsage().heapUsed);
-    }
+    // Créer la fonction de matching appropriée selon l'algorithme sélectionné
+    let matcher: (line: string) => Array<{ start: number; end: number; text: string }>;
 
-    // Minimize DFA if requested
-    if (optimizationLevel === "min-dfa" && dfa) {
-      const startMinDfa = performance.now();
-      minDfa = minimizeDfa(dfa);
-      minDfaTime = performance.now() - startMinDfa;
-      peakMemory = Math.max(peakMemory, process.memoryUsage().heapUsed);
-    }
+    if (selectedAlgorithm === "literal-kmp" || selectedAlgorithm === "literal-bm") {
+      // Pour les littéraux, extraire le pattern littéral
+      literalPattern = regex; // Le pattern est déjà un littéral
 
-    // Match lines
-    const startMatch = performance.now();
-    lines.forEach((line, index) => {
-      let matches: boolean;
-
-      // Choose the appropriate matching function based on optimization level
-      if (optimizationLevel === "min-dfa" && minDfa) {
-        matches = matchDfa(minDfa, line);
-      } else if (optimizationLevel === "dfa" && dfa) {
-        matches = matchDfa(dfa, line);
+      if (selectedAlgorithm === "literal-kmp") {
+        matcher = (line: string) => findAllMatchesLiteralKmp(literalPattern!, line);
       } else {
-        matches = matchNfa(nfa, line);
+        matcher = (line: string) => findAllMatchesLiteralBm(literalPattern!, line);
       }
 
-      if (matches !== options.invertMatch) {
-        if (options.lineNumber) {
-          console.log(`${index + 1} ${line}`);
+      // Pas besoin de construire NFA/DFA pour les littéraux
+      nfaTime = 0;
+    } else {
+      // Pour les regex, construire NFA
+      const startNfa = performance.now();
+      const nfa = nfaFromSyntaxTree(syntaxTree);
+      nfaTime = performance.now() - startNfa;
+      peakMemory = Math.max(peakMemory, process.memoryUsage().heapUsed);
+
+      if (selectedAlgorithm === "dfa" || selectedAlgorithm === "min-dfa") {
+        // Build DFA
+        const startDfa = performance.now();
+        dfa = dfaFromNfa(nfa);
+        dfaTime = performance.now() - startDfa;
+        peakMemory = Math.max(peakMemory, process.memoryUsage().heapUsed);
+
+        if (selectedAlgorithm === "min-dfa") {
+          // Minimize DFA
+          const startMinDfa = performance.now();
+          minDfa = minimizeDfa(dfa);
+          minDfaTime = performance.now() - startMinDfa;
+          peakMemory = Math.max(peakMemory, process.memoryUsage().heapUsed);
+
+          matcher = (line: string) => findAllMatchesDfa(minDfa!, line);
         } else {
-          console.log(line);
+          matcher = (line: string) => findAllMatchesDfa(dfa!, line);
         }
+      } else {
+        // NFA
+        matcher = (line: string) => findAllMatchesNfa(nfa, line);
+      }
+    }
+
+    // Match lines avec préfiltrage et lecture par chunks
+    const startMatch = performance.now();
+    for (const { line, lineNumber, matches } of grepMatcher.searchFile(filename, matcher)) {
+      let outputLine = line;
+
+      // Coloriser les matches si l'option --color est activée
+      if (options.color && matches.length > 0) {
+        outputLine = colorizeMatches(line, matches);
+      }
+
+      if (options.lineNumber) {
+        console.log(`${lineNumber} ${outputLine}`);
+      } else {
+        console.log(outputLine);
       }
       peakMemory = Math.max(peakMemory, process.memoryUsage().heapUsed);
-    });
+    }
     const matchTime = performance.now() - startMatch;
 
     const totalTime = performance.now() - startTotal;
@@ -160,12 +247,15 @@ function main() {
       printPerformanceMetrics({
         totalTime,
         parseTime,
-        nfaTime,
+        nfaTime: nfaTime || 0,
         dfaTime,
         minDfaTime,
         matchTime,
         memoryUsed,
         peakMemory: peakMemory - startMemory.heapUsed,
+        prefilterStats,
+        algorithmUsed: getAlgorithmDescription(selectedAlgorithm),
+        algorithmReason,
       });
     }
 

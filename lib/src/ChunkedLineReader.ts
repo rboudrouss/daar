@@ -134,7 +134,9 @@ export class ChunkedLineReader {
         // EOF: retourner la dernière ligne s'il y en a une
         if (this.leftover.length > 0) {
           this.lineNumber++;
-          yield { line: this.leftover, lineNumber: this.lineNumber };
+          if (prefilter(this.leftover)) {
+            yield { line: this.leftover, lineNumber: this.lineNumber };
+          }
           this.leftover = "";
         }
         break;
@@ -142,24 +144,17 @@ export class ChunkedLineReader {
 
       // Combiner avec le leftover du chunk précédent
       const text = this.leftover + chunk;
-
-      // Appliquer le préfiltre sur le chunk complet
-      if (prefilter(text) === false) {
-        continue;
-      }
-
-      // Note: on doit quand même découper en lignes pour gérer le leftover correctement
       const lines = text.split("\n");
+
+      // Le dernier élément peut être incomplet (pas de \n à la fin)
       this.leftover = lines.pop() || "";
 
-      // Pour simplifier, on applique le préfiltre sur chaque ligne individuellement
+      // Pour chaque ligne, incrémenter le numéro et appliquer le préfiltre
       for (const line of lines) {
         this.lineNumber++;
-        if (prefilter(line) === false) {
-          continue;
+        if (prefilter(line)) {
+          yield { line, lineNumber: this.lineNumber };
         }
-
-        yield { line, lineNumber: this.lineNumber };
       }
     }
   }

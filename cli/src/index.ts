@@ -13,6 +13,8 @@ import {
   analyzePattern,
   getAlgorithmDescription,
   type AlgorithmType,
+  AhoCorasick,
+  isAlternationOfLiterals,
 } from "@monorepo/lib";
 import { Command } from "commander";
 import { runAllTests } from "./test-all";
@@ -26,6 +28,7 @@ type OptimizationLevel =
   | "auto"
   | "literal-kmp"
   | "literal-bm"
+  | "aho-corasick"
   | "nfa"
   | "dfa"
   | "min-dfa";
@@ -129,7 +132,7 @@ function main() {
     .option("--color", "Highlight matching text with color", false)
     .option(
       "-O, --optimize <level>",
-      "Optimization level: auto (default), literal-kmp, literal-bm, nfa, dfa, or min-dfa",
+      "Optimization level: auto (default), literal-kmp, literal-bm, aho-corasick, nfa, dfa, or min-dfa",
       "auto"
     )
     .option(
@@ -190,13 +193,13 @@ function main() {
 
   // Validate optimization level
   if (
-    !["auto", "literal-kmp", "literal-bm", "nfa", "dfa", "min-dfa"].includes(
+    !["auto", "literal-kmp", "literal-bm", "aho-corasick", "nfa", "dfa", "min-dfa"].includes(
       optimizationLevel
     )
   ) {
     console.error(`Invalid optimization level: ${optimizationLevel}`);
     console.error(
-      "Valid options are: auto, literal-kmp, literal-bm, nfa, dfa, min-dfa"
+      "Valid options are: auto, literal-kmp, literal-bm, aho-corasick, nfa, dfa, min-dfa"
     );
     process.exit(1);
   }
@@ -269,6 +272,29 @@ function main() {
       }
 
       // Pas besoin de construire NFA/DFA pour les littéraux
+      nfaTime = 0;
+    } else if (selectedAlgorithm === "aho-corasick") {
+      // Pour Aho-Corasick, extraire les littéraux de l'alternation
+      const alternationCheck = isAlternationOfLiterals(syntaxTree);
+
+      if (!alternationCheck.isAlternation || !alternationCheck.literals) {
+        console.error("Error: Aho-Corasick requires an alternation of literals (e.g., 'from|what|who')");
+        process.exit(1);
+      }
+
+      const patterns = alternationCheck.literals;
+      const ac = new AhoCorasick(patterns);
+
+      matcher = (line: string) => {
+        const results = ac.search(line);
+        return results.map(r => ({
+          start: r.position,
+          end: r.position + r.pattern.length,
+          text: r.pattern,
+        }));
+      };
+
+      // Pas besoin de construire NFA/DFA pour Aho-Corasick
       nfaTime = 0;
     } else {
       // Pour les regex, construire NFA

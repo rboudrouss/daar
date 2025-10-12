@@ -6,12 +6,12 @@
  */
 
 import { SyntaxTree } from "./RegexParser";
-import { extractLiterals } from "./LiteralExtractor";
+import { extractLiterals, isAlternationOfLiterals } from "./LiteralExtractor";
 
 /**
  * Types d'algorithmes disponibles
  */
-export type AlgorithmType = "literal-kmp" | "literal-bm" | "nfa" | "dfa" | "min-dfa";
+export type AlgorithmType = "literal-kmp" | "literal-bm" | "aho-corasick" | "nfa" | "dfa" | "min-dfa";
 
 /**
  * Résultat de l'analyse du pattern
@@ -131,6 +131,22 @@ export function analyzePattern(tree: SyntaxTree): PatternAnalysis {
   const { isLiteral, hasWildcards, hasAlternations, hasStars, complexity } = analyzeTree(tree);
   const literals = extractLiterals(tree);
 
+  // Cas 0 : Alternation pure de littéraux (ex: "from|what|who")
+  const alternationCheck = isAlternationOfLiterals(tree);
+  if (alternationCheck.isAlternation && alternationCheck.literals) {
+    return {
+      patternType: "literal",
+      recommendedAlgorithm: "aho-corasick",
+      reason: `Alternation de ${alternationCheck.literals.length} littéraux - Aho-Corasick est optimal pour la recherche multi-motifs`,
+      literals: alternationCheck.literals,
+      complexity,
+      isLiteral: false,
+      hasWildcards,
+      hasAlternations: true,
+      hasStars,
+    };
+  }
+
   // Cas 1 : Pattern purement littéral
   if (isLiteral) {
     const literalString = extractLiteralString(tree);
@@ -246,6 +262,8 @@ export function getAlgorithmDescription(algorithm: AlgorithmType): string {
       return "KMP (Knuth-Morris-Pratt) - Recherche littérale avec garantie linéaire";
     case "literal-bm":
       return "Boyer-Moore - Recherche littérale optimisée";
+    case "aho-corasick":
+      return "Aho-Corasick - Recherche multi-motifs optimale";
     case "nfa":
       return "NFA (Non-deterministic Finite Automaton) - Faible empreinte mémoire";
     case "dfa":

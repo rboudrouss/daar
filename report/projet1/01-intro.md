@@ -49,4 +49,4 @@ Le choix de TypeScript a été fait pour son coté fonctionnel et son typage sta
 
 ## 1.5. Organisation du Rapport
 
-Ce rapport présente d'abord les fondements théoriques des algorithmes implémentés (Section 2), puis détaille les stratégies d'optimisation développées (Section 3). La méthodologie de test est exposée en Section 4, suivie d'une analyse de performance comparative (Section 5). Nous concluons par une discussion des résultats et des perspectives d'amélioration (Section 6).
+Ce rapport présente d'abord les fondements théoriques des algorithmes implémentés (Section 2), puis détaille les stratégies d'optimisation développées (Section 3). L'implémentation est exposée en Section 4, suivie d'une analyse de performance comparative (Section 5). Nous concluons par une discussion des résultats et des perspectives d'amélioration (Section 6).

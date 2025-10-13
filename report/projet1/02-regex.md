@@ -1,6 +1,6 @@
 # 2. Fondements Théoriques
 
-### 2.1.3 Arbre Syntaxique Abstrait (AST)
+## 2.1 Arbre Syntaxique Abstrait (AST)
 
 Pour faciliter la manipulation et la transformation des expressions régulières, nous les représentons sous forme d'arbre syntaxique abstrait (Abstract Syntax Tree, AST).
 

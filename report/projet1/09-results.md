@@ -70,13 +70,13 @@ Pour les alternations simples, le DFA est optimal. Pour les patterns très compl
 
 ### 5.4.1 Recommandations par Type de Pattern
 
-| Type de Pattern | Algorithme Optimal | Speedup vs NFA | Cas d'Usage |
+| Type de Pattern | Algorithme Optimal |  Cas d'Usage |
 |-----------------|-------------------|----------------|-------------|
-| Littéral court (< 10 chars) | **KMP** | 13-48× | Mots courants ("the", "error") |
-| Littéral long (>= 10 chars) | **Boyer-Moore** | 30-63× | Noms propres, identifiants |
-| Alternation de littéraux | **Aho-Corasick** | 5-20× | Recherche multi-mots |
-| Wildcards simples | **DFA** | 2-3× | Patterns avec `.` ou `*` |
-| Patterns complexes | **NFA** ou **DFA** | 1-2× | Alternations + étoiles |
+| Littéral court (< 10 chars) | **KMP** |  Mots courants ("the", "error") |
+| Littéral long (>= 10 chars) | **Boyer-Moore** |  Noms propres, identifiants |
+| Alternation de littéraux | **Aho-Corasick** |  Recherche multi-mots |
+| Wildcards simples | **DFA** | Patterns avec `.` ou `*` |
+| Patterns complexes | **NFA** ou **DFA** | Alternations + étoiles |
 
 ### 5.4.2 Trade-offs Mémoire vs Temps
 
@@ -104,20 +104,24 @@ Notre stratégie de sélection automatique d'algorithme fonctionne bien :
 ### 5.7.2 Limites Observées
 
 **NFA** :
+
 - Consommation mémoire très variable (2 KB à 12 MB selon le pattern et le texte)
 - Temps de matching prohibitif (> 630 ms sur 2 MB)
 - Non recommandé pour fichiers > 100 KB sauf patterns très complexes
 
 **Aho-Corasick** :
+
 - Coût de construction élevé (0.22 ms) non amorti sur petits textes
 - Optimal uniquement pour > 5 motifs ou textes > 1 MB
 
 **min-DFA** :
+
 - Coût de minimisation élevé (2-3× le temps de construction du DFA)
 - Parfois optimal sur patterns courts (3.24 ms vs 3.42 ms pour KMP)
 - Utile si réutilisation multiple du même automate ou patterns très courts
 
 **Préfiltrage** :
+
 - Peut dégrader les performances si le littéral extrait est peu sélectif
 - Overhead de construction non amorti sur petits textes (< 1 KB)
 

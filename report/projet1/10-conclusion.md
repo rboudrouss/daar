@@ -18,23 +18,15 @@ Nous avons aussi identifié certaines limites. Le NFA souffre d'une consommation
 
 ## 6.3 Perspectives d'Amélioration
 
-Plusieurs axes d'amélioration pourraient être explorés.
+Plusieurs axes d'amélioration pourraient être explorés pour étendre les capacités de notre implémentation.
 
-Du côté fonctionnel, le support ERE complet nécessiterait d'ajouter les classes de caractères (`[a-z]`), les quantificateurs (`+`, `?`, `{n,m}`), les ancres de début/fin de ligne (`^`, `$`) et les frontières de mots (`\b`). Les backreferences nécessiteraient un moteur différent basé sur le backtracking. Un mode Unicode permettrait de supporter les caractères multi-octets.
+Du côté fonctionnel, le support ERE complet nécessiterait d'ajouter les classes de caractères (`[a-z]`), les quantificateurs (`+`, `?`, `{n,m}`), les ancres de début/fin de ligne (`^`, `$`) et les frontières de mots (`\b`). Les backreferences nécessiteraient un moteur différent basé sur le backtracking.
 
-Pour les optimisations algorithmiques, l'algorithme de Hopcroft permettrait une minimisation en O(n log n) au lieu de O(n²). La construction lazy du DFA ne construirait que les états effectivement visités. La vectorisation SIMD pourrait accélérer Boyer-Moore et KMP. Un préfiltrage adaptatif pourrait se désactiver automatiquement s'il s'avère inefficace.
+Les performances pourraient être améliorées par plusieurs optimisations algorithmiques. L'algorithme de Hopcroft permettrait une minimisation en O(n log n) au lieu de O(n²), ce qui serait particulièrement utile pour les patterns complexes générant de gros DFA. La construction lazy du DFA ne construirait que les états effectivement visités, réduisant ainsi le coût de construction pour les patterns rarement utilisés. La vectorisation SIMD pourrait accélérer Boyer-Moore et KMP sur les architectures modernes. Enfin, un préfiltrage adaptatif pourrait se désactiver automatiquement s'il s'avère inefficace, évitant ainsi les dégradations observées sur certains patterns.
 
-Au niveau système, la parallélisation permettrait de traiter plusieurs chunks simultanément. Le memory mapping (`mmap`) serait utile pour les fichiers très volumineux (> 100 MB). Des algorithmes cache-aware optimiseraient la localité spatiale. Une compilation native en Rust ou C++ donnerait des performances maximales.
+Pour les fichiers très volumineux, des optimisations système seraient nécessaires notamment la parallélisation permettrait de traiter plusieurs chunks simultanément sur les processeurs multi-cœurs mais aussi une implémentation en langage compilé pour tirer parti de l'architecture moderne.
 
-Enfin, pour l'analyse et la validation, une comparaison directe avec GNU grep permettrait des benchmarks côte à côte. Un profiling détaillé identifierait les goulots d'étranglement. Des tests de robustesse sur patterns pathologiques et fichiers malformés renforceraient la fiabilité. Le fuzzing permettrait de générer automatiquement des tests.
-
-## 6.4 Réflexions sur l'Approche
-
-Ce projet illustre un principe fondamental en algorithmique : il n'existe pas d'algorithme universellement optimal. Le choix dépend toujours du contexte. Pour les patterns littéraux, les algorithmes spécialisés (KMP, Boyer-Moore) surpassent largement les automates. Pour les patterns complexes, le NFA peut être plus rapide que le DFA sur petits textes car son coût de construction est moindre. Le préfiltrage n'est bénéfique que si le littéral extrait est suffisamment sélectif.
-
-L'approche hybride adoptée (sélection automatique + préfiltrage conditionnel) permet d'obtenir de bonnes performances dans la majorité des cas, tout en restant simple à maintenir.
-
-## 6.5 Conclusion Générale
+## 6.4 Conclusion Générale
 
 Ce projet a permis de mettre en pratique les concepts théoriques d'automates finis et d'algorithmique du texte, tout en explorant des optimisations pratiques inspirées de GNU grep.
 

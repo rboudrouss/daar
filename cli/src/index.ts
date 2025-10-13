@@ -129,7 +129,7 @@ function main() {
       "Display performance metrics (time and memory)",
       false
     )
-    .option("--color", "Highlight matching text with color", false)
+    .option("--color", "Highlight matching text with color", true)
     .option(
       "-O, --optimize <level>",
       "Optimization level: auto (default), literal-kmp, literal-bm, aho-corasick, nfa, dfa, or min-dfa",

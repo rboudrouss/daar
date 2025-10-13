@@ -1,0 +1,925 @@
+﻿The Project Gutenberg eBook of Psyche: The Cult of Souls and Belief in Immortality among the Greeks
+    
+This ebook is for the use of anyone anywhere in the United States and
+most other parts of the world at no cost and with almost no restrictions
+whatsoever. You may copy it, give it away or re-use it under the terms
+of the Project Gutenberg License included with this ebook or online
+at www.gutenberg.org. If you are not located in the United States,
+you will have to check the laws of the country where you are located
+before using this eBook.
+
+Title: Psyche: The Cult of Souls and Belief in Immortality among the Greeks
+
+Author: Erwin Rohde
+
+Translator: W. B. Hillis
+
+Release date: October 17, 2021 [eBook #66555]
+                Most recently updated: October 18, 2024
+
+Language: English
+
+Credits: Ed Brandon from material at the Internet Archive
+
+
+*** START OF THE PROJECT GUTENBERG EBOOK PSYCHE: THE CULT OF SOULS AND BELIEF IN IMMORTALITY AMONG THE GREEKS ***
+
+Psyche
+
+The Cult of Souls and Belief in Immortality among the Greeks
+
+
+By
+
+ERWIN ROHDE
+
+
+
+LONDON
+KEGAN PAUL, TRENCH, TRUBNER & CO., LTD.
+NEW YORK: HARCOURT, BRACE & COMPANY, INC.
+1925
+
+
+
+Translated from the eighth edition by
+
+W. B. HILLIS. M.A.
+
+
+_Printed in Great Britain by Stephen Austin & Sons, Ltd., Hertford._
+
+
+
+CONTENTS
+
+
+                                                                PAGE.
+
+
+      PREFACE TO THE FIRST EDITION . . . . . . . . . . . . . . .  VII
+      PREFACE TO THE SECOND EDITION  . . . . . . . . . . . . . .   XI
+      PRELIMINARY NOTE TO THE SEVENTH AND EIGHTH EDITION         XIII
+      TRANSLATOR'S NOTE  . . . . . . . . . . . . . . . . . . . .   XV
+
+PART I
+
+CHAP.
+   I. BELIEFS ABOUT THE SOUL AND CULT OF SOULS IN THE HOMERIC
+           POEMS . . . . . . . . . . . . . . . . . . . . . . . .    3
+  II. ISLANDS OF THE BLEST. _Translation_      . . . . . . . . .   55
+ III. CAVE DEITIES. SUBTERRANEAN _Translation_       . . . . . .   88
+  IV. HEROES . . . . . . . . . . . . . . . . . . . . . . . . . .  115
+   V. THE CULT OF SOULS  . . . . . . . . . . . . . . . . . . . .  156
+             I.  Cult of Chthonic Deities  . . . . . . . . . . .  158
+            II.  Funeral ceremonies and worship of the dead  . .  162
+           III.  Traces of the Cult of Souls in the Blood Feud
+                      and Satisfaction for murder  . . . . . . .  174
+  VI. THE ELEUSINIAN MYSTERIES . . . . . . . . . . . . . . . . .  217
+ VII. IDEAS OF THE FUTURE LIFE . . . . . . . . . . . . . . . . .  236
+
+PART II
+
+VIII. ORIGINS OF THE BELIEF IN IMMORTALITY. THE THRACIAN WORSHIP
+           OF DIONYSOS   . . . . . . . . . . . . . . . . . . . .  253
+  IX. DIONYSIAC RELIGION IN GREECE. ITS AMALGAMATION WITH
+           APOLLINE RELIGION. ECSTATIC PROPHECY. RITUAL
+           PURIFICATION AND EXORCISM. ASCETICISM . . . . . . . .  282
+   X. THE ORPHICS  . . . . . . . . . . . . . . . . . . . . . . .  335
+  XI. THE PHILOSOPHERS . . . . . . . . . . . . . . . . . . . . .  362
+ XII. THE LAY AUTHORS (LYRIC POETS--PINDAR--THE TRAGEDIANS)  . .  411
+{vi}
+XIII. PLATO  . . . . . . . . . . . . . . . . . . . . . . . . . .  463
+ XIV. THE LATER AGE OF THE GREEK WORLD . . . . . . . . . . . . .  490
+            I. Philosophy  . . . . . . . . . . . . . . . . . . .  490
+           II. Popular Belief  . . . . . . . . . . . . . . . . .  524
+
+APPENDIX
+   I. Consecration of persons struck by lightning  . . . . . . .  581
+  II. ~maschalismo/s~  .  .  . . . . . . . . . . . . . . . . . .  582
+ III. ~amu/êtoi, a/gamoi~, Danaids in the lower world  . . . . .  586
+  IV. The Tetralogies of Antiphon  . . . . . . . . . . . . . . .  588
+   V. Ritual Purification  . . . . . . . . . . . . . . . . . . .  588
+  VI. Hekate and the ~Hekatika\ pha/smata~ . . . . . . . . . . .  590
+ VII. The Hosts of Hekate  . . . . . . . . . . . . . . . . . . .  593
+VIII. Disintegration of Consciousness and Reduplication of
+           Personality . . . . . . . . . . . . . . . . . . . . .  595
+  IX. The Great Orphic Theogony  . . . . . . . . . . . . . . . .  596
+   X. Previous Lives of Pythagoras. His Descent to Hades . . . .  598
+  XI. Initiation considered as Adoption by the god . . . . . . .  601
+ XII. Magical Exorcisms of the Dead  . . . . . . . . . . . . . .  603
+
+
+{{vii}}
+
+PREFACE TO THE FIRST EDITION
+
+
+THIS book offers an account of the opinions held by the Greeks about
+the life of the human soul after death, and is thus intended as a
+contribution to the history of Greek religion. Such an undertaking
+has in a special measure to contend with the difficulties that face
+any inquiry into the religious life and thought of the Greeks. Greek
+religion was a natural growth, not a special foundation, and the
+ideas and feelings which gave it its inward tone and outward shape
+never received abstract formulation. It expressed itself in
+religious performances alone: it had no sacred books from which we
+might determine the inward meaning and interconnexion of the ideas
+with which the Greeks approached the gods created by their faith.
+The central essence of the religion held by the Greek people, in
+spite of this absence of conceptual formulation--or perhaps because
+of it--preserved its original character to a remarkable degree: the
+speculations and fancies of Greek poets continually refer to this
+central nucleus. Indeed the poets and philosophers in such of their
+writings as have come down to us are our only authorities for the
+religious thought of the Greeks. In the present inquiry they have
+naturally had to be our guides for the greater part of the way. But
+though under the special conditions of Greek life the religious
+views of poets and philosophers represent an important side of Greek
+religion, they yet allow us to perceive very clearly the independent
+and self-determined position with regard to the ancestral religion
+retained by the individual. The individual believer might always, if
+his own temper and disposition allowed him, give himself up to the
+plain and unsophisticated emotions which had shaped and decided the
+faith of the people and the religious performances of popular
+~euse/beia~. But we should know very little of the religious ideas
+that filled the mind of the believing Greek if we had to do without
+the evidence of philosophers and poets (and of some Attic orators as
+well) in whose words dumb and inarticulate emotion finds expression.
+The inquirer would, however, be entirely on the wrong track {viii}
+and be led to some remarkable conclusions who ventured without more
+ado to deduce from the religious ideas that find expression in Greek
+literature a complete Theology of the Greek _people_. Where direct
+literary statements and allusions fail us we are left with nothing
+but surmises in face of the religion of the Greeks and its inmost
+guiding forces. Of course there are plenty of people of sanguine
+temperament and industrious fancy who find no difficulty in
+producing for our benefit the most admirable solutions of the
+problem. Others in varying degrees of good faith press the emotions
+of Christian piety into the service of explaining ancient faith in
+gods. Thus injustice is done to both forms of religion and an
+understanding of the essentials of Greek belief in its true and
+independent reality is made completely impossible. A good example of
+this is provided by the Eleusinian Mysteries, and by that favourite
+topic of controversy (which has, indeed, received more than its due
+share of attention from students of religion), the amalgamation of
+the worship of gods and the belief in Souls said to have taken place
+therein. Nowhere else has the complete unprofitableness of the
+attempt to make use of the shifting ideas and tendencies of modern
+civilization to explain the underlying motive forces of these
+significant cult practices, been more strikingly and repeatedly
+demonstrated. On this head in particular the author of the present
+work has renounced all attempts to cast a fitful and ambiguous light
+upon the venerable gloom of the subject by the help of the farthing
+dip of his own private imaginings. There is no denying that here as
+in so many departments of ancient ~euse/beia~ there is something
+greater and finer that eludes our grasp. The revealing word, never
+having been written down, has been lost. Instead of trying to find a
+substitute in modern catch phrases it seems better simply to
+describe, in the plainest and most literal fashion, the actual
+phenomena of Greek piety exactly as they are known to us. There will
+be plenty of opportunity for the author's own suggestions and they
+need not always obtrude themselves. The aim of this work is to make
+plain the facts of the Greek _Cult of Souls_ and of that belief in
+immortality the inner workings of which are only partially
+intelligible to our most sympathetic efforts to understand them. To
+give a clearer presentation of the origin and development of those
+practices and those beliefs; to distinguish the transformations
+through which they passed and their relationship with other and
+kindred intellectual tendencies; to disentangle the many different
+lines of thought and speculation from the inextricable {ix}
+confusion in which they lie in many minds (and in many books) and to
+let them stand out clearly and distinctly one from another, seemed
+particularly desirable. Why this design has not been carried out by
+the same methods throughout; why it has sometimes seemed sufficient
+to give a bald summary of the essential points, while at other times
+certain topics are pursued into their most distant ramifications
+(sometimes with apparently irrelevant prolixity), will be obvious
+enough to those who are familiar with the subject. Where a more
+careful examination of the overflowing mass of detail was to be
+attempted advantage has been taken of the Appendix to achieve a
+greater, though still only a relative degree of completeness. This
+was made possible by the lengthy period which elapsed between the
+publication of the two parts of the book. The first half [to the end
+of chapter vii] appeared as long ago as the spring of 1890.
+Unpropitious circumstances have delayed the completion of the
+remainder till the present moment. The two parts could easily be
+kept separate (as they have been): in the main they fall apart and
+correspond to the two sides of the question indicated in the title
+of the book--Cult of Souls and Belief in Immortality. The Cult of
+Souls and the faith in immortality may eventually come together at
+some points, but they have a different origin and travel most of the
+way on separate paths. The conception of immortality in particular
+arises from a spiritual intuition which reveals the souls of men as
+standing in close relationship, and indeed as being of like
+substance, with the everlasting gods. And simultaneously the gods
+are regarded as being in their nature like the soul of man, i.e. as
+free spirits needing no material or visible body. (It is this
+spiritualized view of the gods--not the belief in gods itself as
+Aristotle supposes in the remarkable statement quoted by Sextus
+Empiricus Adv. Mathematicos, iii, 20 ff.--which arises from the
+vision of its own divine nature achieved by the soul ~kath'
+heautê/n~ relieved of the body, in ~enthousiasmoi/~ and
+~mantei=ai~.) And this conception leads far away from the ideas on
+which the Cult of Souls was based.
+
+The publication of the book in two parts has brought with it a
+regrettable circumstance for which I must ask the indulgence of
+well-disposed readers (that the first half found so many of them is
+a fact which I must gratefully acknowledge). As the dimensions of the
+whole work grew beyond expectation and almost overstepped the
+~me/tron au/tarkes~, the sixteen excursuses which were promised in
+{x} the first volume have had to be dropped: the book would
+otherwise have been overloaded. So far as they possess independent
+interest they will find a place elsewhere. They are real excursuses
+and were intended as such, and the proper understanding of the book
+will not be affected by their absence.
+
+ERWIN ROHDE.
+
+HEIDELBERG.
+_November 1st, 1893._
+
+
+{{xi}}
+
+PREFACE TO THE SECOND EDITION
+
+
+THE publication of a second edition of this book affords me a
+welcome opportunity of making my account more exact and to the point
+in certain places; of adding some points that had been overlooked or
+omitted; and of noticing with approval or disapproval some divergent
+opinions that had obtained currency in the interval. Controversy is,
+however, confined within the narrowest limits and to points of minor
+importance (and only then in answer to more serious and significant
+objections). The plan and--if I may say so--the style of the whole
+book demanded throughout, and more especially in the great points at
+issue, a purely positive statement of my own views and the results
+of my own studies. Such a statement, it may well be imagined, was
+not arrived at without being preceded in the mind of the author by a
+controversial reckoning with the manifold views and doctrines of
+others upon the subjects here dealt with--views which in some cases
+he felt obliged to reject. Controversy in this sense lies behind
+every page of the book, though as a rule only in a latent condition.
+In this condition I have been content to let it remain in this
+revised edition of the book. My opinions were not arrived at without
+toil and much careful reflection; one view being made to reinforce
+another till they were all bound together in a single
+closely-knitted whole. Neither further reflection on my part nor the
+criticisms of others have shaken my belief in the tenability of
+opinions reached in this way. I have therefore ventured to leave my
+account unaltered in all its main points. I hope that it contains
+its own justification and defence in itself without further
+vindication on my part.
+
+Nothing in the plan or execution of the whole or its parts has been
+altered; neither have I taken anything away. The book contained
+nothing that was superfluous to the attainment of the object that I
+had in view. This object, it will be apparent, was not in the least
+to provide a brief and compendious statement of the most
+indispensable facts about the cult of Souls and the belief in
+immortality among the Greeks for the benefit of those who wished to
+take a hasty {xii} glance over the subject. Such a hasty picker-up
+of knowledge who regards himself--I cannot imagine why--as
+peculiarly fitted to criticise my book, has ingenuously besought me,
+in view of a second edition which he was kind enough to think
+probable, to throw overboard most of what he considered the
+superfluous parts of the book. With this request I have not felt
+myself able to comply. My book was written for maturer readers who
+have passed beyond the school stage and look for something more than
+an elementary handbook, and who would be able to understand and
+appreciate the plan and intention which led me to draw my material
+so widely from many departments of literary and cultural history.
+The first edition of the book found many such readers: I may hope
+and expect that the second will do the same.
+
+In its revised form the book has been divided for the convenience of
+those who use it into two volumes (which correspond with the two
+parts in which it was first published). I was urged to take away the
+notes that stand at the foot of the text and relegate them to a
+place by themselves in a separate appendix. I found, however, that I
+could not bring myself to adopt this fashionable modern practice,
+which so far as I have experience of it in books published in recent
+years seems to me to be inconvenient and to hinder rather than help
+that undisturbed appreciation of the text which such an arrangement
+is intended to serve. Independent readers who in using the book are
+working out the subject for themselves would certainly not desire
+the separation of the documentary evidence from the statement of the
+author's view. The book has also, to my peculiar satisfaction,
+attracted a large number of readers from outside the immediate
+circle of professional philologists. Such readers have evidently not
+been seriously disturbed by the elaborate and perhaps rather
+pedantic aspect of the mysterious disquisitions at the foot of the
+page, and have been able to fix their attention upon the clearer
+language of the text above. I have therefore decided to remove a few
+only of the notes which had grown to independent dimensions to an
+appendix at the end of each of the two volumes.
+
+ERWIN ROHDE.
+
+HEIDELBERG.
+_November 27th, 1897._
+
+
+{{xiii}}
+
+PRELIMINARY NOTE TO THE SEVENTH AND EIGHTH EDITIONS
+
+
+IN supervising together this reprint of "Psyche" we have found
+ourselves faced with the question which Schöll and Dieterich had to
+decide in bringing out the third edition--whether changes or
+additions would be admissible. It went without saying that the text
+must remain untouched in the form last given to it by Rohde's own
+hand. Nor was it possible to make any additions to the notes without
+seriously disturbing the carefully considered architecture of the
+whole book. It would have been more possible to add an appendix or
+supplementary pamphlet recording the literature of the subject which
+has appeared since 1898 and giving an account of the present state
+of the questions dealt with by Rohde: as has been done with the
+"Griechische Roman" by W. Schmid. But on making the attempt we soon
+found that the problem was a different one in the case of "Psyche"
+with which (much more than in the other case) all subsequent study of
+the history of religion as pursued by all nations has had to reckon,
+and from which such study has in no small degree taken its starting
+point. We have therefore refrained; and we have also refrained from
+remodelling the citations to make them correspond with critical
+editions that have since appeared. This process could not be carried
+through without, in some places, introducing contradictions with
+Rohde's interpretation that would have necessitated more detailed
+discussion. Rohde's own method of citation was only seriously
+inconvenient in the case of Euripides: here he evidently, as we
+observed from about the middle of the first volume onwards, made use
+of more than one edition at the same time, and has consequently
+quoted lines in accordance with different enumerations. For the
+greater assurance and convenience of the reader the lines are
+uniformly referred to according to the numbering of Nauck. This task
+has been undertaken by our devoted helper Frl. Emilie Boer, who has
+also verified, with a very few exceptions, the whole of the
+references to ancient writers and inscriptions; {xiv} a considerable
+number of errors missed by the author or later editors have thus
+been corrected. The minor changes introduced in the third and
+following editions--the recording on the margin of the pagination of
+the first edition and the valuable enlargement of the index due to
+W. Nestle with the assistance of O. Crusius--have all naturally been
+retained.
+
+F. BOLL. O. WEINREICH.
+
+HEIDELBERG.
+_November, 1920._
+
+
+{{xv}}
+
+TRANSLATOR'S NOTE
+
+
+ROHDE is very unsystematic in his mode of quoting from ancient
+authorities: he has, for example, four different ways of referring
+to the Iliad and the Odyssey, two of referring to Demosthenes and
+the Orators, etc. In quoting from the lesser authorities he
+sometimes used editions which have since become antiquated. (He even
+goes so far as to quote Clem. Alex. by the page and letter of
+Heinsius' re-edition of Sylburg.) I have made an attempt to reduce
+the number of inconsistencies and to give references where possible
+to modern editions. In these and other small ways I have tried to
+make the notes--the text I hope is intelligible enough--more
+accessible to English readers. I have given references to English
+translations of German works (where I have been able to find them);
+but I have refrained from adding references to the modern literature
+of the subject: most readers of the book will prefer to do that for
+themselves. In order to save space I have used abbreviation pretty
+freely in quoting names of authors and titles of books. The
+abbreviated forms agree generally with those given in Liddell and
+Scott (supplemented by the list drawn up for the new edition of the
+Lexicon): most of the following may be noted:--
+
+A. (or Aesch.)   = Aeschylus.
+Amm.             = Ammonius.
+_AP._            = _Anthologia Palatina_.
+Apollod.         = Ps.-Apollodorus, _Bibiotheca_ (unless _Epit._ is
+                    added).
+A. R.            = Apollonius Rhodius.
+_Ath. Mitth._    = _Mittheilungen d. deutsch. arch. Inst. zu Athen_.
+Aug.             = Augustine.
+D. (or Dem.)     = Demosthenes.
+D. C.            = Dio Cassius.
+D. Chr.          = Dio Chrysostom.
+D. H.            = Dionysius of Halicarnassus (i.e. _Rom. Antiq._
+                    unless otherwise indicated)
+D. L.            = Diogenes Laertius.
+D. P.            = Dionysius Periegetes.
+D. S.            = Diodorus Siculus.
+E. (or Eur.)     = Euripides.
+_Epigr. Gr._     = Kaibel, _Epigrammata Graeca_.
+Eun.             = Eunapius _Vitae Sophistarum_. {xvi}
+Gal.             = Galen (vol. and page of Kühn).
+_GDI._           = Collitz, _Griechische Dialektinschriften_.
+**_Gp._          = _Geoponica_.
+Grimm            = Grimm, _Deutsche Mythologie_ transl. as _Teutonic
+                    Mythology_, by J. S. Stallybrass, Lond., 1880.
+Heraclid. _Pol._ = Heraclides Ponticus, _Politica_.
+Him.             = Himerius.
+Hipp.            = Hippolytus.
+Hp.              = Hippokrates.
+Hsch.            = Hesychius.
+H. Smyrn.        = Hermippus of Smyrna.
+Homer is quoted by the majuscules of the Greek alphabet for the books
+of the Iliad, by the minuscules for the Odyssey.
+_Inscr. Perg._   = _Inschriften von Pergamon_ ed. Fraenkel.
+_IPE._           = _Inscriptiones Ponti Euxini_ ed. Latyschev.
+Is.              = Isaeus.
+J. M.            = Justin Martyr.
+_Leg. Sacr._     = von Prott and Ziehen, _Leges Graecorum Sacrae_.
+Pall.            = Palladius, _de Re Rustica_.
+Phld.            = Philodemus.
+Pi.              = Pindar.
+Pl.              = Plato.
+_PLG._           = Bergk, _Poetae Lyrici Graeci_ ed. 4.
+Plot.            = Plotinus.
+Plu.             = Plutarch.
+_PMagPar._       = Paris Magical Papyrus ed. Wessely.
+_Rh. Mus._       = _**Rheinisches Museum_.
+S. (or Soph.)    = Sophokles.
+S. E.            = Sextus Empiricus.
+_SIG._           = Dittenberger, _Sylloge Inscriptionum Graecarum_
+                    ed. 2 (unless otherwise stated).
+Str.             = Strabo (Casaubon's page).
+_Tab. Defix._    = _Tabellae Defixionum_ ed. Wünsch (Appendix to
+                    _CIA_.).
+Thphr.           = Theophrastus (_Ch._ = _Characters_ ed. Jebb).
+Tylor            = E. B. Tylor, _Primitive Culture_ ed. 4.
+Tz.              = Tzetzes.
+Vg.              = Vergil.
+_Vors._          = Diels, _Fragmente der Vorsokratiker_ ed. 4 (vol. 1
+                    unless otherwise indicated).
+X. (or Xen.)     = Xenophon historicus.
+Znb.             = Zenobius.
+
+I take this opportunity of thanking my friend Mr. R. Burn, of
+Glasgow University, for his invaluable help in these matters.
+
+W. B. HILLIS.
+
+
+
+
+PART I
+
+
+{{3}}
+
+CHAPTER I
+
+BELIEFS ABOUT THE SOUL AND CULT OF SOULS IN THE HOMERIC POEMS
+
+I
+
+§ 1
+
+To the immediate understanding of mankind nothing seems so
+self-evident, nothing so little in need of explanation, as the
+phenomenon of Life itself, the fact of man's own existence. On the
+other hand, the cessation of this so self-evident existence,
+whenever it obtrudes itself upon his notice, arouses man's
+ever-renewed astonishment. There are primitive peoples to whom death
+whenever it occurs seems an arbitrary abbreviation of life: if it is
+not due to visible forces, then some invisible magic must have
+caused it. So difficult is it for such peoples to grasp the idea
+that the present state of being alive and conscious can come to an
+end of its own accord.
+
+Once reflection on such problems is aroused, life itself, standing
+as it does on the threshold of all sensation and experience, soon
+begins to appear no less mysterious than death--that kingdom into
+which no experience reaches. It may even come about that when they
+are regarded too long and too hard, light and darkness seem to
+change places. It was to a Greek poet that the question suggested
+itself: "Who knows then whether Life be not Death, and what we here
+call Death be called Life there below?"
+
+From such jaded wisdom and its doubts Greek civilization is still
+far removed when, though already at an advanced stage in its
+development, it first speaks to us in the Homeric poems. The poet
+and his heroes speak with lively feeling of the pains and troubles
+of life, both in its individual phases and as a whole. The gods have
+allotted a life of pain and misery to men, while they themselves
+remain free from care. On the other hand, to turn aside from life
+altogether never enters the head of anyone in Homer. Nothing may be
+said expressly of the joy and happiness of life, but that is because
+such things {4} go without saying among a vigorous folk engrossed in
+a movement of progress, whose circumstances were never complicated
+and where all the conditions of happiness easily fell to the lot of
+the strong in activity and enjoyment. And, indeed, it is only for
+the strong, the prudent, and the powerful that this Homeric world is
+intended. Life and existence upon this earth obviously belongs to
+them--is it not an indispensable condition of the attainment of all
+particular good things? As for death--the state which is to follow
+our life here--there is no danger of anyone mistaking _that_ for
+life. "Do not try and explain away death to me," says Achilles to
+Odysseus in Hades; and this would be the answer any Homeric man
+would have given to the sophisticated poet, if he had tried to
+persuade him that the state of things after life on this earth is
+the real life. Nothing is so hateful to man as death and the gates
+of Hades: for when death comes it is certain that life--this sweet
+life of ours in the sunlight--is done with, whatever else there may
+be to follow.
+
+§ 2
+
+But what _does_ follow? What happens when life departs for ever from
+the inanimate body?
+
+It is strange that anyone should have maintained (as it has been in
+recent times[1\1]) that in any stage of the development of the
+Homeric poems the belief can be found that with the moment of death
+all is at an end: that nothing survives death. We are not warranted
+by any statement in either of the two poems (to be found perhaps in
+their oldest parts, as is suggested) nor yet by the tell-tale
+silence of the poet, in attributing such an idea either to the poet
+or his contemporaries. Wherever the occasion of death is described
+we are told how the dead man (still referred to by his name, or his
+"Psyche", hastens away into the house of Aïdes--into the kingdom of
+Aïdes and the grim Persephoneia; goes down to the darkness below the
+earth, to Erebos; or, more vaguely, sinks into the earth itself. In
+any case, it is no mere _nothing_ that can enter the gloomy depths,
+nor over what does not exist could one suppose that the divine Pair
+holds sway below.
+
+But how are we to think of this "Psyche" that, unnoticed during the
+lifetime of the body, and only observable when it is "separated"
+from the body, now glides off to join the multitude of its kind
+assembled in the murky regions of the "Invisible" (Aïdes)? Its name,
+like the names given to the {5} "soul" in many languages, marks it
+off as something airy and breathlike, revealing its presence in the
+breathing of the living man. It escapes out of the mouth--or out of
+the gaping wound of the dying--and now freed from its prison
+becomes, as the name well expresses it, an "image" (~ei/dôlon~). On
+the borders of Hades Odysseus sees floating "the images of those
+that have toiled (on earth)". These immaterial images withdrawing
+themselves from the grasp of the living, like smoke (_Il._ xxiii,
+100) or a shadow (_Od._ xi, 207; x, 495), must at least recognizably
+present the general outlines of the once living person. Odysseus
+immediately recognizes his mother, Antikleia, in such a
+shadow-person, as well as the lately dead Elpenor, and those of his
+companions of the Trojan War who have gone before him. The psyche of
+Patroklos appearing to Achilleus by night resembles the dead man
+absolutely in stature, bodily appearance and expression. The nature
+of this shadowy double of mankind, separating itself from man in
+death and taking its departure then, can best be realized if we
+first make clear to ourselves what qualities it does _not_ possess.
+The psyche of Homeric belief does not, as might have been supposed,
+represent what we are accustomed to call "spirit" as opposed to
+"body". All the faculties of the human "spirit" in the widest
+sense--for which the poet has a large and varied vocabulary--are
+indeed only active and only possible so long as a man is still
+alive: when death comes the complete personality is no longer in
+existence. The body, that is the corpse, now becomes mere "senseless
+earth" and falls to pieces, while the psyche remains untouched. But
+the latter is by no means the refuge of "spirit" and its faculties,
+any more than the corpse is. It (the psyche) is described as being
+without feeling, deserted by mind and the organs of mind. All power
+of will, sensation, and thought have vanished with the
+disintegration of the individual man into his component parts. So
+far from it being permissible to ascribe the functions of "spirit"
+to the psyche, it would be more reasonable to speak of a contrast
+between the two. Man is a living creature, conscious of himself and
+intelligently active, only so long as the psyche remains within him.
+But it is not the psyche which communicates its own faculties to man
+and gives him capacity for life together with consciousness, will
+and knowledge. It is rather that during the union of the psyche and
+the body all the faculties of living and acting lie within the
+empire of the body, of which they are functions. Without the
+presence of the psyche, the body cannot perceive, feel, or will, but
+it does not use these {6} or any of its faculties through or by
+means of the psyche. Nowhere does Homer attribute any such function
+to the psyche in living man: it is, in fact, only mentioned when its
+separation from the living man is imminent or has occurred. As the
+body's shadow-image it survives the body and all its vital powers.
+
+If we now ask--as our Homeric psychologists generally do--which, in
+the face of this mysterious association between a living body and
+its counterfeit the psyche, is the "real" man, we find that Homer in
+fact gives contradictory answers. Not infrequently (indeed, in the
+first lines of the Iliad) the material body is contrasted,[2\1] as
+the "man himself", with the psyche--which cannot therefore be any
+organ or component part of the living body. On the other hand, that
+which takes its departure at death and hastens into the realm of
+Hades is also referred to by the proper name of the person as
+"himself"[3\1]--which means that here the shadowy psyche (for
+nothing else can go down to Hades) is invested with the name and
+value of the complete personality, the "self" of the man. But those
+who draw from these phrases the conclusion that either the body or
+the psyche must be the "real man" have, in either case,[4\1] left
+out of account or unexplained one half of the recorded evidence.
+Regarded without prejudice, these apparently contradictory methods
+of speaking simply prove that both the visible man (the body and its
+own faculties) _and_ the indwelling psyche could be described as the
+man's "self". According to the Homeric view, human beings exist
+twice over: once as an outward and visible shape, and again as an
+invisible "image" which only gains its freedom in death. This, and
+nothing else, is the Psyche.
+
+Such an idea--that the psyche should dwell with the living and fully
+conscious personality, like an alien and a stranger, a feebler
+double of the man, as his "other self"--this may well seem very
+strange to us. And yet this is what so-called "savage" peoples,[5\1]
+all over the world, actually believe. Herbert Spencer in particular
+has shown this most decisively. It is therefore not very surprising
+to find the Greeks, too, sharing a mode of thought that lies so
+close to the mind of primitive mankind. The earlier age which handed
+down to the Greeks of Homer their beliefs about the soul cannot have
+failed any more than other nations to observe the facts upon which a
+fantastic logic based the conclusion of man's double personality. It
+was not the phenomena of sensation, will, perception, or thought in
+waking and conscious man which led to this conclusion. It was the
+experience of an apparent {7} double of the self in dreaming, in
+swoons, and ecstasy, that gave rise to the inference of a two-fold
+principle of life in man, and of the existence of an independent,
+separable "second self" dwelling within the viable self of daily
+life. One has only to listen to the words of a Greek writer of a
+later period who, far more explicitly than Homer, describes the
+nature of the psyche and at the same time lets us see the origin of
+the belief in such an entity. Pindar (fr. 131) tells us that the
+body obeys Death, the almighty, but the image of the living creature
+lives on ("since this alone is derived from the gods": which, of
+course, is not Homeric belief); for it (this _eidôlon_) is
+_sleeping_ when the limbs are active, but when the body is asleep it
+often reveals the future in a dream. Words could hardly make it
+plainer that in the activities of the waking and conscious man, the
+image-soul has no part. Its world is the world of sleep. While the
+other "I", unconscious of itself, lies in sleep, its double is up
+and doing. In other words, while the body of the sleeper lies
+wrapped in slumber, motionless, the sleeper in his dream lives and
+sees many strange and wonderful things. It is "himself" who does
+this (of that there can be no doubt), and yet not the self known and
+visible to himself and others; for that lies still as death beyond
+the reach of sensation. It follows that there lives within a man a
+second self, active in dreaming. That the dream experiences are
+veritable realities and not empty fancies for Homer is also certain.
+He never says, as later poets often do, that the dreamer "thought"
+he saw this or that. The figures seen in dreams are real figures,
+either of the gods themselves or a "dream spirit" sent by them, or a
+fleeting "image" (eidôlon) that they allow to appear for a moment.
+Just as the dreamer's capacity for vision is no mere fancy, so, too,
+the objects that he sees are realities. In the same way it is
+something real that appears to a man asleep as the shape of a person
+lately dead. Since this shape can show itself to a dreamer, it must
+of necessity still exist; consequently it survives death, though,
+indeed, only as a breath-like image, much as we have seen
+reflections of our own faces mirrored in water.[6\1] It cannot,
+indeed--this airy substance--be grasped or held like the once viable
+self; and hence comes its name, the "psyche". The primeval argument
+for such a counterpart of man is repeated by Achilleus himself
+(_Il._ xxiii, 103 f.) when his dead friend appears to him and then
+vanishes again: so, then, ye Gods, there yet lives in Hades' house a
+psyche and shadowy image (of man), but there is no midriff in it
+(and consequently none of the faculties which preserve the visible
+man alive). {8}
+
+The dreamer, then, and what he sees in his dream proves the
+existence of an _alter ego_ in man.[7\1] Man, however, also observes
+that his body may suffer a deathlike torpor without the second self
+being occupied with dream experiences. In such moments of "swoon",
+according to Greek thought and actual Homeric expression, "the
+psyche has left the body."[8\1] Where had it gone? No man could
+tell. But on this occasion it comes back again: whereupon the
+"spirit is gathered again into the midriff". If ever, as happens in
+the case of death, the psyche should become completely separated
+from the visible body, then the "spirit" will never return. But the
+psyche, which in those temporary separations from the body[9\1] did
+not perish, will not vanish into nothingness now.
+
+§ 3
+
+So far experience takes us, from which primitive logic arrived at
+very much the same conclusions all over the world. But, we may
+proceed to ask, where does this liberated psyche go? What becomes of
+it? Here begins "the undiscovered country" and it might appear that
+at its entrance there was a complete parting of the ways.
+
+Primitive people are accustomed to attribute unlimited powers to the
+disembodied "soul"--powers all the more formidable because they are
+not seen. Indeed, they refer in part _all_ invisible forces to the
+action of "souls", and strain anxiously by means of the richest
+offerings within their power to secure for themselves the goodwill
+of these powerful spirits. Homer, on the contrary, knows nothing of
+any influence exerted by the psyche upon the visible world, and,
+consequently, hardly anything of a cult of the psyche. How, indeed,
+could the souls (as I may venture to call them without further risk
+of misunderstanding) have any such influence? They are all without
+exception collected in the realm of Aïdes, far from the living,
+separated from them by Okeanos and Acheron, guarded by the
+relentless god himself, the inexorable doorkeeper. Only a fabled
+hero like Odysseus may for once, perhaps, reach the entrance of that
+gloomy kingdom alive: the souls themselves, once they have crossed
+the river, never come back--so the soul of Patroklos assures his
+friend. How do they get there? The implication seems to be that on
+leaving the body the soul passes away, unwilling and complaining of
+its fate, but, nevertheless, unresisting, to Hades; and after the
+destruction of the body by fire, disappears for ever into the depths
+of Erebos. It was only a {9} later poet who, in giving the final
+touches to the Odyssey, introduced Hermes, the "Guide of the Dead".
+Whether this is an invention of the poet's, or, as appears more
+likely, it is borrowed from the ancient folk-belief of some remote
+corner of Greece, in the completely rounded circle of Homeric belief
+at any rate it is an innovation and an important one. Doubt has
+arisen, it appears, whether indeed _all_ the souls must of necessity
+pass away into the Unseen; and they are provided with a divine guide
+who by his mysteriously compelling summons (_Od._ xxiv, 1) and the
+power of his magic wand constrains them to follow him.[10\1]
+
+Down in the murky underworld they now float unconscious, or, at
+most, with a twilight half-consciousness, wailing in a shrill
+diminutive voice, helpless, indifferent. Of course, flesh, bones,
+and sinews,[11\1] the midriff, the seat of all the faculties of mind
+and will--these are all gone for ever. They were attached to the
+once-visible partner of the psyche, and that has been destroyed. To
+speak of an "immortal life" of these souls, as scholars both ancient
+and modern have done, is incorrect. They can hardly be said to
+_live_ even, any more than the image does that is reflected in the
+mirror; and that they prolong to eternity their shadowy
+image-existence--where in Homer do we ever find this said? The
+psyche may survive its visible companion, but it is helpless without
+it. Is it possible to believe that a realistically imaginative,
+materially minded people like the Greeks would have regarded as
+immortal a creature incapable (once the funeral is over) of
+requiring or receiving further _nourishment_--either in religious
+cult or otherwise?
+
+The daylight world of Homer is thus freed from spectres of the night
+(for even in dreams the psyche is seen no more after the body is
+burnt); from those intangible and ghostly essences at whose
+unearthly activity the superstitious of every age tremble. The
+living are no longer troubled by the dead. The world is governed by
+the gods alone; not pale and ghostly phantoms, but palpable and
+fully materialized figures, working powerfully everywhere, and
+dwelling on the clear mountain tops: "and brightness gleams around
+them." No daimonic powers can compare with the gods or can avail
+against them; and night does not set free the departed souls of the
+dead. The reader starts involuntarily and begins to suspect the
+influence of another age, when in a part of Book XX of the Odyssey,
+added by a later hand, he reads how shortly before the destruction
+of the suitors the clairvoyant soothsayer beholds in hall and
+forecourt the soul-phantoms (eidôla) {10} floating in multitudes and
+hurrying down to the darkness under the earth: "the sun was darkened
+in the heaven and a thick mist came over all." The later poet has
+been very successful in suggesting the terror awakened by a
+foreboding of tragedy; but such terror in the face of the doings of
+the spirit world is entirely un-Homeric.
+
+§ 4
+
+Were the Greeks, then, always so untroubled by such fears of the
+souls of the dead? Was there never any _cult_ of disembodied
+spirits, such as was not only known to all primitive peoples
+throughout the world, but was also quite familiar to nations
+belonging to the same family as the Greeks, for instance, the
+Indians and the Persians? The question and its answer have more than
+a passing interest. In later times--long subsequent to Homer--we
+find in Greece itself a lively worship of ancestors and a general
+cult of the departed. Were it demonstrable--as it is generally
+assumed without proof--that the Greeks only at this late period
+first began to pay a religious cult to the souls of the dead, this
+fact would give very strong support to the oft-repeated theory that
+the cult of the dead arose from the ruins of a previous worship of
+the gods. Anthropologists are accustomed to deny this and to regard
+the worship of disembodied souls as one of the earliest forms (if
+not as originally the only form) of the reverence paid to unseen
+powers. The peoples, however, upon whose conditions of life and
+mental conceptions such views are generally based, have indeed
+behind them a long past, but no history. What is to prevent pure
+speculation and theorizing in conformity with the preconceived idea
+just mentioned (which is almost elevated to the position of a
+doctrine of faith by some comparative religionists) from introducing
+into the dim past of such savage peoples the primitive worship of
+gods, out of which the worship of the dead may then subsequently
+arise? But _Greek_ religious development can be traced from Homer
+onwards for a long period; and there we find the certainly
+remarkable fact that a cult of the dead, unknown to Homer, only
+appears later, in the course of a long and vigorous expansion of
+religious ideas in after times; or, at least, then shows itself more
+plainly--but not, it is important to notice, as the precipitate of a
+dying belief in gods and worship of the gods, but rather as a
+collateral development by the side of that highly developed form of
+piety.
+
+Are we, then, really to believe that the cult of disembodied {11}
+spirits was absolutely unknown to the Greeks of pre-Homeric times?
+
+Such an assertion, if made without due qualification, is
+contradicted by a closer study of the Homeric poems themselves.
+
+It is true that Homer represents for us the earliest great stage in
+the evolution of Greek civilization of which we have clear evidence.
+But the poems do not stand at the beginning of that evolution.
+Indeed, they only stand at the beginning of Greek Epic poetry--so
+far as this has been transmitted to us--because the natural
+greatness and wide popularity of the Iliad and the Odyssey secured
+their preservation in writing. Their very existence and the degree
+of artistic finish which they show, oblige us to suppose that behind
+them lies a long history of heroic "Saga" poetry. The conditions
+which they describe and imply point to a long course of previous
+development--from nomadic to city life, from patriarchal rule to the
+organization of the Greek Polis. And just as the maturity of
+material development tells its tale, so do the refinement and
+maturity of culture, the profound and untrammelled knowledge of the
+world, the clarity and simplicity of thought reflected in them. All
+these things go to show that before Homer, in order to reach Homer,
+the Greek world must have thought and learned much--must, indeed,
+have unlearned and undone much. As in art, so in all the products of
+civilization, what is simple, appropriate, and convincing is not the
+achievement of beginners, but the reward of prolonged study. It is
+prima facie unthinkable that during the whole length of Greek
+evolution before Homer, religion alone, the relationship between man
+and the invisible world, should have remained stationary at any one
+point. It is not from the comparison of religious beliefs and their
+development among kindred nations, nor even from the study of
+apparently primitive ideas and usages in the religious life of the
+Greeks themselves of later times, that we are to seek the truth
+about the religious customs of that remote period which is obscured
+for us by the intervening mass of the Homeric poems. Comparative
+studies of this kind are valuable in their way, but must only be
+used to give further support to the insight derived from less easily
+misleading methods of inquiry. For us the only completely
+satisfactory source of information about pre-Homeric times is Homer
+himself. We are allowed--indeed, we are forced--to conclude that
+there have been change in conceptions and customs, if, in that
+otherwise so uniform and rounded Homeric world, we meet with
+isolated occurrences, customs, forms of speech that contradict the
+{12} normal atmosphere of Homer and can only be explained by
+reference to a world in all essentials differently orientated from
+his own and for the most part kept in the background by Homer. All
+that is necessary is to open our eyes, freed from preconceived
+ideas, to the "rudiments" ("survivals", as they are better called by
+English scholars) of a past stage of civilization discoverable in
+the Iliad and Odyssey themselves.
+
+§ 5
+
+Such rudiments of a once vigorous soul-worship are not hard to find
+in Homer. In particular, we may refer to what the Iliad tells us of
+the manner in which the dead body of Patroklos is dealt with. The
+reader need only recall the general outline of the story. In the
+evening of the day upon which Hektor has been slain, Achilles with
+his Myrmidons sings the funeral dirge to his dead friend: they go
+three times in procession round the body, Achilles laying his
+"murderous hands" on the breast of Patroklos and calling upon him
+with the words: "Hail, Patroklos mine, even in Aïdes'
+dwelling-place; what I vowed to thee before is now performed; Hektor
+lies slain and is the prey of dogs, and twelve noble Trojan youths
+will I slay at thy funeral pyre." After they have laid aside their
+arms he makes ready the funeral feast for his companions--bulls,
+sheep, goats, and pigs are killed, "and all around, in beakers-full,
+the blood flowed round the corpse." During the night the soul of
+Patroklos appears to Achilles demanding immediate burial. In the
+morning the host of the Myrmidons marches out in arms, bearing the
+body in their midst. The warriors lay locks of their hair, cut off
+for the purpose, upon the body, and last of all Achilles places his
+own hair in the hand of his friend--it was once pledged by his
+father to Spercheios the River-god, but Patroklos must now take it
+with him, since return to his home is denied to Achilles. The
+funeral pyre is got ready, many sheep and oxen slaughtered. The
+corpse is wrapped in their fat, while their carcasses are placed
+beside it; jars of oil and honey are set round the body. Next, four
+horses are killed, two dogs belonging to Patroklos, and last of all
+twelve Trojan youths taken prisoner for this purpose by Achilles.
+All these are burnt together with the corpse, and Achilles spends
+the whole night pouring out dark wine upon the earth, calling the
+while upon the psyche of Patroklos. Only when morning comes is the
+fire extinguished with wine; the bones of Patroklos are collected
+and laid in a golden casket and entombed within a mound. {13}
+
+Here we have a picture of the funeral of a chieftain which, in the
+solemnity and ceremoniousness of its elaborate detail, is in
+striking conflict with the normal Homeric conception of the
+nothingness of the soul after its separation from the body. A full
+and rich sacrifice is here offered to such a soul. This sacrifice is
+inexplicable if the soul immediately upon its dissolution flutters
+away insensible, helpless and powerless, and therefore incapable of
+enjoying the offerings made to it. It is therefore not unnatural
+that a method of interpretation which isolates Homer as far as
+possible and adheres closely to his own fixed and determinate range
+of ideas, should attempt to deny the sacrificial character of the
+offerings made on this occasion.[12\1] We may well ask, however,
+what else but a sacrifice, i.e. a repast offered in satisfaction of
+the needs of the person honoured (in this case the psyche), can be
+intended by this stream of blood about the corpse; this slaughtering
+and burning of cattle and sheep, horses and dogs, and finally of
+twelve Trojan prisoners on or at the funeral pyre? To explain it all
+as a mere performance of pious duties, as is often done in
+interpreting many of the gruesome pictures of Greek sacrificial
+ceremonies, is impossible here. Besides, Homer often tells us of
+merely pious observances in honour of the dead, and they are of a
+very different character. And the most horrible touch of all (the
+human sacrifice is not put in simply to satisfy Achilles' lust for
+vengeance--twice over does Achilles call to the soul of Patroklos
+with the words: "To _you_ do I bring what I formerly promised to
+_you_" (_Il._ xxiii, 20 ff., 180 ff.).[13\1] The whole series of
+offerings on this occasion is precisely of the kind which we may
+take as typical of the oldest sort of sacrificial ritual such as we
+often find in later Greek religion in the cultus of the infernal
+deities. The sacrificial offerings are completely burnt in honour of
+the Daimon and are not shared between the bysta

@@ -145,24 +145,27 @@ function generateLargeText(size: number): string {
  * Test a literal pattern with KMP
  */
 function testKMP(pattern: string, text: string): AlgorithmResult {
-  const startMemory = process.memoryUsage().heapUsed;
+  const memTracker = new MemoryTracker(true);
+
   const startBuild = performance.now();
   // KMP has minimal build time (just the pattern preprocessing)
   const buildTime = performance.now() - startBuild;
-  
+  memTracker.update();
+
   const startMatch = performance.now();
   const matches = findAllMatchesLiteralKmp(pattern, text);
   const matchTime = performance.now() - startMatch;
-  
-  const endMemory = process.memoryUsage().heapUsed;
-  
+  memTracker.update();
+
+  const memMeasurement = memTracker.getMeasurement();
+
   return {
     algorithm: "KMP",
     matches,
     buildTime,
     matchTime,
     totalTime: buildTime + matchTime,
-    memoryUsed: endMemory - startMemory,
+    memoryUsed: getSafeMemoryUsage(memMeasurement),
   };
 }
 
@@ -198,26 +201,28 @@ function testBoyerMoore(pattern: string, text: string): AlgorithmResult {
  * Test with NFA
  */
 function testNFA(pattern: string, text: string): AlgorithmResult {
-  const startMemory = process.memoryUsage().heapUsed;
-  
+  const memTracker = new MemoryTracker(true);
+
   const startBuild = performance.now();
   const syntaxTree = parseRegex(pattern);
   const nfa = nfaFromSyntaxTree(syntaxTree);
   const buildTime = performance.now() - startBuild;
-  
+  memTracker.update();
+
   const startMatch = performance.now();
   const matches = findAllMatchesNfa(nfa, text);
   const matchTime = performance.now() - startMatch;
-  
-  const endMemory = process.memoryUsage().heapUsed;
-  
+  memTracker.update();
+
+  const memMeasurement = memTracker.getMeasurement();
+
   return {
     algorithm: "NFA",
     matches,
     buildTime,
     matchTime,
     totalTime: buildTime + matchTime,
-    memoryUsed: endMemory - startMemory,
+    memoryUsed: getSafeMemoryUsage(memMeasurement),
   };
 }
 
@@ -290,17 +295,19 @@ function testMinDFA(pattern: string, text: string): AlgorithmResult {
  * Test Aho-Corasick for multi-pattern matching
  */
 function testAhoCorasick(patterns: string[], text: string): AlgorithmResult {
-  const startMemory = process.memoryUsage().heapUsed;
+  const memTracker = new MemoryTracker(true);
 
   const startBuild = performance.now();
   const ac = new AhoCorasick(patterns);
   const buildTime = performance.now() - startBuild;
+  memTracker.update();
 
   const startMatch = performance.now();
   const results = ac.search(text);
   const matchTime = performance.now() - startMatch;
+  memTracker.update();
 
-  const endMemory = process.memoryUsage().heapUsed;
+  const memMeasurement = memTracker.getMeasurement();
 
   // Convert AC results to Match format
   const matches: Match[] = results.map(r => ({
@@ -315,7 +322,7 @@ function testAhoCorasick(patterns: string[], text: string): AlgorithmResult {
     buildTime,
     matchTime,
     totalTime: buildTime + matchTime,
-    memoryUsed: endMemory - startMemory,
+    memoryUsed: getSafeMemoryUsage(memMeasurement),
   };
 }
 
@@ -364,7 +371,7 @@ function testNFAWithPrefilter(pattern: string, text: string): AlgorithmResult {
  * Test DFA with prefiltering
  */
 function testDFAWithPrefilter(pattern: string, text: string): AlgorithmResult {
-  const startMemory = process.memoryUsage().heapUsed;
+  const memTracker = new MemoryTracker(true);
 
   const startBuild = performance.now();
   const syntaxTree = parseRegex(pattern);
@@ -372,6 +379,7 @@ function testDFAWithPrefilter(pattern: string, text: string): AlgorithmResult {
   const dfa = dfaFromNfa(nfa);
   const literals = extractLiterals(syntaxTree);
   const buildTime = performance.now() - startBuild;
+  memTracker.update();
 
   const startMatch = performance.now();
   let matches: Match[] = [];
@@ -387,7 +395,9 @@ function testDFAWithPrefilter(pattern: string, text: string): AlgorithmResult {
   }
 
   const matchTime = performance.now() - startMatch;
-  const endMemory = process.memoryUsage().heapUsed;
+  memTracker.update();
+
+  const memMeasurement = memTracker.getMeasurement();
 
   return {
     algorithm: "DFA (with prefilter)",
@@ -395,7 +405,7 @@ function testDFAWithPrefilter(pattern: string, text: string): AlgorithmResult {
     buildTime,
     matchTime,
     totalTime: buildTime + matchTime,
-    memoryUsed: endMemory - startMemory,
+    memoryUsed: getSafeMemoryUsage(memMeasurement),
   };
 }
 

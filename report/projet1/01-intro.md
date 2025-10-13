@@ -1,7 +1,5 @@
 # 1. Introduction
 
-La recherche de motifs dans des fichiers textuels est une opération fondamentale en informatique, utilisée quotidiennement par des millions de développeurs et administrateurs systèmes. Les expressions régulières (regex), formalisées par Stephen Cole Kleene en 1956 dans le cadre de la théorie des langages formels, constituent l'outil privilégié pour décrire et rechercher des motifs complexes dans des chaînes de caractères. L'utilitaire Unix `egrep` (Extended Global Regular Expression Print), qui supporte la norme ERE (Extended Regular Expressions), est l'une des implémentations les plus utilisées de cette technologie.
-
 ## 1.2. Contexte
 
 Ce projet vise à développer un clone fonctionnel de `egrep` supportant un sous-ensemble de la norme ERE POSIX. Les opérateurs implémentés sont :
@@ -52,4 +50,3 @@ Le choix de TypeScript a été fait pour son coté fonctionnel et son typage sta
 ## 1.5. Organisation du Rapport
 
 Ce rapport présente d'abord les fondements théoriques des algorithmes implémentés (Section 2), puis détaille les stratégies d'optimisation développées (Section 3). La méthodologie de test est exposée en Section 4, suivie d'une analyse de performance comparative (Section 5). Nous concluons par une discussion des résultats et des perspectives d'amélioration (Section 6).
-

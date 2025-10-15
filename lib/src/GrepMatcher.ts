@@ -16,6 +16,7 @@ import { boyerMooreContains } from "./BoyerMoore";
 import { AhoCorasick } from "./AhoCorasick";
 import { ChunkedLineReader, LineMatch } from "./ChunkedLineReader";
 import { Match } from "./Matcher";
+import type { AlgorithmType } from "./AlgorithmSelector";
 
 export interface GrepMatcherOptions {
   /** Taille du chunk pour la lecture (défaut: 64KB) */
@@ -26,6 +27,8 @@ export interface GrepMatcherOptions {
   invertMatch?: boolean;
   /** Activer le préfiltrage (défaut: true) */
   enablePrefilter?: boolean;
+  /** Algorithme qui sera utilisé pour le matching (pour décider du préfiltrage) */
+  algorithm?: AlgorithmType;
 }
 
 export interface MatchResult {
@@ -51,7 +54,18 @@ export class GrepMatcher {
 
     // Vérifier si le préfiltrage est activé (par défaut: true)
     const enablePrefilter = options.enablePrefilter !== false;
-    this.usePrefilter = enablePrefilter && canUsePrefilter(syntaxTree);
+
+    // Déterminer si le préfiltrage est utile
+    // Le préfiltrage n'est PAS utile si l'algorithme utilisé est déjà un algorithme de recherche littérale
+    const isLiteralAlgorithm =
+      options.algorithm === "literal-kmp" ||
+      options.algorithm === "literal-bm" ||
+      options.algorithm === "aho-corasick";
+
+    this.usePrefilter =
+      enablePrefilter &&
+      !isLiteralAlgorithm &&
+      canUsePrefilter(syntaxTree);
 
     // Construire le préfiltre si activé
     if (this.usePrefilter) {

@@ -37,17 +37,52 @@ describe("GrepMatcher", () => {
   });
 
   describe("Constructor and Prefilter", () => {
-    it("should create matcher with prefilter enabled by default", () => {
+    it("should NOT enable prefilter when algorithm is literal-kmp", () => {
       const tree = parseRegex("test");
-      const matcher = new GrepMatcher(tree);
+      const matcher = new GrepMatcher(tree, { algorithm: "literal-kmp" });
+      const stats = matcher.getPrefilterStats();
+
+      expect(stats.enabled).toBe(false);
+      expect(stats.literals).toContain("test");
+    });
+
+    it("should NOT enable prefilter when algorithm is literal-bm", () => {
+      const tree = parseRegex("test");
+      const matcher = new GrepMatcher(tree, { algorithm: "literal-bm" });
+      const stats = matcher.getPrefilterStats();
+
+      expect(stats.enabled).toBe(false);
+      expect(stats.literals).toContain("test");
+    });
+
+    it("should NOT enable prefilter when algorithm is aho-corasick", () => {
+      const tree = parseRegex("from|what|who");
+      const matcher = new GrepMatcher(tree, { algorithm: "aho-corasick" });
+      const stats = matcher.getPrefilterStats();
+
+      expect(stats.enabled).toBe(false);
+    });
+
+    it("should enable prefilter when algorithm is NFA and pattern has literals", () => {
+      const tree = parseRegex("test");
+      const matcher = new GrepMatcher(tree, { algorithm: "nfa" });
       const stats = matcher.getPrefilterStats();
 
       expect(stats.enabled).toBe(true);
       expect(stats.literals).toContain("test");
     });
 
-    it("should create matcher with prefilter disabled", () => {
-      const tree = parseRegex("test");
+    it("should enable prefilter when algorithm is DFA and pattern has literals", () => {
+      const tree = parseRegex("(.*)test(.*)");
+      const matcher = new GrepMatcher(tree, { algorithm: "dfa" });
+      const stats = matcher.getPrefilterStats();
+
+      expect(stats.enabled).toBe(true);
+      expect(stats.literals).toContain("test");
+    });
+
+    it("should create matcher with prefilter disabled when explicitly requested", () => {
+      const tree = parseRegex("(.*)test(.*)");
       const matcher = new GrepMatcher(tree, { enablePrefilter: false });
       const stats = matcher.getPrefilterStats();
 

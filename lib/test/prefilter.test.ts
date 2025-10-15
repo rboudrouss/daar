@@ -37,15 +37,30 @@ describe("LiteralExtractor", () => {
     expect(literals.length).toBe(0);
   });
 
-  it("should determine if prefilter is useful", () => {
+  it("should determine if prefilter is possible (has literals)", () => {
+    // Pure literal: has literals, prefilter possible (decision made by GrepMatcher)
     const tree1 = parseRegex("test");
     expect(canUsePrefilter(tree1)).toBe(true);
 
+    // Pattern with only wildcards: no literals to extract
     const tree2 = parseRegex("(.*)");
     expect(canUsePrefilter(tree2)).toBe(false);
 
-    const tree3 = parseRegex("a"); // Too short
+    // Single char literal: too short
+    const tree3 = parseRegex("a");
     expect(canUsePrefilter(tree3)).toBe(false);
+
+    // Alternation of literals: has literals, prefilter possible
+    const tree4 = parseRegex("from|what|who");
+    expect(canUsePrefilter(tree4)).toBe(true);
+
+    // Complex pattern with literals: prefilter possible
+    const tree5 = parseRegex("(.*)test(.*)");
+    expect(canUsePrefilter(tree5)).toBe(true);
+
+    // Pattern with literal segment: prefilter possible
+    const tree6 = parseRegex("abc(.*)");
+    expect(canUsePrefilter(tree6)).toBe(true);
   });
 });
 

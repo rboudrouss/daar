@@ -240,6 +240,7 @@ function main() {
       invertMatch: options.invertMatch,
       chunkSize: 64 * 1024, // 64KB chunks comme grep
       enablePrefilter,
+      algorithm: selectedAlgorithm, // Passer l'algorithme pour décider du préfiltrage
     });
 
     // Obtenir les stats du préfiltre

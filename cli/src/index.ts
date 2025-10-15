@@ -9,6 +9,7 @@ import {
   findAllMatchesDfa,
   findAllMatchesLiteralKmp,
   findAllMatchesLiteralBm,
+  findAllMatchesNfaWithDfaCache,
   colorizeMatches,
   analyzePattern,
   getAlgorithmDescription,
@@ -30,6 +31,7 @@ type OptimizationLevel =
   | "literal-bm"
   | "aho-corasick"
   | "nfa"
+  | "nfa-dfa-cache"
   | "dfa"
   | "min-dfa";
 
@@ -132,7 +134,7 @@ function main() {
     .option("--color", "Highlight matching text with color", true)
     .option(
       "-O, --optimize <level>",
-      "Optimization level: auto (default), literal-kmp, literal-bm, aho-corasick, nfa, dfa, or min-dfa",
+      "Optimization level: auto (default), literal-kmp, literal-bm, aho-corasick, nfa, nfa-dfa-cache, dfa, or min-dfa",
       "auto"
     )
     .option(
@@ -193,13 +195,13 @@ function main() {
 
   // Validate optimization level
   if (
-    !["auto", "literal-kmp", "literal-bm", "aho-corasick", "nfa", "dfa", "min-dfa"].includes(
+    !["auto", "literal-kmp", "literal-bm", "aho-corasick", "nfa", "nfa-dfa-cache", "dfa", "min-dfa"].includes(
       optimizationLevel
     )
   ) {
     console.error(`Invalid optimization level: ${optimizationLevel}`);
     console.error(
-      "Valid options are: auto, literal-kmp, literal-bm, aho-corasick, nfa, dfa, min-dfa"
+      "Valid options are: auto, literal-kmp, literal-bm, aho-corasick, nfa, nfa-dfa-cache, dfa, min-dfa"
     );
     process.exit(1);
   }
@@ -321,6 +323,9 @@ function main() {
         } else {
           matcher = (line: string) => findAllMatchesDfa(dfa!, line);
         }
+      } else if (selectedAlgorithm === "nfa-dfa-cache") {
+        // NFA avec cache DFA (construction à la volée)
+        matcher = (line: string) => findAllMatchesNfaWithDfaCache(nfa, line);
       } else {
         // NFA
         matcher = (line: string) => findAllMatchesNfa(nfa, line);

@@ -11,7 +11,7 @@ import { extractLiterals, isAlternationOfLiterals } from "./LiteralExtractor";
 /**
  * Types d'algorithmes disponibles
  */
-export type AlgorithmType = "literal-kmp" | "literal-bm" | "aho-corasick" | "nfa" | "dfa" | "min-dfa";
+export type AlgorithmType = "literal-kmp" | "literal-bm" | "aho-corasick" | "nfa" | "nfa-dfa-cache" | "dfa" | "min-dfa";
 
 /**
  * Résultat de l'analyse du pattern
@@ -266,6 +266,8 @@ export function getAlgorithmDescription(algorithm: AlgorithmType): string {
       return "Aho-Corasick - Recherche multi-motifs optimale";
     case "nfa":
       return "NFA (Non-deterministic Finite Automaton) - Faible empreinte mémoire";
+    case "nfa-dfa-cache":
+      return "NFA avec cache DFA (Lazy DFA) - Construction DFA à la volée style grep";
     case "dfa":
       return "DFA (Deterministic Finite Automaton) - Matching rapide";
     case "min-dfa":

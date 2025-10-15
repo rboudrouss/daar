@@ -11,6 +11,7 @@ import {
   minimizeDfa,
   findAllMatchesNfa,
   findAllMatchesDfa,
+  findAllMatchesNfaWithDfaCache,
   findAllMatchesLiteralKmp,
   findAllMatchesLiteralBm,
   AhoCorasick,
@@ -218,6 +219,35 @@ function testNFA(pattern: string, text: string): AlgorithmResult {
 
   return {
     algorithm: "NFA",
+    matches,
+    buildTime,
+    matchTime,
+    totalTime: buildTime + matchTime,
+    memoryUsed: getSafeMemoryUsage(memMeasurement),
+  };
+}
+
+/**
+ * Test with NFA + DFA cache (lazy DFA construction)
+ */
+function testNFAWithDFACache(pattern: string, text: string): AlgorithmResult {
+  const memTracker = new MemoryTracker(true);
+
+  const startBuild = performance.now();
+  const syntaxTree = parseRegex(pattern);
+  const nfa = nfaFromSyntaxTree(syntaxTree);
+  const buildTime = performance.now() - startBuild;
+  memTracker.update();
+
+  const startMatch = performance.now();
+  const matches = findAllMatchesNfaWithDfaCache(nfa, text);
+  const matchTime = performance.now() - startMatch;
+  memTracker.update();
+
+  const memMeasurement = memTracker.getMeasurement();
+
+  return {
+    algorithm: "NFA+DFA-cache",
     matches,
     buildTime,
     matchTime,
@@ -550,6 +580,17 @@ function runTestScenario(
       console.log(`      Memory: ${(nfaResult.memoryUsed / 1024).toFixed(2)} KB`);
     } catch (e) {
       console.log(`  ✗ NFA failed: ${e}`);
+    }
+
+    try {
+      const nfaDfaCacheResult = testNFAWithDFACache(scenario.pattern, scenario.text);
+      results.push(nfaDfaCacheResult);
+      console.log(`  ✓ NFA+DFA-cache:`);
+      console.log(`      Matches: ${nfaDfaCacheResult.matches.length}`);
+      console.log(`      Time: ${nfaDfaCacheResult.totalTime.toFixed(3)}ms (build: ${nfaDfaCacheResult.buildTime.toFixed(3)}ms, match: ${nfaDfaCacheResult.matchTime.toFixed(3)}ms)`);
+      console.log(`      Memory: ${(nfaDfaCacheResult.memoryUsed / 1024).toFixed(2)} KB`);
+    } catch (e) {
+      console.log(`  ✗ NFA+DFA-cache failed: ${e}`);
     }
 
     try {

@@ -46,3 +46,4 @@ export * from "./ChunkedLineReader";
 export * from "./GrepMatcher";
 export * from "./Matcher";
 export * from "./AlgorithmSelector";
+export * from "./NFAWithDFACache";

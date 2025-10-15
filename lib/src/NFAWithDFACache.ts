@@ -44,12 +44,12 @@ class LazyDFACache {
 
   /**
    * Obtient ou crée un état DFA pour un ensemble d'états NFA donné
-   * @param nfaStates Ensemble d'états NFA (doit être trié)
+   * @param nfaStates Ensemble d'états NFA
    * @returns L'ID de l'état DFA correspondant
    */
   getOrCreateState(nfaStates: state_ID[]): number {
     // Créer une clé unique pour cet ensemble d'états
-    const stateKey = JSON.stringify(nfaStates);
+    const stateKey = JSON.stringify(nfaStates.sort());
 
     // Vérifier si cet état existe déjà
     const existingId = this.stateMap.get(stateKey);

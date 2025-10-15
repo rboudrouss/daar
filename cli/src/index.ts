@@ -267,11 +267,15 @@ function main() {
       literalPattern = regex; // Le pattern est déjà un littéral
 
       if (selectedAlgorithm === "literal-kmp") {
-        matcher = (line: string) =>
-          findAllMatchesLiteralKmp(literalPattern!, line);
+        matcher = (line: string) => {
+          const searchLine = options.ignoreCase ? line.toLowerCase() : line;
+          return findAllMatchesLiteralKmp(literalPattern!, searchLine);
+        };
       } else {
-        matcher = (line: string) =>
-          findAllMatchesLiteralBm(literalPattern!, line);
+        matcher = (line: string) => {
+          const searchLine = options.ignoreCase ? line.toLowerCase() : line;
+          return findAllMatchesLiteralBm(literalPattern!, searchLine);
+        };
       }
 
       // Pas besoin de construire NFA/DFA pour les littéraux
@@ -285,11 +289,14 @@ function main() {
         process.exit(1);
       }
 
-      const patterns = alternationCheck.literals;
+      const patterns = options.ignoreCase
+        ? alternationCheck.literals.map(l => l.toLowerCase())
+        : alternationCheck.literals;
       const ac = new AhoCorasick(patterns);
 
       matcher = (line: string) => {
-        const results = ac.search(line);
+        const searchLine = options.ignoreCase ? line.toLowerCase() : line;
+        const results = ac.search(searchLine);
         return results.map(r => ({
           start: r.position,
           end: r.position + r.pattern.length,
@@ -320,16 +327,28 @@ function main() {
           minDfaTime = performance.now() - startMinDfa;
           memTracker.update();
 
-          matcher = (line: string) => findAllMatchesDfa(minDfa!, line);
+          matcher = (line: string) => {
+            const searchLine = options.ignoreCase ? line.toLowerCase() : line;
+            return findAllMatchesDfa(minDfa!, searchLine);
+          };
         } else {
-          matcher = (line: string) => findAllMatchesDfa(dfa!, line);
+          matcher = (line: string) => {
+            const searchLine = options.ignoreCase ? line.toLowerCase() : line;
+            return findAllMatchesDfa(dfa!, searchLine);
+          };
         }
       } else if (selectedAlgorithm === "nfa-dfa-cache") {
         // NFA avec cache DFA (construction à la volée)
-        matcher = (line: string) => findAllMatchesNfaWithDfaCache(nfa, line);
+        matcher = (line: string) => {
+          const searchLine = options.ignoreCase ? line.toLowerCase() : line;
+          return findAllMatchesNfaWithDfaCache(nfa, searchLine);
+        };
       } else {
         // NFA
-        matcher = (line: string) => findAllMatchesNfa(nfa, line);
+        matcher = (line: string) => {
+          const searchLine = options.ignoreCase ? line.toLowerCase() : line;
+          return findAllMatchesNfa(nfa, searchLine);
+        };
       }
     }
 

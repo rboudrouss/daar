@@ -37,9 +37,37 @@ class LazyDFACache {
   private nextStateId: number = 0;
   /** Référence au NFA original */
   private nfa: NFA;
+  /** Cache de la fermeture epsilon de l'état initial (calculé une seule fois) */
+  private initialStateClosure: state_ID[] | null = null;
 
   constructor(nfa: NFA) {
     this.nfa = nfa;
+  }
+
+  /**
+   * Obtient la fermeture epsilon de l'état initial (avec mise en cache)
+   */
+  getInitialStateClosure(): state_ID[] {
+    if (this.initialStateClosure === null) {
+      this.initialStateClosure = epsilonClosure(this.nfa, [this.nfa.start]);
+    }
+    return this.initialStateClosure;
+  }
+
+  /**
+   * Crée une clé unique pour un ensemble d'états NFA
+   * @param nfaStates Ensemble d'états NFA
+   * @returns Une clé unique sous forme de chaîne
+   */
+  private createStateKey(nfaStates: state_ID[]): string {
+    // Pour les petits ensembles (cas le plus courant), la copie + tri est rapide
+    if (nfaStates.length <= 1) {
+      return nfaStates.join(',');
+    }
+
+    // Copier et trier
+    const sorted = nfaStates.slice().sort((a, b) => a - b);
+    return sorted.join(',');
   }
 
   /**
@@ -49,7 +77,7 @@ class LazyDFACache {
    */
   getOrCreateState(nfaStates: state_ID[]): number {
     // Créer une clé unique pour cet ensemble d'états
-    const stateKey = JSON.stringify(nfaStates.sort());
+    const stateKey = this.createStateKey(nfaStates);
 
     // Vérifier si cet état existe déjà
     const existingId = this.stateMap.get(stateKey);
@@ -164,7 +192,7 @@ export function findAllMatchesNfaWithDfaCache(nfa: NFA, line: string): Match[] {
   // Essayer de matcher à chaque position de la ligne
   for (let startPos = 0; startPos < line.length; startPos++) {
     // Essayer de trouver le plus long match à partir de cette position
-    const match = findLongestMatchWithCache(nfa, line, startPos, cache);
+    const match = findLongestMatchWithCache(line, startPos, cache);
 
     if (match) {
       matches.push(match);
@@ -184,20 +212,18 @@ export function findAllMatchesNfaWithDfaCache(nfa: NFA, line: string): Match[] {
  * Trouve le plus long match d'un NFA à partir d'une position donnée
  * en utilisant le cache DFA
  *
- * @param nfa Le NFA représentant le motif
  * @param line La ligne dans laquelle chercher
  * @param startPos La position de départ
  * @param cache Le cache DFA à utiliser
  * @returns Le match trouvé, ou null
  */
 function findLongestMatchWithCache(
-  nfa: NFA,
   line: string,
   startPos: number,
   cache: LazyDFACache
 ): Match | null {
-  // Commencer avec l'état initial du DFA
-  const initialNfaStates = epsilonClosure(nfa, [nfa.start]);
+  // Commencer avec l'état initial du DFA (utilise le cache)
+  const initialNfaStates = cache.getInitialStateClosure();
   let currentStateId = cache.getOrCreateState(initialNfaStates);
   let lastAcceptPos = -1;
 
@@ -260,8 +286,8 @@ function findLongestMatchWithCache(
 export function matchNfaWithDfaCache(nfa: NFA, input: string): boolean {
   const cache = new LazyDFACache(nfa);
 
-  // Commencer avec l'état initial
-  const initialNfaStates = epsilonClosure(nfa, [nfa.start]);
+  // Commencer avec l'état initial (utilise le cache)
+  const initialNfaStates = cache.getInitialStateClosure();
   let currentStateId = cache.getOrCreateState(initialNfaStates);
 
   // Parcourir l'entrée

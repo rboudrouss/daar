@@ -1,9 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { parseRegex } from "../src/RegexParser";
-import {
-  extractLiterals,
-  canUsePrefilter,
-} from "../src/LiteralExtractor";
+import { extractLiterals, canUsePrefilter } from "../src/LiteralExtractor";
 import { boyerMooreSearch, boyerMooreContains } from "../src/BoyerMoore";
 import { AhoCorasick } from "../src/AhoCorasick";
 
@@ -39,8 +36,6 @@ describe("LiteralExtractor", () => {
     const literals = extractLiterals(tree);
     expect(literals.length).toBe(0);
   });
-
-
 
   it("should determine if prefilter is useful", () => {
     const tree1 = parseRegex("test");
@@ -163,7 +158,7 @@ describe("Integration: Prefilter with Regex Matching", () => {
   it("should use prefilter to speed up matching", () => {
     const tree = parseRegex("(.*)(test)(.*)");
     const literals = extractLiterals(tree);
-    
+
     // Should extract "test" as a literal
     expect(literals).toContain("test");
 
@@ -181,9 +176,9 @@ describe("Integration: Prefilter with Regex Matching", () => {
   it("should handle alternation patterns", () => {
     const tree = parseRegex("(abc|def)");
     const literals = extractLiterals(tree);
-    
+
     expect(literals.length).toBeGreaterThan(0);
-    
+
     // Should be able to prefilter with Aho-Corasick
     const ac = new AhoCorasick(literals);
     expect(ac.contains("hello abc world")).toBe(true);
@@ -191,4 +186,3 @@ describe("Integration: Prefilter with Regex Matching", () => {
     expect(ac.contains("hello xyz world")).toBe(false);
   });
 });
-

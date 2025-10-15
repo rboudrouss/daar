@@ -1,8 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { nfaFromSyntaxTree, matchNfa } from "../src/NFA";
+import { nfaFromSyntaxTree } from "../src/NFA";
 import { parseRegex } from "../src/RegexParser";
 import { EPSILON, DOT } from "../src/utils";
 
+/**
+ * Tests for NFA construction and internal structure.
+ * For matching behavior tests, see matching-algorithms.test.ts
+ */
 describe("NFA - Construction from Syntax Tree", () => {
   it("should construct NFA for single character", () => {
     const tree = parseRegex("a");
@@ -70,136 +74,34 @@ describe("NFA - Construction from Syntax Tree", () => {
     expect(nfa.states).toHaveLength(2);
     expect(nfa.transitions[0]).toHaveProperty(EPSILON);
   });
-});
 
-describe("NFA - Matching Simple Patterns", () => {
-  it("should match single character", () => {
-    const tree = parseRegex("a");
+  it("should have epsilon transitions for alternation", () => {
+    const tree = parseRegex("a|b|c");
     const nfa = nfaFromSyntaxTree(tree);
 
-    expect(matchNfa(nfa, "a")).toBe(true);
-    expect(matchNfa(nfa, "b")).toBe(false);
-    expect(matchNfa(nfa, "")).toBe(false);
-    expect(matchNfa(nfa, "aa")).toBe(false);
+    // Should have epsilon transitions from start state
+    expect(nfa.transitions[nfa.start][EPSILON]).toBeDefined();
+    expect(nfa.transitions[nfa.start][EPSILON].length).toBeGreaterThan(0);
   });
 
-  it("should match concatenation", () => {
-    const tree = parseRegex("abc");
+  it("should have epsilon transitions for star", () => {
+    const tree = parseRegex("(abc)*");
     const nfa = nfaFromSyntaxTree(tree);
 
-    expect(matchNfa(nfa, "abc")).toBe(true);
-    expect(matchNfa(nfa, "ab")).toBe(false);
-    expect(matchNfa(nfa, "abcd")).toBe(false);
-    expect(matchNfa(nfa, "xyz")).toBe(false);
+    // Star creates epsilon transitions for loops
+    const hasEpsilon = Object.values(nfa.transitions).some(
+      (trans) => trans[EPSILON] !== undefined
+    );
+    expect(hasEpsilon).toBe(true);
   });
 
-  it("should match alternation", () => {
-    const tree = parseRegex("a|b");
+  it("should construct NFA with correct number of states for complex pattern", () => {
+    const tree = parseRegex("(.*)(abc)(.*)");
     const nfa = nfaFromSyntaxTree(tree);
 
-    expect(matchNfa(nfa, "a")).toBe(true);
-    expect(matchNfa(nfa, "b")).toBe(true);
-    expect(matchNfa(nfa, "c")).toBe(false);
-    expect(matchNfa(nfa, "ab")).toBe(false);
-  });
-
-  it("should match star operator - zero occurrences", () => {
-    const tree = parseRegex("a*");
-    const nfa = nfaFromSyntaxTree(tree);
-
-    expect(matchNfa(nfa, "")).toBe(true);
-  });
-
-  it("should match star operator - multiple occurrences", () => {
-    const tree = parseRegex("a*");
-    const nfa = nfaFromSyntaxTree(tree);
-
-    expect(matchNfa(nfa, "a")).toBe(true);
-    expect(matchNfa(nfa, "aa")).toBe(true);
-    expect(matchNfa(nfa, "aaa")).toBe(true);
-    expect(matchNfa(nfa, "b")).toBe(false);
-  });
-});
-
-describe("NFA - Matching Dot Patterns", () => {
-  it("should match single dot", () => {
-    const tree = parseRegex(".");
-    const nfa = nfaFromSyntaxTree(tree);
-
-    expect(matchNfa(nfa, "a")).toBe(true);
-    expect(matchNfa(nfa, "b")).toBe(true);
-    expect(matchNfa(nfa, "1")).toBe(true);
-    expect(matchNfa(nfa, "")).toBe(false);
-    expect(matchNfa(nfa, "ab")).toBe(false);
-  });
-
-  it("should match dot in concatenation", () => {
-    const tree = parseRegex("a.c");
-    const nfa = nfaFromSyntaxTree(tree);
-
-    expect(matchNfa(nfa, "abc")).toBe(true);
-    expect(matchNfa(nfa, "axc")).toBe(true);
-    expect(matchNfa(nfa, "a1c")).toBe(true);
-    expect(matchNfa(nfa, "ac")).toBe(false);
-  });
-
-  it("should match dot with star", () => {
-    const tree = parseRegex(".*");
-    const nfa = nfaFromSyntaxTree(tree);
-
-    expect(matchNfa(nfa, "")).toBe(true);
-    expect(matchNfa(nfa, "a")).toBe(true);
-    expect(matchNfa(nfa, "abc")).toBe(true);
-    expect(matchNfa(nfa, "12345")).toBe(true);
-  });
-});
-
-describe("NFA - Matching Complex Patterns", () => {
-  it("should match grouped star", () => {
-    const tree = parseRegex("(ab)*");
-    const nfa = nfaFromSyntaxTree(tree);
-
-    expect(matchNfa(nfa, "")).toBe(true);
-    expect(matchNfa(nfa, "ab")).toBe(true);
-    expect(matchNfa(nfa, "abab")).toBe(true);
-    expect(matchNfa(nfa, "ababab")).toBe(true);
-    expect(matchNfa(nfa, "a")).toBe(false);
-    expect(matchNfa(nfa, "aba")).toBe(false);
-  });
-
-  it("should match alternation with star", () => {
-    const tree = parseRegex("(a|b)*");
-    const nfa = nfaFromSyntaxTree(tree);
-
-    expect(matchNfa(nfa, "")).toBe(true);
-    expect(matchNfa(nfa, "a")).toBe(true);
-    expect(matchNfa(nfa, "b")).toBe(true);
-    expect(matchNfa(nfa, "ab")).toBe(true);
-    expect(matchNfa(nfa, "ba")).toBe(true);
-    expect(matchNfa(nfa, "aabbba")).toBe(true);
-    expect(matchNfa(nfa, "c")).toBe(false);
-  });
-
-  it("should match complex nested pattern", () => {
-    const tree = parseRegex("(a|b)*abb");
-    const nfa = nfaFromSyntaxTree(tree);
-
-    expect(matchNfa(nfa, "abb")).toBe(true);
-    expect(matchNfa(nfa, "aabb")).toBe(true);
-    expect(matchNfa(nfa, "babb")).toBe(true);
-    expect(matchNfa(nfa, "ab")).toBe(false);
-  });
-
-  it("should match pattern with multiple stars", () => {
-    const tree = parseRegex("a*b*c*");
-    const nfa = nfaFromSyntaxTree(tree);
-
-    expect(matchNfa(nfa, "")).toBe(true);
-    expect(matchNfa(nfa, "abc")).toBe(true);
-    expect(matchNfa(nfa, "aabbcc")).toBe(true);
-    expect(matchNfa(nfa, "aaa")).toBe(true);
-    expect(matchNfa(nfa, "bbb")).toBe(true);
-    expect(matchNfa(nfa, "ccc")).toBe(true);
+    expect(nfa.states.length).toBeGreaterThan(0);
+    expect(nfa.start).toBe(0);
+    expect(nfa.accepts.length).toBe(1);
   });
 });
 
@@ -262,62 +164,6 @@ describe("NFA - Structure Validation", () => {
     // Start state should have epsilon transitions to both branches
     expect(nfa.transitions[nfa.start]?.[EPSILON]).toBeDefined();
     expect(nfa.transitions[nfa.start][EPSILON].length).toBeGreaterThan(1);
-  });
-});
-
-describe("NFA - Edge Cases", () => {
-  it("should handle empty string pattern", () => {
-    const tree = parseRegex("()");
-    const nfa = nfaFromSyntaxTree(tree);
-
-    expect(matchNfa(nfa, "")).toBe(true);
-    expect(matchNfa(nfa, "a")).toBe(false);
-  });
-
-  it("should handle very long patterns", () => {
-    const tree = parseRegex("a".repeat(10));
-    const nfa = nfaFromSyntaxTree(tree);
-
-    expect(matchNfa(nfa, "a".repeat(10))).toBe(true);
-    expect(matchNfa(nfa, "a".repeat(9))).toBe(false);
-  });
-
-  it("should handle nested stars", () => {
-    const tree = parseRegex("(a*)*");
-    const nfa = nfaFromSyntaxTree(tree);
-
-    expect(matchNfa(nfa, "")).toBe(true);
-    expect(matchNfa(nfa, "a")).toBe(true);
-    expect(matchNfa(nfa, "aaa")).toBe(true);
-  });
-
-  it("should handle alternation with empty", () => {
-    const tree = parseRegex("a|()");
-    const nfa = nfaFromSyntaxTree(tree);
-
-    expect(matchNfa(nfa, "a")).toBe(true);
-    expect(matchNfa(nfa, "")).toBe(true);
-  });
-
-  it("should handle complex nested patterns", () => {
-    const tree = parseRegex("((a|b)*abb)");
-    const nfa = nfaFromSyntaxTree(tree);
-
-    expect(matchNfa(nfa, "abb")).toBe(true);
-    expect(matchNfa(nfa, "aabb")).toBe(true);
-    expect(matchNfa(nfa, "babb")).toBe(true);
-    expect(matchNfa(nfa, "aaabb")).toBe(true);
-  });
-
-  it("should handle .* pattern", () => {
-    const tree = parseRegex(".*abc.*");
-    const nfa = nfaFromSyntaxTree(tree);
-
-    expect(matchNfa(nfa, "abc")).toBe(true);
-    expect(matchNfa(nfa, "xyzabc")).toBe(true);
-    expect(matchNfa(nfa, "abcxyz")).toBe(true);
-    expect(matchNfa(nfa, "xyzabcxyz")).toBe(true);
-
   });
 });
 

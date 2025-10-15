@@ -499,6 +499,52 @@ function testMinDFAWithPrefilter(pattern: string, text: string): AlgorithmResult
 }
 
 /**
+ * Test NFA+DFA-cache with prefiltering
+ *
+ * Note: For in-memory text, we use extractLiterals + AhoCorasick.contains()
+ * to quickly check if the text might match before running the full NFA+DFA-cache.
+ */
+function testNFAWithDFACacheAndPrefilter(pattern: string, text: string): AlgorithmResult {
+  const memTracker = new MemoryTracker(true);
+
+  const startBuild = performance.now();
+  const syntaxTree = parseRegex(pattern);
+  const nfa = nfaFromSyntaxTree(syntaxTree);
+  const buildTime = performance.now() - startBuild;
+  memTracker.update();
+
+  const startMatch = performance.now();
+  let matches: Match[] = [];
+
+  // Use prefiltering if beneficial
+  if (canUsePrefilter(syntaxTree)) {
+    const literals = extractLiterals(syntaxTree);
+    const ac = new AhoCorasick(literals);
+    // Only run full NFA+DFA-cache matching if prefilter finds potential matches
+    if (ac.contains(text)) {
+      matches = findAllMatchesNfaWithDfaCache(nfa, text);
+    }
+  } else {
+    // No useful prefilter, run NFA+DFA-cache directly
+    matches = findAllMatchesNfaWithDfaCache(nfa, text);
+  }
+
+  const matchTime = performance.now() - startMatch;
+  memTracker.update();
+
+  const memMeasurement = memTracker.getMeasurement();
+
+  return {
+    algorithm: "NFA+DFA-cache (with prefilter)",
+    matches,
+    buildTime,
+    matchTime,
+    totalTime: buildTime + matchTime,
+    memoryUsed: getSafeMemoryUsage(memMeasurement),
+  };
+}
+
+/**
  * Determine if a pattern is a simple literal
  */
 function isLiteralPattern(pattern: string): boolean {
@@ -529,11 +575,11 @@ function extractAlternatives(pattern: string): string[] | null {
 function formatAlgorithmResult(name: string, result: AlgorithmResult): string {
   const matchStr = `${result.matches.length} matches`.padEnd(15);
   const totalTime = `${result.totalTime.toFixed(3)}ms`.padEnd(12);
-  const buildTime = `build: ${result.buildTime.toFixed(3)}ms`.padEnd(18);
-  const matchTime = `match: ${result.matchTime.toFixed(3)}ms`.padEnd(18);
+  const buildTime = `build: ${result.buildTime.toFixed(3)}ms`.padEnd(20);
+  const matchTime = `match: ${result.matchTime.toFixed(3)}ms`.padEnd(20);
   const memory = `${(result.memoryUsed / 1024).toFixed(2)} KB`;
 
-  return `  ${name.padEnd(20)} | ${matchStr} | ${totalTime} | ${buildTime} | ${matchTime} | ${memory}`;
+  return `  ${name.padEnd(30)} | ${matchStr} | ${totalTime} | ${buildTime} | ${matchTime} | ${memory}`;
 }
 
 /**
@@ -558,7 +604,7 @@ function runTestScenario(
     if (isLiteralPattern(scenario.pattern) && !options.onlyAutomata) {
       console.log("LITERAL ALGORITHMS");
       console.log("-".repeat(100));
-      console.log(`  ${"Algorithm".padEnd(20)} | ${"Matches".padEnd(15)} | ${"Total Time".padEnd(12)} | ${"Build Time".padEnd(18)} | ${"Match Time".padEnd(18)} | Memory`);
+      console.log(`  ${"Algorithm".padEnd(30)} | ${"Matches".padEnd(15)} | ${"Total Time".padEnd(12)} | ${"Build Time".padEnd(20)} | ${"Match Time".padEnd(20)} | Memory`);
       console.log("-".repeat(100));
 
       try {
@@ -584,7 +630,7 @@ function runTestScenario(
     if (alternatives && !options.onlyAutomata) {
       console.log("MULTI-PATTERN ALGORITHM");
       console.log("-".repeat(100));
-      console.log(`  ${"Algorithm".padEnd(20)} | ${"Matches".padEnd(15)} | ${"Total Time".padEnd(12)} | ${"Build Time".padEnd(18)} | ${"Match Time".padEnd(18)} | Memory`);
+      console.log(`  ${"Algorithm".padEnd(30)} | ${"Matches".padEnd(15)} | ${"Total Time".padEnd(12)} | ${"Build Time".padEnd(20)} | ${"Match Time".padEnd(20)} | Memory`);
       console.log("-".repeat(100));
 
       try {
@@ -601,7 +647,7 @@ function runTestScenario(
     if (!options.onlyLiteral) {
       console.log("AUTOMATON ALGORITHMS (without prefiltering)");
       console.log("-".repeat(100));
-      console.log(`  ${"Algorithm".padEnd(20)} | ${"Matches".padEnd(15)} | ${"Total Time".padEnd(12)} | ${"Build Time".padEnd(18)} | ${"Match Time".padEnd(18)} | Memory`);
+      console.log(`  ${"Algorithm".padEnd(30)} | ${"Matches".padEnd(15)} | ${"Total Time".padEnd(12)} | ${"Build Time".padEnd(20)} | ${"Match Time".padEnd(20)} | Memory`);
       console.log("-".repeat(100));
 
       try {
@@ -641,7 +687,7 @@ function runTestScenario(
       if (!isLiteralPattern(scenario.pattern)) {
         console.log("AUTOMATON ALGORITHMS (with prefiltering)");
         console.log("-".repeat(100));
-        console.log(`  ${"Algorithm".padEnd(20)} | ${"Matches".padEnd(15)} | ${"Total Time".padEnd(12)} | ${"Build Time".padEnd(18)} | ${"Match Time".padEnd(18)} | Memory`);
+        console.log(`  ${"Algorithm".padEnd(30)} | ${"Matches".padEnd(15)} | ${"Total Time".padEnd(12)} | ${"Build Time".padEnd(20)} | ${"Match Time".padEnd(20)} | Memory`);
         console.log("-".repeat(100));
 
         try {
@@ -650,6 +696,14 @@ function runTestScenario(
           console.log(formatAlgorithmResult("NFA (prefiltered)", nfaPrefilterResult));
         } catch (e) {
           console.log(`  NFA (prefiltered): FAILED - ${e}`);
+        }
+
+        try {
+          const nfaDfaCachePrefilterResult = testNFAWithDFACacheAndPrefilter(scenario.pattern, scenario.text);
+          results.push(nfaDfaCachePrefilterResult);
+          console.log(formatAlgorithmResult("NFA+DFA-cache (prefiltered)", nfaDfaCachePrefilterResult));
+        } catch (e) {
+          console.log(`  NFA+DFA-cache (prefiltered): FAILED - ${e}`);
         }
 
         try {

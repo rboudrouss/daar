@@ -63,7 +63,7 @@ export function extractLiterals(tree: SyntaxTree): string[] {
   const segments = extractLiteralSegments(tree);
 
   // Filtrer les segments vides et dédupliquer
-  const uniqueLiterals = Array.from(new Set(segments.filter((s) => s.length >= 2)));
+  const uniqueLiterals = Array.from(new Set(segments.filter((s) => s.length >= 0)));
 
   // Trier par longueur décroissante (les plus longs d'abord pour un meilleur préfiltrage)
   return uniqueLiterals.sort((a, b) => b.length - a.length);

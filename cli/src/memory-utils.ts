@@ -34,7 +34,7 @@ export interface MemoryMeasurement {
  * Check if manual GC is available (requires --expose-gc flag)
  */
 export function isGCAvailable(): boolean {
-  return typeof global.gc === 'function';
+  return typeof global.gc === "function";
 }
 
 /**
@@ -67,16 +67,18 @@ export function takeSnapshot(): MemorySnapshot {
  * Wait for memory to stabilize after GC
  * This helps ensure more consistent measurements
  */
-async function waitForMemoryStabilization(maxWaitMs: number = 100): Promise<void> {
+async function waitForMemoryStabilization(
+  maxWaitMs: number = 100
+): Promise<void> {
   const startTime = Date.now();
   let lastHeapUsed = process.memoryUsage().heapUsed;
   let stableCount = 0;
   const requiredStableReadings = 3;
-  
+
   while (Date.now() - startTime < maxWaitMs) {
-    await new Promise(resolve => setImmediate(resolve));
+    await new Promise((resolve) => setImmediate(resolve));
     const currentHeapUsed = process.memoryUsage().heapUsed;
-    
+
     // Check if memory is stable (within 1% variation)
     const variation = Math.abs(currentHeapUsed - lastHeapUsed) / lastHeapUsed;
     if (variation < 0.01) {
@@ -87,7 +89,7 @@ async function waitForMemoryStabilization(maxWaitMs: number = 100): Promise<void
     } else {
       stableCount = 0;
     }
-    
+
     lastHeapUsed = currentHeapUsed;
   }
 }
@@ -102,14 +104,14 @@ export async function prepareForMeasurement(
   waitForStabilization: boolean = false
 ): Promise<boolean> {
   let gcRan = false;
-  
+
   if (forceGCIfAvailable) {
     gcRan = forceGC();
     if (gcRan && waitForStabilization) {
       await waitForMemoryStabilization();
     }
   }
-  
+
   return gcRan;
 }
 
@@ -125,20 +127,20 @@ export function measureMemorySync<T>(
 ): { result: T; memory: MemoryMeasurement } {
   // Optionally force GC before measurement
   const gcForced = forceGCBefore ? forceGC() : false;
-  
+
   // Take initial snapshot
   const startMemory = process.memoryUsage().heapUsed;
   let peakMemory = startMemory;
-  
+
   // Run the operation
   const result = operation();
-  
+
   // Track peak memory
   peakMemory = Math.max(peakMemory, process.memoryUsage().heapUsed);
-  
+
   // Take final snapshot
   const endMemory = process.memoryUsage().heapUsed;
-  
+
   return {
     result,
     memory: {
@@ -162,21 +164,23 @@ export async function measureMemoryAsync<T>(
   forceGCBefore: boolean = true
 ): Promise<{ result: T; memory: MemoryMeasurement }> {
   // Optionally force GC before measurement
-  const gcForced = forceGCBefore ? await prepareForMeasurement(forceGCBefore, true) : false;
-  
+  const gcForced = forceGCBefore
+    ? await prepareForMeasurement(forceGCBefore, true)
+    : false;
+
   // Take initial snapshot
   const startMemory = process.memoryUsage().heapUsed;
   let peakMemory = startMemory;
-  
+
   // Run the operation
   const result = await operation();
-  
+
   // Track peak memory
   peakMemory = Math.max(peakMemory, process.memoryUsage().heapUsed);
-  
+
   // Take final snapshot
   const endMemory = process.memoryUsage().heapUsed;
-  
+
   return {
     result,
     memory: {
@@ -196,27 +200,27 @@ export class MemoryTracker {
   private startMemory: number;
   private peakMemory: number;
   private gcForced: boolean;
-  
+
   constructor(forceGCOnStart: boolean = true) {
     this.gcForced = forceGCOnStart ? forceGC() : false;
     this.startMemory = process.memoryUsage().heapUsed;
     this.peakMemory = this.startMemory;
   }
-  
+
   /**
    * Update peak memory tracking
    */
   update(): void {
     this.peakMemory = Math.max(this.peakMemory, process.memoryUsage().heapUsed);
   }
-  
+
   /**
    * Get current memory measurement
    */
   getMeasurement(): MemoryMeasurement {
     const currentMemory = process.memoryUsage().heapUsed;
     this.peakMemory = Math.max(this.peakMemory, currentMemory);
-    
+
     return {
       delta: currentMemory - this.startMemory,
       peak: this.peakMemory - this.startMemory,
@@ -225,7 +229,7 @@ export class MemoryTracker {
       gcForced: this.gcForced,
     };
   }
-  
+
   /**
    * Reset the tracker with a new baseline
    */
@@ -243,16 +247,16 @@ export class MemoryTracker {
  * Handles negative values gracefully
  */
 export function formatBytes(bytes: number): string {
-  if (bytes === 0) return '0 Bytes';
-  
+  if (bytes === 0) return "0 Bytes";
+
   const absBytes = Math.abs(bytes);
   const k = 1024;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const sizes = ["Bytes", "KB", "MB", "GB"];
   const i = Math.floor(Math.log(absBytes) / Math.log(k));
   const value = Math.round((absBytes / Math.pow(k, i)) * 100) / 100;
-  const sign = bytes < 0 ? '-' : '';
-  
-  return sign + value + ' ' + sizes[i];
+  const sign = bytes < 0 ? "-" : "";
+
+  return sign + value + " " + sizes[i];
 }
 
 /**
@@ -273,12 +277,15 @@ export function printMemoryMeasurement(
   label: string = "Memory"
 ): void {
   console.error(`${label}:`);
-  console.error(`  Delta:     ${formatBytes(measurement.delta)}${measurement.delta < 0 ? ' (GC ran)' : ''}`);
+  console.error(
+    `  Delta:     ${formatBytes(measurement.delta)}${measurement.delta < 0 ? " (GC ran)" : ""}`
+  );
   console.error(`  Peak:      ${formatBytes(measurement.peak)}`);
   console.error(`  Safe est.: ${formatBytes(getSafeMemoryUsage(measurement))}`);
-  
+
   if (!measurement.gcForced && measurement.delta < 0) {
-    console.error(`  Note: Run with --expose-gc for more accurate measurements`);
+    console.error(
+      `  Note: Run with --expose-gc for more accurate measurements`
+    );
   }
 }
-

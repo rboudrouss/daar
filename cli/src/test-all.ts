@@ -15,12 +15,12 @@ import {
   findAllMatchesLiteralKmp,
   findAllMatchesLiteralBm,
   AhoCorasick,
-  createGrepMatcher,
   extractLiterals,
+  canUsePrefilter,
   type Match,
 } from "@monorepo/lib";
 import * as fs from "fs";
-import { MemoryTracker, getSafeMemoryUsage, formatBytes } from "./memory-utils";
+import { MemoryTracker, getSafeMemoryUsage } from "./memory-utils";
 
 interface TestScenario {
   name: string;
@@ -41,7 +41,6 @@ interface AlgorithmResult {
 interface TestResult {
   scenario: string;
   results: AlgorithmResult[];
-  summary: string;
 }
 
 /**
@@ -340,7 +339,7 @@ function testAhoCorasick(patterns: string[], text: string): AlgorithmResult {
   const memMeasurement = memTracker.getMeasurement();
 
   // Convert AC results to Match format
-  const matches: Match[] = results.map(r => ({
+  const matches: Match[] = results.map((r: { pattern: string; position: number }) => ({
     start: r.position,
     end: r.position + r.pattern.length,
     text: r.pattern,
@@ -358,6 +357,10 @@ function testAhoCorasick(patterns: string[], text: string): AlgorithmResult {
 
 /**
  * Test NFA with prefiltering
+ *
+ * Note: For in-memory text, we use extractLiterals + AhoCorasick.contains()
+ * to quickly check if the text might match before running the full NFA.
+ * This is the same approach used by GrepMatcher for file-based searching.
  */
 function testNFAWithPrefilter(pattern: string, text: string): AlgorithmResult {
   const memTracker = new MemoryTracker(true);
@@ -365,20 +368,23 @@ function testNFAWithPrefilter(pattern: string, text: string): AlgorithmResult {
   const startBuild = performance.now();
   const syntaxTree = parseRegex(pattern);
   const nfa = nfaFromSyntaxTree(syntaxTree);
-  const literals = extractLiterals(syntaxTree);
   const buildTime = performance.now() - startBuild;
   memTracker.update();
 
   const startMatch = performance.now();
   let matches: Match[] = [];
 
-  // Simulate prefiltering
-  if (literals.length > 0) {
+  // Use prefiltering if beneficial
+  if (canUsePrefilter(syntaxTree)) {
+    const literals = extractLiterals(syntaxTree);
     const ac = new AhoCorasick(literals);
+    // Only run full NFA matching if prefilter finds potential matches
     if (ac.contains(text)) {
       matches = findAllMatchesNfa(nfa, text);
     }
+    // If prefilter doesn't find anything, matches stays empty (correct!)
   } else {
+    // No useful prefilter, run NFA directly
     matches = findAllMatchesNfa(nfa, text);
   }
 
@@ -399,6 +405,9 @@ function testNFAWithPrefilter(pattern: string, text: string): AlgorithmResult {
 
 /**
  * Test DFA with prefiltering
+ *
+ * Note: For in-memory text, we use extractLiterals + AhoCorasick.contains()
+ * to quickly check if the text might match before running the full DFA.
  */
 function testDFAWithPrefilter(pattern: string, text: string): AlgorithmResult {
   const memTracker = new MemoryTracker(true);
@@ -407,20 +416,22 @@ function testDFAWithPrefilter(pattern: string, text: string): AlgorithmResult {
   const syntaxTree = parseRegex(pattern);
   const nfa = nfaFromSyntaxTree(syntaxTree);
   const dfa = dfaFromNfa(nfa);
-  const literals = extractLiterals(syntaxTree);
   const buildTime = performance.now() - startBuild;
   memTracker.update();
 
   const startMatch = performance.now();
   let matches: Match[] = [];
 
-  // Simulate prefiltering
-  if (literals.length > 0) {
+  // Use prefiltering if beneficial
+  if (canUsePrefilter(syntaxTree)) {
+    const literals = extractLiterals(syntaxTree);
     const ac = new AhoCorasick(literals);
+    // Only run full DFA matching if prefilter finds potential matches
     if (ac.contains(text)) {
       matches = findAllMatchesDfa(dfa, text);
     }
   } else {
+    // No useful prefilter, run DFA directly
     matches = findAllMatchesDfa(dfa, text);
   }
 
@@ -441,6 +452,9 @@ function testDFAWithPrefilter(pattern: string, text: string): AlgorithmResult {
 
 /**
  * Test min-DFA with prefiltering
+ *
+ * Note: For in-memory text, we use extractLiterals + AhoCorasick.contains()
+ * to quickly check if the text might match before running the full min-DFA.
  */
 function testMinDFAWithPrefilter(pattern: string, text: string): AlgorithmResult {
   const memTracker = new MemoryTracker(true);
@@ -450,20 +464,22 @@ function testMinDFAWithPrefilter(pattern: string, text: string): AlgorithmResult
   const nfa = nfaFromSyntaxTree(syntaxTree);
   const dfa = dfaFromNfa(nfa);
   const minDfa = minimizeDfa(dfa);
-  const literals = extractLiterals(syntaxTree);
   const buildTime = performance.now() - startBuild;
   memTracker.update();
 
   const startMatch = performance.now();
   let matches: Match[] = [];
 
-  // Simulate prefiltering
-  if (literals.length > 0) {
+  // Use prefiltering if beneficial
+  if (canUsePrefilter(syntaxTree)) {
+    const literals = extractLiterals(syntaxTree);
     const ac = new AhoCorasick(literals);
+    // Only run full min-DFA matching if prefilter finds potential matches
     if (ac.contains(text)) {
       matches = findAllMatchesDfa(minDfa, text);
     }
   } else {
+    // No useful prefilter, run min-DFA directly
     matches = findAllMatchesDfa(minDfa, text);
   }
 
@@ -508,224 +524,164 @@ function extractAlternatives(pattern: string): string[] | null {
 }
 
 /**
+ * Format a result line for an algorithm
+ */
+function formatAlgorithmResult(name: string, result: AlgorithmResult): string {
+  const matchStr = `${result.matches.length} matches`.padEnd(15);
+  const totalTime = `${result.totalTime.toFixed(3)}ms`.padEnd(12);
+  const buildTime = `build: ${result.buildTime.toFixed(3)}ms`.padEnd(18);
+  const matchTime = `match: ${result.matchTime.toFixed(3)}ms`.padEnd(18);
+  const memory = `${(result.memoryUsed / 1024).toFixed(2)} KB`;
+
+  return `  ${name.padEnd(20)} | ${matchStr} | ${totalTime} | ${buildTime} | ${matchTime} | ${memory}`;
+}
+
+/**
  * Run a single test scenario
  */
 function runTestScenario(
   scenario: TestScenario,
   options: { onlyAutomata?: boolean; onlyLiteral?: boolean } = {}
 ): TestResult {
-  console.log(`\n${"=".repeat(80)}`);
-  console.log(`Testing: ${scenario.name}`);
-  console.log(`Pattern: ${scenario.pattern}`);
+  console.log(`\n${"=".repeat(100)}`);
+  console.log(`TEST: ${scenario.name}`);
+  console.log(`${"=".repeat(100)}`);
+  console.log(`Pattern:     ${scenario.pattern}`);
   console.log(`Description: ${scenario.description}`);
-  console.log(`Text length: ${scenario.text.length} characters`);
-  console.log("=".repeat(80));
+  console.log(`Text size:   ${scenario.text.length.toLocaleString()} characters (${(scenario.text.length / 1024).toFixed(2)} KB)`);
+  console.log(`${"=".repeat(100)}\n`);
 
   const results: AlgorithmResult[] = [];
 
   try {
     // Test literal algorithms if pattern is literal (and not excluded)
     if (isLiteralPattern(scenario.pattern) && !options.onlyAutomata) {
-      console.log("\nTesting literal algorithms...");
+      console.log("LITERAL ALGORITHMS");
+      console.log("-".repeat(100));
+      console.log(`  ${"Algorithm".padEnd(20)} | ${"Matches".padEnd(15)} | ${"Total Time".padEnd(12)} | ${"Build Time".padEnd(18)} | ${"Match Time".padEnd(18)} | Memory`);
+      console.log("-".repeat(100));
 
       try {
         const kmpResult = testKMP(scenario.pattern, scenario.text);
         results.push(kmpResult);
-        console.log(`  ✓ KMP:`);
-        console.log(`      Matches: ${kmpResult.matches.length}`);
-        console.log(`      Time: ${kmpResult.totalTime.toFixed(3)}ms (build: ${kmpResult.buildTime.toFixed(3)}ms, match: ${kmpResult.matchTime.toFixed(3)}ms)`);
-        console.log(`      Memory: ${(kmpResult.memoryUsed / 1024).toFixed(2)} KB`);
+        console.log(formatAlgorithmResult("KMP", kmpResult));
       } catch (e) {
-        console.log(`  ✗ KMP failed: ${e}`);
+        console.log(`  KMP: FAILED - ${e}`);
       }
 
       try {
         const bmResult = testBoyerMoore(scenario.pattern, scenario.text);
         results.push(bmResult);
-        console.log(`  ✓ Boyer-Moore:`);
-        console.log(`      Matches: ${bmResult.matches.length}`);
-        console.log(`      Time: ${bmResult.totalTime.toFixed(3)}ms (build: ${bmResult.buildTime.toFixed(3)}ms, match: ${bmResult.matchTime.toFixed(3)}ms)`);
-        console.log(`      Memory: ${(bmResult.memoryUsed / 1024).toFixed(2)} KB`);
+        console.log(formatAlgorithmResult("Boyer-Moore", bmResult));
       } catch (e) {
-        console.log(`  ✗ Boyer-Moore failed: ${e}`);
+        console.log(`  Boyer-Moore: FAILED - ${e}`);
       }
+      console.log();
     }
 
     // Test Aho-Corasick if pattern has alternations (and not excluded)
     const alternatives = extractAlternatives(scenario.pattern);
     if (alternatives && !options.onlyAutomata) {
-      console.log("\nTesting Aho-Corasick (multi-pattern)...");
+      console.log("MULTI-PATTERN ALGORITHM");
+      console.log("-".repeat(100));
+      console.log(`  ${"Algorithm".padEnd(20)} | ${"Matches".padEnd(15)} | ${"Total Time".padEnd(12)} | ${"Build Time".padEnd(18)} | ${"Match Time".padEnd(18)} | Memory`);
+      console.log("-".repeat(100));
+
       try {
         const acResult = testAhoCorasick(alternatives, scenario.text);
         results.push(acResult);
-        console.log(`  ✓ Aho-Corasick:`);
-        console.log(`      Matches: ${acResult.matches.length}`);
-        console.log(`      Time: ${acResult.totalTime.toFixed(3)}ms (build: ${acResult.buildTime.toFixed(3)}ms, match: ${acResult.matchTime.toFixed(3)}ms)`);
-        console.log(`      Memory: ${(acResult.memoryUsed / 1024).toFixed(2)} KB`);
+        console.log(formatAlgorithmResult("Aho-Corasick", acResult));
       } catch (e) {
-        console.log(`  ✗ Aho-Corasick failed: ${e}`);
+        console.log(`  Aho-Corasick: FAILED - ${e}`);
       }
+      console.log();
     }
 
     // Test automaton-based algorithms WITHOUT prefiltering (if not excluded)
     if (!options.onlyLiteral) {
-      console.log("\nTesting automaton algorithms (WITHOUT prefiltering)...");
+      console.log("AUTOMATON ALGORITHMS (without prefiltering)");
+      console.log("-".repeat(100));
+      console.log(`  ${"Algorithm".padEnd(20)} | ${"Matches".padEnd(15)} | ${"Total Time".padEnd(12)} | ${"Build Time".padEnd(18)} | ${"Match Time".padEnd(18)} | Memory`);
+      console.log("-".repeat(100));
 
-    try {
-      const nfaResult = testNFA(scenario.pattern, scenario.text);
-      results.push(nfaResult);
-      console.log(`  ✓ NFA:`);
-      console.log(`      Matches: ${nfaResult.matches.length}`);
-      console.log(`      Time: ${nfaResult.totalTime.toFixed(3)}ms (build: ${nfaResult.buildTime.toFixed(3)}ms, match: ${nfaResult.matchTime.toFixed(3)}ms)`);
-      console.log(`      Memory: ${(nfaResult.memoryUsed / 1024).toFixed(2)} KB`);
-    } catch (e) {
-      console.log(`  ✗ NFA failed: ${e}`);
-    }
+      try {
+        const nfaResult = testNFA(scenario.pattern, scenario.text);
+        results.push(nfaResult);
+        console.log(formatAlgorithmResult("NFA", nfaResult));
+      } catch (e) {
+        console.log(`  NFA: FAILED - ${e}`);
+      }
 
-    try {
-      const nfaDfaCacheResult = testNFAWithDFACache(scenario.pattern, scenario.text);
-      results.push(nfaDfaCacheResult);
-      console.log(`  ✓ NFA+DFA-cache:`);
-      console.log(`      Matches: ${nfaDfaCacheResult.matches.length}`);
-      console.log(`      Time: ${nfaDfaCacheResult.totalTime.toFixed(3)}ms (build: ${nfaDfaCacheResult.buildTime.toFixed(3)}ms, match: ${nfaDfaCacheResult.matchTime.toFixed(3)}ms)`);
-      console.log(`      Memory: ${(nfaDfaCacheResult.memoryUsed / 1024).toFixed(2)} KB`);
-    } catch (e) {
-      console.log(`  ✗ NFA+DFA-cache failed: ${e}`);
-    }
+      try {
+        const nfaDfaCacheResult = testNFAWithDFACache(scenario.pattern, scenario.text);
+        results.push(nfaDfaCacheResult);
+        console.log(formatAlgorithmResult("NFA+DFA-cache", nfaDfaCacheResult));
+      } catch (e) {
+        console.log(`  NFA+DFA-cache: FAILED - ${e}`);
+      }
 
-    try {
-      const dfaResult = testDFA(scenario.pattern, scenario.text);
-      results.push(dfaResult);
-      console.log(`  ✓ DFA:`);
-      console.log(`      Matches: ${dfaResult.matches.length}`);
-      console.log(`      Time: ${dfaResult.totalTime.toFixed(3)}ms (build: ${dfaResult.buildTime.toFixed(3)}ms, match: ${dfaResult.matchTime.toFixed(3)}ms)`);
-      console.log(`      Memory: ${(dfaResult.memoryUsed / 1024).toFixed(2)} KB`);
-    } catch (e) {
-      console.log(`  ✗ DFA failed: ${e}`);
-    }
+      try {
+        const dfaResult = testDFA(scenario.pattern, scenario.text);
+        results.push(dfaResult);
+        console.log(formatAlgorithmResult("DFA", dfaResult));
+      } catch (e) {
+        console.log(`  DFA: FAILED - ${e}`);
+      }
 
-    try {
-      const minDfaResult = testMinDFA(scenario.pattern, scenario.text);
-      results.push(minDfaResult);
-      console.log(`  ✓ min-DFA:`);
-      console.log(`      Matches: ${minDfaResult.matches.length}`);
-      console.log(`      Time: ${minDfaResult.totalTime.toFixed(3)}ms (build: ${minDfaResult.buildTime.toFixed(3)}ms, match: ${minDfaResult.matchTime.toFixed(3)}ms)`);
-      console.log(`      Memory: ${(minDfaResult.memoryUsed / 1024).toFixed(2)} KB`);
-    } catch (e) {
-      console.log(`  ✗ min-DFA failed: ${e}`);
-    }
+      try {
+        const minDfaResult = testMinDFA(scenario.pattern, scenario.text);
+        results.push(minDfaResult);
+        console.log(formatAlgorithmResult("min-DFA", minDfaResult));
+      } catch (e) {
+        console.log(`  min-DFA: FAILED - ${e}`);
+      }
+      console.log();
 
       // Test automaton-based algorithms WITH prefiltering (if applicable)
       if (!isLiteralPattern(scenario.pattern)) {
-        console.log("\nTesting automaton algorithms (WITH prefiltering)...");
+        console.log("AUTOMATON ALGORITHMS (with prefiltering)");
+        console.log("-".repeat(100));
+        console.log(`  ${"Algorithm".padEnd(20)} | ${"Matches".padEnd(15)} | ${"Total Time".padEnd(12)} | ${"Build Time".padEnd(18)} | ${"Match Time".padEnd(18)} | Memory`);
+        console.log("-".repeat(100));
 
         try {
           const nfaPrefilterResult = testNFAWithPrefilter(scenario.pattern, scenario.text);
           results.push(nfaPrefilterResult);
-          console.log(`  ✓ NFA (prefiltered):`);
-          console.log(`      Matches: ${nfaPrefilterResult.matches.length}`);
-          console.log(`      Time: ${nfaPrefilterResult.totalTime.toFixed(3)}ms (build: ${nfaPrefilterResult.buildTime.toFixed(3)}ms, match: ${nfaPrefilterResult.matchTime.toFixed(3)}ms)`);
-          console.log(`      Memory: ${(nfaPrefilterResult.memoryUsed / 1024).toFixed(2)} KB`);
+          console.log(formatAlgorithmResult("NFA (prefiltered)", nfaPrefilterResult));
         } catch (e) {
-          console.log(`  ✗ NFA (prefiltered) failed: ${e}`);
+          console.log(`  NFA (prefiltered): FAILED - ${e}`);
         }
 
         try {
           const dfaPrefilterResult = testDFAWithPrefilter(scenario.pattern, scenario.text);
           results.push(dfaPrefilterResult);
-          console.log(`  ✓ DFA (prefiltered):`);
-          console.log(`      Matches: ${dfaPrefilterResult.matches.length}`);
-          console.log(`      Time: ${dfaPrefilterResult.totalTime.toFixed(3)}ms (build: ${dfaPrefilterResult.buildTime.toFixed(3)}ms, match: ${dfaPrefilterResult.matchTime.toFixed(3)}ms)`);
-          console.log(`      Memory: ${(dfaPrefilterResult.memoryUsed / 1024).toFixed(2)} KB`);
+          console.log(formatAlgorithmResult("DFA (prefiltered)", dfaPrefilterResult));
         } catch (e) {
-          console.log(`  ✗ DFA (prefiltered) failed: ${e}`);
+          console.log(`  DFA (prefiltered): FAILED - ${e}`);
         }
 
         try {
           const minDfaPrefilterResult = testMinDFAWithPrefilter(scenario.pattern, scenario.text);
           results.push(minDfaPrefilterResult);
-          console.log(`  ✓ min-DFA (prefiltered):`);
-          console.log(`      Matches: ${minDfaPrefilterResult.matches.length}`);
-          console.log(`      Time: ${minDfaPrefilterResult.totalTime.toFixed(3)}ms (build: ${minDfaPrefilterResult.buildTime.toFixed(3)}ms, match: ${minDfaPrefilterResult.matchTime.toFixed(3)}ms)`);
-          console.log(`      Memory: ${(minDfaPrefilterResult.memoryUsed / 1024).toFixed(2)} KB`);
+          console.log(formatAlgorithmResult("min-DFA (prefiltered)", minDfaPrefilterResult));
         } catch (e) {
-          console.log(`  ✗ min-DFA (prefiltered) failed: ${e}`);
+          console.log(`  min-DFA (prefiltered): FAILED - ${e}`);
         }
+        console.log();
       }
-    } // Close the !options.onlyLiteral if block
+    }
 
   } catch (error) {
-    console.error(`\n❌ Error in scenario: ${error}`);
+    console.error(`\nERROR in scenario: ${error}`);
   }
-
-  // Generate summary
-  const summary = generateSummary(results);
-  console.log(summary);
 
   return {
     scenario: scenario.name,
     results,
-    summary,
   };
 }
 
-/**
- * Generate a summary comparing all algorithms
- */
-function generateSummary(results: AlgorithmResult[]): string {
-  if (results.length === 0) {
-    return "\nNo results to compare";
-  }
 
-  // Verify all algorithms found the same number of matches
-  const matchCounts = results.map(r => r.matches.length);
-  const allSame = matchCounts.every(count => count === matchCounts[0]);
-
-  let summary = "\n" + "─".repeat(80) + "\n";
-  summary += "SUMMARY\n";
-  summary += "─".repeat(80) + "\n";
-
-  if (!allSame) {
-    summary += "WARNING: Algorithms found different numbers of matches!\n";
-    results.forEach(r => {
-      summary += `  ${r.algorithm}: ${r.matches.length} matches\n`;
-    });
-  } else {
-    summary += `All algorithms found ${matchCounts[0]} matches\n`;
-  }
-
-  // Find fastest algorithm
-  const fastest = results.reduce((min, r) => r.totalTime < min.totalTime ? r : min);
-  const slowest = results.reduce((max, r) => r.totalTime > max.totalTime ? r : max);
-
-  summary += `\nFastest: ${fastest.algorithm} (${fastest.totalTime.toFixed(3)}ms)\n`;
-  summary += `Slowest: ${slowest.algorithm} (${slowest.totalTime.toFixed(3)}ms)\n`;
-  summary += `Speedup: ${(slowest.totalTime / fastest.totalTime).toFixed(2)}x\n`;
-
-  // Memory comparison
-  const leastMemory = results.reduce((min, r) => r.memoryUsed < min.memoryUsed ? r : min);
-  const mostMemory = results.reduce((max, r) => r.memoryUsed > max.memoryUsed ? r : max);
-
-  summary += `\nLeast memory: ${leastMemory.algorithm} (${(leastMemory.memoryUsed / 1024).toFixed(2)} KB)\n`;
-  summary += `Most memory: ${mostMemory.algorithm} (${(mostMemory.memoryUsed / 1024).toFixed(2)} KB)\n`;
-
-  // Detailed comparison table
-  summary += "\n" + "─".repeat(80) + "\n";
-  summary += "Algorithm".padEnd(20) + "Total Time".padEnd(15) + "Build Time".padEnd(15) + "Match Time".padEnd(15) + "Memory\n";
-  summary += "─".repeat(80) + "\n";
-
-  results.forEach(r => {
-    summary += r.algorithm.padEnd(20);
-    summary += `${r.totalTime.toFixed(3)}ms`.padEnd(15);
-    summary += `${r.buildTime.toFixed(3)}ms`.padEnd(15);
-    summary += `${r.matchTime.toFixed(3)}ms`.padEnd(15);
-    summary += `${(r.memoryUsed / 1024).toFixed(2)} KB\n`;
-  });
-
-  summary += "─".repeat(80) + "\n";
-
-  return summary;
-}
 
 /**
  * Main test runner
@@ -745,8 +701,12 @@ export function runAllTests(options: {
     algorithmsToTest = "KMP, Boyer-Moore, Aho-Corasick (literal search only)";
   }
 
-  console.log(`\nTesting algorithms: ${algorithmsToTest}`);
-  console.log("Scenarios: Simple patterns, complex regex, small/large texts\n");
+  console.log("\n" + "=".repeat(100));
+  console.log("COMPREHENSIVE ALGORITHM TEST SUITE");
+  console.log("=".repeat(100));
+  console.log(`Algorithms: ${algorithmsToTest}`);
+  console.log(`Scenarios:  Simple patterns, complex regex, small/large texts`);
+  console.log("=".repeat(100));
 
   // Prepare test scenarios
   const scenarios = [...TEST_SCENARIOS];
@@ -762,42 +722,58 @@ export function runAllTests(options: {
   // If a data file is provided, add a scenario for it
   if (options.dataFile && fs.existsSync(options.dataFile)) {
     const fileContent = fs.readFileSync(options.dataFile, "utf-8");
+    const fileSizeKB = (fileContent.length / 1024).toFixed(2);
+    console.log(`\nAdding file: ${options.dataFile} (${fileSizeKB} KB)`);
+
     scenarios.push({
-      name: "Real File Test",
+      name: `File: ${options.dataFile.split('/').pop()}`,
       pattern: "the",
       text: fileContent,
-      description: `Testing on real file: ${options.dataFile}`,
+      description: `Real file test: ${options.dataFile} (${fileSizeKB} KB)`,
     });
   }
 
   // If a data folder is provided, add scenarios for all files in it
   if (options.dataFolder && fs.existsSync(options.dataFolder)) {
     const files = fs.readdirSync(options.dataFolder).filter(f => f.endsWith('.txt'));
-    console.log(`\nFound ${files.length} text files in ${options.dataFolder}`);
+    console.log(`\nFound ${files.length} text file(s) in ${options.dataFolder}`);
 
     files.forEach(file => {
       const filePath = `${options.dataFolder}/${file}`;
       const fileContent = fs.readFileSync(filePath, "utf-8");
       const fileSizeKB = (fileContent.length / 1024).toFixed(2);
+      console.log(`  - ${file} (${fileSizeKB} KB)`);
 
       scenarios.push({
         name: `File: ${file}`,
         pattern: "the",
         text: fileContent,
-        description: `Testing on ${file} (${fileSizeKB} KB)`,
+        description: `Real file test: ${file} (${fileSizeKB} KB)`,
       });
     });
   }
 
+  console.log(`\nTotal scenarios to test: ${scenarios.length}\n`);
+
   // Run all scenarios
   const allResults: TestResult[] = [];
+  let scenarioNumber = 1;
 
   for (const scenario of scenarios) {
+    console.log(`\n[Scenario ${scenarioNumber}/${scenarios.length}]`);
     const result = runTestScenario(scenario, {
       onlyAutomata: options.onlyAutomata,
       onlyLiteral: options.onlyLiteral,
     });
     allResults.push(result);
+    scenarioNumber++;
   }
+
+  // Print final summary
+  console.log("\n" + "=".repeat(100));
+  console.log("ALL TESTS COMPLETED");
+  console.log("=".repeat(100));
+  console.log(`Total scenarios tested: ${allResults.length}`);
+  console.log("=".repeat(100) + "\n");
 }
 

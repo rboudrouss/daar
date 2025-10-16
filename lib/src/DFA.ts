@@ -1,7 +1,7 @@
 /**
  * Module pour la conversion d'un NFA en DFA et la minimisation du DFA
- * 
- * 
+ *
+ *
  */
 import {
   EPSILON,
@@ -51,12 +51,26 @@ export function dfaFromNfa(nfa: NFA): DFA {
   }
 
   /**
+   * Crée une clé unique pour un ensemble d'états en triant et joignant
+   * Beaucoup plus rapide que JSON.stringify
+   */
+  function createStateKey(states: state_ID[]): string {
+    if (states.length === 0) return "";
+    if (states.length === 1) return String(states[0]);
+    // Trier et joindre pour créer une clé unique
+    return states
+      .slice()
+      .sort((a, b) => a - b)
+      .join(",");
+  }
+
+  /**
    * Fonction récursive pour traiter un ensemble d'états de l'NFA et construire les états et transitions du DFA
    * @param states les états de l'NFA
    * @returns l'ID de l'état du DFA correspondant à cet ensemble d'états de l'NFA
    */
   function processState(states: state_ID[]): state_ID {
-    const stateKey = JSON.stringify(states);
+    const stateKey = createStateKey(states);
 
     // Return existing state if already processed
     if (stateKey in stateMap) {
@@ -146,12 +160,13 @@ export function minimizeDfa(dfa: DFA): DFA {
     partitions: state_ID[][],
     symbols: Set<string>
   ): string {
-    return Array.from(symbols)
-      .map((sym) => {
-        const targetState = transitions[state]?.[sym];
-        return partitions.findIndex((p) => p.includes(targetState));
-      })
-      .join(",");
+    // Iterate Set directly without creating intermediate array
+    const parts: number[] = [];
+    for (const sym of symbols) {
+      const targetState = transitions[state]?.[sym];
+      parts.push(partitions.findIndex((p) => p.includes(targetState)));
+    }
+    return parts.join(",");
   }
 
   /**
@@ -252,23 +267,26 @@ export function minimizeDfa(dfa: DFA): DFA {
   return buildMinimizedDfa(finalPartitions);
 }
 
-
 /**
- * 
- * @param dfa 
- * @param input 
- * @returns 
+ * Vérifie si une chaîne correspond au DFA
+ *
+ * @param dfa Le DFA à utiliser
+ * @param input La chaîne à vérifier
+ * @returns true si la chaîne est acceptée par le DFA
  */
 export function matchDfa(dfa: DFA, input: string): boolean {
   let state = dfa.start;
   for (let c of input) {
+    // Si on est dans un état acceptant et qu'on a une transition DOT vers lui-même, on accepte immédiatement
+    if (
+      dfa.accepts.includes(state) &&
+      dfa.transitions[state]?.[DOT] === state
+    ) {
+      return true;
+    }
     let next = dfa.transitions[state]?.[c] ?? dfa.transitions[state]?.[DOT];
     if (next === undefined) return false;
     state = next;
-    // Si on est dans un état acceptant et qu'on a une transition DOT vers lui-même, on accepte immédiatement
-    if (dfa.accepts.includes(state) && dfa.transitions[state]?.[DOT] === state) {
-      return true;
-    } 
   }
   return dfa.accepts.includes(state);
 }

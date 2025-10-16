@@ -182,4 +182,3 @@ export function boyerMooreContains(text: string, pattern: string): boolean {
 
   return false;
 }
-

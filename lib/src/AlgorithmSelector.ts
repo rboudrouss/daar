@@ -1,6 +1,6 @@
 /**
  * Module de sélection automatique de l'algorithme optimal
- * 
+ *
  * Ce module analyse le pattern regex et choisit le meilleur algorithme
  * en fonction de la complexité du pattern et des caractéristiques du matching.
  */
@@ -11,7 +11,14 @@ import { extractLiterals, isAlternationOfLiterals } from "./LiteralExtractor";
 /**
  * Types d'algorithmes disponibles
  */
-export type AlgorithmType = "literal-kmp" | "literal-bm" | "aho-corasick" | "nfa" | "nfa-dfa-cache" | "dfa" | "min-dfa";
+export type AlgorithmType =
+  | "literal-kmp"
+  | "literal-bm"
+  | "aho-corasick"
+  | "nfa"
+  | "nfa-dfa-cache"
+  | "dfa"
+  | "min-dfa";
 
 /**
  * Résultat de l'analyse du pattern
@@ -19,28 +26,28 @@ export type AlgorithmType = "literal-kmp" | "literal-bm" | "aho-corasick" | "nfa
 export interface PatternAnalysis {
   /** Type de pattern détecté */
   patternType: "literal" | "simple" | "complex";
-  
+
   /** Algorithme recommandé */
   recommendedAlgorithm: AlgorithmType;
-  
+
   /** Raison du choix */
   reason: string;
-  
+
   /** Littéraux extraits (si applicable) */
   literals: string[];
-  
+
   /** Complexité estimée du pattern */
   complexity: number;
-  
+
   /** Le pattern est-il un simple littéral ? */
   isLiteral: boolean;
-  
+
   /** Le pattern contient-il des wildcards ? */
   hasWildcards: boolean;
-  
+
   /** Le pattern contient-il des alternations ? */
   hasAlternations: boolean;
-  
+
   /** Le pattern contient-il des étoiles ? */
   hasStars: boolean;
 }
@@ -111,24 +118,25 @@ function extractLiteralString(tree: SyntaxTree): string | null {
 
 /**
  * Analyse un pattern et recommande le meilleur algorithme
- * 
+ *
  * Stratégie de sélection :
  * 1. Si le pattern est un littéral pur :
  *    - Longueur < 10 : KMP (garantie linéaire, simple)
  *    - Longueur >= 10 : Boyer-Moore (plus rapide en pratique)
- * 
+ *
  * 2. Si le pattern est simple (peu de wildcards/alternations) :
  *    - DFA (bon compromis vitesse/mémoire)
- * 
+ *
  * 3. Si le pattern est complexe (beaucoup d'alternations/étoiles) :
  *    - NFA (moins de mémoire, acceptable pour patterns complexes)
  *    - Ou min-DFA si on veut optimiser la mémoire du DFA
- * 
+ *
  * @param tree L'arbre syntaxique du pattern
  * @returns L'analyse complète avec l'algorithme recommandé
  */
 export function analyzePattern(tree: SyntaxTree): PatternAnalysis {
-  const { isLiteral, hasWildcards, hasAlternations, hasStars, complexity } = analyzeTree(tree);
+  const { isLiteral, hasWildcards, hasAlternations, hasStars, complexity } =
+    analyzeTree(tree);
   const literals = extractLiterals(tree);
 
   // Cas 0 : Alternation pure de littéraux (ex: "from|what|who")
@@ -240,11 +248,11 @@ export function analyzePattern(tree: SyntaxTree): PatternAnalysis {
 
 /**
  * TODO Détermine si on devrait minimiser le DFA
- * 
+ *
  * La minimisation est utile si :
  * - Le pattern est complexe (beaucoup d'états)
  * - On s'attend à faire beaucoup de matching (amortit le coût de minimisation)
- * 
+ *
  * @param analysis L'analyse du pattern
  * @returns true si la minimisation est recommandée
  */
@@ -276,4 +284,3 @@ export function getAlgorithmDescription(algorithm: AlgorithmType): string {
       return "Unknown algorithm";
   }
 }
-

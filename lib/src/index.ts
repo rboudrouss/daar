@@ -33,8 +33,6 @@ export function kmpSearch(pattern: string, text: string): number[] {
   return res;
 }
 
-
-
 export * from "./utils";
 export * from "./RegexParser";
 export * from "./NFA";

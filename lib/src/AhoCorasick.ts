@@ -1,9 +1,9 @@
 /**
  * Implémentation de l'algorithme d'Aho-Corasick pour la recherche multi-motifs
- * 
+ *
  * Aho-Corasick est un algorithme de recherche de sous-chaînes qui permet de
  * rechercher plusieurs motifs simultanément en un seul passage sur le texte.
- * 
+ *
  * Il construit un trie avec des liens de failure qui permettent
  * de passer efficacement d'un motif à un autre lors de la recherche.
  */
@@ -92,7 +92,7 @@ export class AhoCorasick {
 
   /**
    * Recherche toutes les occurrences de tous les motifs dans le texte
-   * 
+   *
    * @param text Le texte dans lequel rechercher
    * @returns Un tableau d'objets {pattern: string, position: number}
    */
@@ -126,7 +126,7 @@ export class AhoCorasick {
   /**
    * Vérifie si au moins un des motifs existe dans le texte
    * (version optimisée qui s'arrête au premier match)
-   * 
+   *
    * @param text Le texte dans lequel rechercher
    * @returns true si au moins un motif est trouvé, false sinon
    */
@@ -154,7 +154,7 @@ export class AhoCorasick {
 
   /**
    * Recherche et retourne le premier motif trouvé
-   * 
+   *
    * @param text Le texte dans lequel rechercher
    * @returns Le premier motif trouvé, ou null
    */
@@ -183,4 +183,3 @@ export class AhoCorasick {
     return null;
   }
 }
-

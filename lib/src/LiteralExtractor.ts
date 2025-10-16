@@ -16,13 +16,11 @@ function extractLiteralSegments(t: SyntaxTree): string[] {
         segments.push(currentSegment);
         currentSegment = "";
       }
-
     } else if (node.type === "star") {
       if (currentSegment.length > 0) {
         segments.push(currentSegment);
         currentSegment = "";
       }
-
     } else if (node.type === "concat") {
       traverse(node.left);
       traverse(node.right);
@@ -32,8 +30,8 @@ function extractLiteralSegments(t: SyntaxTree): string[] {
       let allSegments = leftSegments.concat(rightSegments);
 
       if (currentSegment.length > 0) {
-        allSegments = allSegments.map(s => currentSegment + s);
-        currentSegment = ""
+        allSegments = allSegments.map((s) => currentSegment + s);
+        currentSegment = "";
       }
       segments.push(...allSegments);
     }
@@ -63,13 +61,13 @@ export function extractLiterals(tree: SyntaxTree): string[] {
   const segments = extractLiteralSegments(tree);
 
   // Filtrer les segments vides et dédupliquer
-  const uniqueLiterals = Array.from(new Set(segments.filter((s) => s.length > 0)));
+  const uniqueLiterals = Array.from(
+    new Set(segments.filter((s) => s.length > 0))
+  );
 
   // Trier par longueur décroissante (les plus longs d'abord pour un meilleur préfiltrage)
   return uniqueLiterals.sort((a, b) => b.length - a.length);
 }
-
-
 
 /**
  * Détermine si un regex peut bénéficier d'un préfiltrage
@@ -156,4 +154,3 @@ export function isAlternationOfLiterals(tree: SyntaxTree): {
 
   return { isAlternation: false, literals: null };
 }
-

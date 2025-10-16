@@ -60,7 +60,7 @@ const TEST_SCENARIOS: TestScenario[] = [
     text: "", // Will be filled with large text
     description: "Short literal pattern in large text (best for KMP)",
   },
-  
+
   // Long literal patterns
   {
     name: "Long Literal - Small Text",
@@ -74,7 +74,7 @@ const TEST_SCENARIOS: TestScenario[] = [
     text: "", // Will be filled with large text
     description: "Long literal pattern in large text (best for Boyer-Moore)",
   },
-  
+
   // Simple regex patterns
   {
     name: "Simple Regex - Dot",
@@ -88,7 +88,7 @@ const TEST_SCENARIOS: TestScenario[] = [
     text: "ac abc abbc abbbc abbbbc",
     description: "Simple regex with star quantifier",
   },
-  
+
   // Complex regex patterns
   {
     name: "Complex Regex - Alternation",
@@ -108,7 +108,7 @@ const TEST_SCENARIOS: TestScenario[] = [
     text: "acd bce abcde aabccddee",
     description: "Complex regex with multiple operators (NFA might be better)",
   },
-  
+
   // Edge cases
   {
     name: "Empty Matches",
@@ -128,16 +128,27 @@ const TEST_SCENARIOS: TestScenario[] = [
  * Generate large text for testing
  */
 function generateLargeText(size: number): string {
-  const words = ["the", "quick", "brown", "fox", "jumps", "over", "lazy", "dog", "constitution", "freedom"];
+  const words = [
+    "the",
+    "quick",
+    "brown",
+    "fox",
+    "jumps",
+    "over",
+    "lazy",
+    "dog",
+    "constitution",
+    "freedom",
+  ];
   const result: string[] = [];
   let currentSize = 0;
-  
+
   while (currentSize < size) {
     const word = words[Math.floor(Math.random() * words.length)];
     result.push(word);
     currentSize += word.length + 1; // +1 for space
   }
-  
+
   return result.join(" ");
 }
 
@@ -339,11 +350,13 @@ function testAhoCorasick(patterns: string[], text: string): AlgorithmResult {
   const memMeasurement = memTracker.getMeasurement();
 
   // Convert AC results to Match format
-  const matches: Match[] = results.map((r: { pattern: string; position: number }) => ({
-    start: r.position,
-    end: r.position + r.pattern.length,
-    text: r.pattern,
-  }));
+  const matches: Match[] = results.map(
+    (r: { pattern: string; position: number }) => ({
+      start: r.position,
+      end: r.position + r.pattern.length,
+      text: r.pattern,
+    })
+  );
 
   return {
     algorithm: "Aho-Corasick",
@@ -456,7 +469,10 @@ function testDFAWithPrefilter(pattern: string, text: string): AlgorithmResult {
  * Note: For in-memory text, we use extractLiterals + AhoCorasick.contains()
  * to quickly check if the text might match before running the full min-DFA.
  */
-function testMinDFAWithPrefilter(pattern: string, text: string): AlgorithmResult {
+function testMinDFAWithPrefilter(
+  pattern: string,
+  text: string
+): AlgorithmResult {
   const memTracker = new MemoryTracker(true);
 
   const startBuild = performance.now();
@@ -504,7 +520,10 @@ function testMinDFAWithPrefilter(pattern: string, text: string): AlgorithmResult
  * Note: For in-memory text, we use extractLiterals + AhoCorasick.contains()
  * to quickly check if the text might match before running the full NFA+DFA-cache.
  */
-function testNFAWithDFACacheAndPrefilter(pattern: string, text: string): AlgorithmResult {
+function testNFAWithDFACacheAndPrefilter(
+  pattern: string,
+  text: string
+): AlgorithmResult {
   const memTracker = new MemoryTracker(true);
 
   const startBuild = performance.now();
@@ -562,7 +581,7 @@ function extractAlternatives(pattern: string): string[] | null {
   if (match) {
     const alternatives = match[1].split("|");
     // Check if all alternatives are literals
-    if (alternatives.every(alt => isLiteralPattern(alt))) {
+    if (alternatives.every((alt) => isLiteralPattern(alt))) {
       return alternatives;
     }
   }
@@ -594,7 +613,9 @@ function runTestScenario(
   console.log(`${"=".repeat(100)}`);
   console.log(`Pattern:     ${scenario.pattern}`);
   console.log(`Description: ${scenario.description}`);
-  console.log(`Text size:   ${scenario.text.length.toLocaleString()} characters (${(scenario.text.length / 1024).toFixed(2)} KB)`);
+  console.log(
+    `Text size:   ${scenario.text.length.toLocaleString()} characters (${(scenario.text.length / 1024).toFixed(2)} KB)`
+  );
   console.log(`${"=".repeat(100)}\n`);
 
   const results: AlgorithmResult[] = [];
@@ -604,7 +625,9 @@ function runTestScenario(
     if (isLiteralPattern(scenario.pattern) && !options.onlyAutomata) {
       console.log("LITERAL ALGORITHMS");
       console.log("-".repeat(100));
-      console.log(`  ${"Algorithm".padEnd(30)} | ${"Matches".padEnd(15)} | ${"Total Time".padEnd(12)} | ${"Build Time".padEnd(20)} | ${"Match Time".padEnd(20)} | Memory`);
+      console.log(
+        `  ${"Algorithm".padEnd(30)} | ${"Matches".padEnd(15)} | ${"Total Time".padEnd(12)} | ${"Build Time".padEnd(20)} | ${"Match Time".padEnd(20)} | Memory`
+      );
       console.log("-".repeat(100));
 
       try {
@@ -630,7 +653,9 @@ function runTestScenario(
     if (alternatives && !options.onlyAutomata) {
       console.log("MULTI-PATTERN ALGORITHM");
       console.log("-".repeat(100));
-      console.log(`  ${"Algorithm".padEnd(30)} | ${"Matches".padEnd(15)} | ${"Total Time".padEnd(12)} | ${"Build Time".padEnd(20)} | ${"Match Time".padEnd(20)} | Memory`);
+      console.log(
+        `  ${"Algorithm".padEnd(30)} | ${"Matches".padEnd(15)} | ${"Total Time".padEnd(12)} | ${"Build Time".padEnd(20)} | ${"Match Time".padEnd(20)} | Memory`
+      );
       console.log("-".repeat(100));
 
       try {
@@ -647,7 +672,9 @@ function runTestScenario(
     if (!options.onlyLiteral) {
       console.log("AUTOMATON ALGORITHMS (without prefiltering)");
       console.log("-".repeat(100));
-      console.log(`  ${"Algorithm".padEnd(30)} | ${"Matches".padEnd(15)} | ${"Total Time".padEnd(12)} | ${"Build Time".padEnd(20)} | ${"Match Time".padEnd(20)} | Memory`);
+      console.log(
+        `  ${"Algorithm".padEnd(30)} | ${"Matches".padEnd(15)} | ${"Total Time".padEnd(12)} | ${"Build Time".padEnd(20)} | ${"Match Time".padEnd(20)} | Memory`
+      );
       console.log("-".repeat(100));
 
       try {
@@ -659,7 +686,10 @@ function runTestScenario(
       }
 
       try {
-        const nfaDfaCacheResult = testNFAWithDFACache(scenario.pattern, scenario.text);
+        const nfaDfaCacheResult = testNFAWithDFACache(
+          scenario.pattern,
+          scenario.text
+        );
         results.push(nfaDfaCacheResult);
         console.log(formatAlgorithmResult("NFA+DFA-cache", nfaDfaCacheResult));
       } catch (e) {
@@ -687,44 +717,71 @@ function runTestScenario(
       if (!isLiteralPattern(scenario.pattern)) {
         console.log("AUTOMATON ALGORITHMS (with prefiltering)");
         console.log("-".repeat(100));
-        console.log(`  ${"Algorithm".padEnd(30)} | ${"Matches".padEnd(15)} | ${"Total Time".padEnd(12)} | ${"Build Time".padEnd(20)} | ${"Match Time".padEnd(20)} | Memory`);
+        console.log(
+          `  ${"Algorithm".padEnd(30)} | ${"Matches".padEnd(15)} | ${"Total Time".padEnd(12)} | ${"Build Time".padEnd(20)} | ${"Match Time".padEnd(20)} | Memory`
+        );
         console.log("-".repeat(100));
 
         try {
-          const nfaPrefilterResult = testNFAWithPrefilter(scenario.pattern, scenario.text);
+          const nfaPrefilterResult = testNFAWithPrefilter(
+            scenario.pattern,
+            scenario.text
+          );
           results.push(nfaPrefilterResult);
-          console.log(formatAlgorithmResult("NFA (prefiltered)", nfaPrefilterResult));
+          console.log(
+            formatAlgorithmResult("NFA (prefiltered)", nfaPrefilterResult)
+          );
         } catch (e) {
           console.log(`  NFA (prefiltered): FAILED - ${e}`);
         }
 
         try {
-          const nfaDfaCachePrefilterResult = testNFAWithDFACacheAndPrefilter(scenario.pattern, scenario.text);
+          const nfaDfaCachePrefilterResult = testNFAWithDFACacheAndPrefilter(
+            scenario.pattern,
+            scenario.text
+          );
           results.push(nfaDfaCachePrefilterResult);
-          console.log(formatAlgorithmResult("NFA+DFA-cache (prefiltered)", nfaDfaCachePrefilterResult));
+          console.log(
+            formatAlgorithmResult(
+              "NFA+DFA-cache (prefiltered)",
+              nfaDfaCachePrefilterResult
+            )
+          );
         } catch (e) {
           console.log(`  NFA+DFA-cache (prefiltered): FAILED - ${e}`);
         }
 
         try {
-          const dfaPrefilterResult = testDFAWithPrefilter(scenario.pattern, scenario.text);
+          const dfaPrefilterResult = testDFAWithPrefilter(
+            scenario.pattern,
+            scenario.text
+          );
           results.push(dfaPrefilterResult);
-          console.log(formatAlgorithmResult("DFA (prefiltered)", dfaPrefilterResult));
+          console.log(
+            formatAlgorithmResult("DFA (prefiltered)", dfaPrefilterResult)
+          );
         } catch (e) {
           console.log(`  DFA (prefiltered): FAILED - ${e}`);
         }
 
         try {
-          const minDfaPrefilterResult = testMinDFAWithPrefilter(scenario.pattern, scenario.text);
+          const minDfaPrefilterResult = testMinDFAWithPrefilter(
+            scenario.pattern,
+            scenario.text
+          );
           results.push(minDfaPrefilterResult);
-          console.log(formatAlgorithmResult("min-DFA (prefiltered)", minDfaPrefilterResult));
+          console.log(
+            formatAlgorithmResult(
+              "min-DFA (prefiltered)",
+              minDfaPrefilterResult
+            )
+          );
         } catch (e) {
           console.log(`  min-DFA (prefiltered): FAILED - ${e}`);
         }
         console.log();
       }
     }
-
   } catch (error) {
     console.error(`\nERROR in scenario: ${error}`);
   }
@@ -735,18 +792,18 @@ function runTestScenario(
   };
 }
 
-
-
 /**
  * Main test runner
  */
-export function runAllTests(options: {
-  verbose?: boolean;
-  dataFile?: string;
-  dataFolder?: string;
-  onlyAutomata?: boolean;
-  onlyLiteral?: boolean;
-} = {}) {
+export function runAllTests(
+  options: {
+    verbose?: boolean;
+    dataFile?: string;
+    dataFolder?: string;
+    onlyAutomata?: boolean;
+    onlyLiteral?: boolean;
+  } = {}
+) {
   // Determine which algorithms to test
   let algorithmsToTest = "KMP, Boyer-Moore, Aho-Corasick, NFA, DFA, min-DFA";
   if (options.onlyAutomata) {
@@ -767,7 +824,7 @@ export function runAllTests(options: {
 
   // Fill in large text scenarios
   const largeText = generateLargeText(100000); // 100KB of text
-  scenarios.forEach(scenario => {
+  scenarios.forEach((scenario) => {
     if (scenario.text === "") {
       scenario.text = largeText;
     }
@@ -780,7 +837,7 @@ export function runAllTests(options: {
     console.log(`\nAdding file: ${options.dataFile} (${fileSizeKB} KB)`);
 
     scenarios.push({
-      name: `File: ${options.dataFile.split('/').pop()}`,
+      name: `File: ${options.dataFile.split("/").pop()}`,
       pattern: "the",
       text: fileContent,
       description: `Real file test: ${options.dataFile} (${fileSizeKB} KB)`,
@@ -789,10 +846,14 @@ export function runAllTests(options: {
 
   // If a data folder is provided, add scenarios for all files in it
   if (options.dataFolder && fs.existsSync(options.dataFolder)) {
-    const files = fs.readdirSync(options.dataFolder).filter(f => f.endsWith('.txt'));
-    console.log(`\nFound ${files.length} text file(s) in ${options.dataFolder}`);
+    const files = fs
+      .readdirSync(options.dataFolder)
+      .filter((f) => f.endsWith(".txt"));
+    console.log(
+      `\nFound ${files.length} text file(s) in ${options.dataFolder}`
+    );
 
-    files.forEach(file => {
+    files.forEach((file) => {
       const filePath = `${options.dataFolder}/${file}`;
       const fileContent = fs.readFileSync(filePath, "utf-8");
       const fileSizeKB = (fileContent.length / 1024).toFixed(2);
@@ -830,4 +891,3 @@ export function runAllTests(options: {
   console.log(`Total scenarios tested: ${allResults.length}`);
   console.log("=".repeat(100) + "\n");
 }
-

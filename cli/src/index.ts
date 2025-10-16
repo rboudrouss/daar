@@ -195,9 +195,16 @@ function main() {
 
   // Validate optimization level
   if (
-    !["auto", "literal-kmp", "literal-bm", "aho-corasick", "nfa", "nfa-dfa-cache", "dfa", "min-dfa"].includes(
-      optimizationLevel
-    )
+    ![
+      "auto",
+      "literal-kmp",
+      "literal-bm",
+      "aho-corasick",
+      "nfa",
+      "nfa-dfa-cache",
+      "dfa",
+      "min-dfa",
+    ].includes(optimizationLevel)
   ) {
     console.error(`Invalid optimization level: ${optimizationLevel}`);
     console.error(
@@ -285,19 +292,21 @@ function main() {
       const alternationCheck = isAlternationOfLiterals(syntaxTree);
 
       if (!alternationCheck.isAlternation || !alternationCheck.literals) {
-        console.error("Error: Aho-Corasick requires an alternation of literals (e.g., 'from|what|who')");
+        console.error(
+          "Error: Aho-Corasick requires an alternation of literals (e.g., 'from|what|who')"
+        );
         process.exit(1);
       }
 
       const patterns = options.ignoreCase
-        ? alternationCheck.literals.map(l => l.toLowerCase())
+        ? alternationCheck.literals.map((l) => l.toLowerCase())
         : alternationCheck.literals;
       const ac = new AhoCorasick(patterns);
 
       matcher = (line: string) => {
         const searchLine = options.ignoreCase ? line.toLowerCase() : line;
         const results = ac.search(searchLine);
-        return results.map(r => ({
+        return results.map((r) => ({
           start: r.position,
           end: r.position + r.pattern.length,
           text: r.pattern,

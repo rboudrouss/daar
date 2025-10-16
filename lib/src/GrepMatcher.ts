@@ -63,9 +63,7 @@ export class GrepMatcher {
       options.algorithm === "aho-corasick";
 
     this.usePrefilter =
-      enablePrefilter &&
-      !isLiteralAlgorithm &&
-      canUsePrefilter(syntaxTree);
+      enablePrefilter && !isLiteralAlgorithm && canUsePrefilter(syntaxTree);
 
     // Construire le préfiltre si activé
     if (this.usePrefilter) {
@@ -119,9 +117,10 @@ export class GrepMatcher {
       chunkSize: this.options.chunkSize,
     });
 
-    let lineYeilder = this.usePrefilter && !this.options.invertMatch
-      ? reader.linesWithPrefilter(this.prefilter)
-      : reader.lines();
+    let lineYeilder =
+      this.usePrefilter && !this.options.invertMatch
+        ? reader.linesWithPrefilter(this.prefilter)
+        : reader.lines();
 
     try {
       for (const { line, lineNumber } of lineYeilder) {

@@ -9,7 +9,10 @@ import { kmpSearch } from "./index";
 import { boyerMooreSearch } from "./BoyerMoore";
 
 // Re-export from NFAWithDFACache
-export { findAllMatchesNfaWithDfaCache, matchNfaWithDfaCache } from "./NFAWithDFACache";
+export {
+  findAllMatchesNfaWithDfaCache,
+  matchNfaWithDfaCache,
+} from "./NFAWithDFACache";
 
 /**
  * Représente une occurrence trouvée dans une ligne

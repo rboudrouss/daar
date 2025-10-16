@@ -1,10 +1,10 @@
 /**
  * Module pour la simulation d'un NFA avec construction de DFA à la volée (on-the-fly)
- * 
+ *
  * Cette approche combine les avantages du NFA (pas de construction préalable coûteuse)
  * et du DFA (exécution rapide) en construisant le DFA de manière paresseuse pendant
  * la simulation, similaire à l'approche utilisée par grep.
- * 
+ *
  * L'idée est de mémoriser les ensembles d'états NFA visités et leurs transitions
  * pour éviter de recalculer les fermetures epsilon à chaque fois.
  */
@@ -62,12 +62,12 @@ class LazyDFACache {
   private createStateKey(nfaStates: state_ID[]): string {
     // Pour les petits ensembles (cas le plus courant), la copie + tri est rapide
     if (nfaStates.length <= 1) {
-      return nfaStates.join(',');
+      return nfaStates.join(",");
     }
 
     // Copier et trier
     const sorted = nfaStates.slice().sort((a, b) => a - b);
-    return sorted.join(',');
+    return sorted.join(",");
   }
 
   /**
@@ -305,4 +305,3 @@ export function matchNfaWithDfaCache(nfa: NFA, input: string): boolean {
   const finalState = cache.getState(currentStateId);
   return finalState?.isAccepting ?? false;
 }
-

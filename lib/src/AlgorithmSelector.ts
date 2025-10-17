@@ -191,8 +191,8 @@ export function analyzePattern(tree: SyntaxTree): PatternAnalysis {
   if (complexity <= 10 && !hasAlternations) {
     return {
       patternType: "simple",
-      recommendedAlgorithm: "dfa",
-      reason: `Pattern simple (complexité ${complexity}) - DFA offre un bon compromis vitesse/mémoire`,
+      recommendedAlgorithm: "min-dfa",
+      reason: `Pattern simple (complexité ${complexity}) - DFA minimisé offre un bon compromis vitesse/mémoire`,
       literals,
       complexity,
       isLiteral,
@@ -221,8 +221,8 @@ export function analyzePattern(tree: SyntaxTree): PatternAnalysis {
   if (complexity > 20) {
     return {
       patternType: "complex",
-      recommendedAlgorithm: "nfa",
-      reason: `Pattern complexe (complexité ${complexity}) - NFA utilise moins de mémoire`,
+      recommendedAlgorithm: "nfa-dfa-cache",
+      reason: `Pattern complexe (complexité ${complexity}) - NFA+DFA-cache utilise moins de mémoire`,
       literals,
       complexity,
       isLiteral,

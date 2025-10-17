@@ -103,10 +103,16 @@ const TEST_SCENARIOS: TestScenario[] = [
     description: "Complex regex with alternation and star",
   },
   {
-    name: "Very Complex Regex",
+    name: "Complex Regex",
     pattern: "(a|b)*c(d|e)*",
     text: "acd bce abcde aabccddee",
     description: "Complex regex with multiple operators (NFA might be better)",
+  },
+  {
+    name: "Very complex Regex",
+    pattern: "((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D))",
+    text: "The man said was alone at the end",
+    description: "Very complex regex with multiple operators (NFA might be better)",
   },
 
   // Edge cases
@@ -122,6 +128,12 @@ const TEST_SCENARIOS: TestScenario[] = [
     text: "a".repeat(100) + "b" + "a".repeat(100),
     description: "Pattern with many matches",
   },
+  {
+    name: "Wildcards",
+    pattern: ".*",
+    text: "abc def ghi jkl mno pqr",
+    description: "Pattern with wildcards",
+  }
 ];
 
 /**
@@ -820,7 +832,7 @@ export function runAllTests(
   console.log("=".repeat(100));
 
   // Prepare test scenarios
-  const scenarios = [...TEST_SCENARIOS];
+  let scenarios = [...TEST_SCENARIOS];
 
   // Fill in large text scenarios
   const largeText = generateLargeText(100000); // 100KB of text
@@ -836,11 +848,8 @@ export function runAllTests(
     const fileSizeKB = (fileContent.length / 1024).toFixed(2);
     console.log(`\nAdding file: ${options.dataFile} (${fileSizeKB} KB)`);
 
-    scenarios.push({
-      name: `File: ${options.dataFile.split("/").pop()}`,
-      pattern: "the",
-      text: fileContent,
-      description: `Real file test: ${options.dataFile} (${fileSizeKB} KB)`,
+    scenarios.forEach((scenario) => {
+      scenario.text = fileContent;
     });
   }
 
@@ -853,17 +862,19 @@ export function runAllTests(
       `\nFound ${files.length} text file(s) in ${options.dataFolder}`
     );
 
+    const oldScenarios = scenarios;
+    scenarios = [];
+
     files.forEach((file) => {
       const filePath = `${options.dataFolder}/${file}`;
       const fileContent = fs.readFileSync(filePath, "utf-8");
       const fileSizeKB = (fileContent.length / 1024).toFixed(2);
       console.log(`  - ${file} (${fileSizeKB} KB)`);
 
-      scenarios.push({
-        name: `File: ${file}`,
-        pattern: "the",
-        text: fileContent,
-        description: `Real file test: ${file} (${fileSizeKB} KB)`,
+      oldScenarios.forEach((scenario) => {
+        const newScenario = { ...scenario };
+        newScenario.text = fileContent;
+        scenarios.push(newScenario);
       });
     });
   }

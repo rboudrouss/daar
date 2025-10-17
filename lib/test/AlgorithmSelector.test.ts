@@ -62,6 +62,14 @@ describe("AlgorithmSelector", () => {
         expect(analysis.complexity).toBeLessThanOrEqual(10);
       });
 
+      it("should recommend DFA for patterns with stars but low complexity", () => {
+        const tree = parseRegex("a(.*)b");
+        const analysis = analyzePattern(tree);
+
+        expect(analysis.recommendedAlgorithm).toBe("min-dfa");
+        expect(analysis.hasStars).toBe(true);
+      });
+
       it("should recommend aho-corasick for patterns with only alternations", () => {
         const tree = parseRegex("(a|b)");
         const analysis = analyzePattern(tree);

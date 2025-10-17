@@ -160,7 +160,6 @@ export function minimizeDfa(dfa: DFA): DFA {
     partitions: state_ID[][],
     symbols: Set<string>
   ): string {
-    // Iterate Set directly without creating intermediate array
     const parts: number[] = [];
     for (const sym of symbols) {
       const targetState = transitions[state]?.[sym];

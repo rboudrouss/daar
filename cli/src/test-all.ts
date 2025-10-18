@@ -36,6 +36,10 @@ interface AlgorithmResult {
   matchTime: number;
   totalTime: number;
   memoryUsed: number;
+  structureSize?: {
+    nodes?: number;
+    kb?: number;
+  };
 }
 
 interface TestResult {
@@ -246,6 +250,10 @@ function testNFA(pattern: string, text: string): AlgorithmResult {
     matchTime,
     totalTime: buildTime + matchTime,
     memoryUsed: getSafeMemoryUsage(memMeasurement),
+    structureSize: {
+      nodes: nfa.states.length,
+      kb: calculateStructureSize(nfa),
+    },
   };
 }
 
@@ -275,6 +283,10 @@ function testNFAWithDFACache(pattern: string, text: string): AlgorithmResult {
     matchTime,
     totalTime: buildTime + matchTime,
     memoryUsed: getSafeMemoryUsage(memMeasurement),
+    structureSize: {
+      nodes: nfa.states.length,
+      kb: calculateStructureSize(nfa),
+    },
   };
 }
 
@@ -306,6 +318,10 @@ function testDFA(pattern: string, text: string): AlgorithmResult {
       matchTime,
       totalTime: buildTime + matchTime,
       memoryUsed: getSafeMemoryUsage(memMeasurement),
+      structureSize: {
+        nodes: dfa.states.length,
+        kb: calculateStructureSize(dfa),
+      },
     };
   } catch (error) {
     throw new Error(`DFA construction failed: ${error}`);
@@ -340,6 +356,10 @@ function testMinDFA(pattern: string, text: string): AlgorithmResult {
     matchTime,
     totalTime: buildTime + matchTime,
     memoryUsed: getSafeMemoryUsage(memMeasurement),
+    structureSize: {
+      nodes: minDfa.states.length,
+      kb: calculateStructureSize(minDfa),
+    },
   };
 }
 
@@ -377,6 +397,10 @@ function testAhoCorasick(patterns: string[], text: string): AlgorithmResult {
     matchTime,
     totalTime: buildTime + matchTime,
     memoryUsed: getSafeMemoryUsage(memMeasurement),
+    structureSize: {
+      nodes: countTrieNodes(ac),
+      kb: calculateStructureSize(ac),
+    },
   };
 }
 
@@ -425,6 +449,10 @@ function testNFAWithPrefilter(pattern: string, text: string): AlgorithmResult {
     matchTime,
     totalTime: buildTime + matchTime,
     memoryUsed: getSafeMemoryUsage(memMeasurement),
+    structureSize: {
+      nodes: nfa.states.length,
+      kb: calculateStructureSize(nfa),
+    },
   };
 }
 
@@ -472,6 +500,10 @@ function testDFAWithPrefilter(pattern: string, text: string): AlgorithmResult {
     matchTime,
     totalTime: buildTime + matchTime,
     memoryUsed: getSafeMemoryUsage(memMeasurement),
+    structureSize: {
+      nodes: dfa.states.length,
+      kb: calculateStructureSize(dfa),
+    },
   };
 }
 
@@ -523,6 +555,10 @@ function testMinDFAWithPrefilter(
     matchTime,
     totalTime: buildTime + matchTime,
     memoryUsed: getSafeMemoryUsage(memMeasurement),
+    structureSize: {
+      nodes: minDfa.states.length,
+      kb: calculateStructureSize(minDfa),
+    },
   };
 }
 
@@ -572,7 +608,43 @@ function testNFAWithDFACacheAndPrefilter(
     matchTime,
     totalTime: buildTime + matchTime,
     memoryUsed: getSafeMemoryUsage(memMeasurement),
+    structureSize: {
+      nodes: nfa.states.length,
+      kb: calculateStructureSize(nfa),
+    },
   };
+}
+
+/**
+ * Calculate the size of a structure in KB
+ */
+function calculateStructureSize(obj: any): number {
+  const str = JSON.stringify(obj);
+  return str.length / 1024; // Convert to KB
+}
+
+/**
+ * Count nodes in a trie structure (for Aho-Corasick)
+ */
+function countTrieNodes(ac: AhoCorasick): number {
+  // Access the private root through type assertion
+  const root = (ac as any).root;
+  let count = 0;
+
+  function traverse(node: any) {
+    count++;
+    if (node.children) {
+      for (const child of node.children.values()) {
+        traverse(child);
+      }
+    }
+  }
+
+  if (root) {
+    traverse(root);
+  }
+
+  return count;
 }
 
 /**
@@ -608,9 +680,16 @@ function formatAlgorithmResult(name: string, result: AlgorithmResult): string {
   const totalTime = `${result.totalTime.toFixed(3)}ms`.padEnd(12);
   const buildTime = `build: ${result.buildTime.toFixed(3)}ms`.padEnd(20);
   const matchTime = `match: ${result.matchTime.toFixed(3)}ms`.padEnd(20);
-  const memory = `${(result.memoryUsed / 1024).toFixed(2)} KB`;
+  const memory = `${(result.memoryUsed / 1024).toFixed(2)} KB`.padEnd(12);
 
-  return `  ${name.padEnd(30)} | ${matchStr} | ${totalTime} | ${buildTime} | ${matchTime} | ${memory}`;
+  let structureInfo = "-".padEnd(25);
+  if (result.structureSize) {
+    const nodes = result.structureSize.nodes ? `${result.structureSize.nodes} nodes` : "";
+    const kb = result.structureSize.kb ? `${result.structureSize.kb.toFixed(2)} KB` : "";
+    structureInfo = (nodes && kb ? `${nodes}, ${kb}` : nodes || kb).padEnd(25);
+  }
+
+  return `  ${name.padEnd(30)} | ${matchStr} | ${totalTime} | ${buildTime} | ${matchTime} | ${memory} | ${structureInfo}`;
 }
 
 /**
@@ -636,11 +715,11 @@ function runTestScenario(
     // Test literal algorithms if pattern is literal (and not excluded)
     if (isLiteralPattern(scenario.pattern) && !options.onlyAutomata) {
       console.log("LITERAL ALGORITHMS");
-      console.log("-".repeat(100));
+      console.log("-".repeat(130));
       console.log(
-        `  ${"Algorithm".padEnd(30)} | ${"Matches".padEnd(15)} | ${"Total Time".padEnd(12)} | ${"Build Time".padEnd(20)} | ${"Match Time".padEnd(20)} | Memory`
+        `  ${"Algorithm".padEnd(30)} | ${"Matches".padEnd(15)} | ${"Total Time".padEnd(12)} | ${"Build Time".padEnd(20)} | ${"Match Time".padEnd(20)} | ${"Memory".padEnd(12)} | Structure Size`
       );
-      console.log("-".repeat(100));
+      console.log("-".repeat(130));
 
       try {
         const kmpResult = testKMP(scenario.pattern, scenario.text);
@@ -664,11 +743,11 @@ function runTestScenario(
     const alternatives = extractAlternatives(scenario.pattern);
     if (alternatives && !options.onlyAutomata) {
       console.log("MULTI-PATTERN ALGORITHM");
-      console.log("-".repeat(100));
+      console.log("-".repeat(130));
       console.log(
-        `  ${"Algorithm".padEnd(30)} | ${"Matches".padEnd(15)} | ${"Total Time".padEnd(12)} | ${"Build Time".padEnd(20)} | ${"Match Time".padEnd(20)} | Memory`
+        `  ${"Algorithm".padEnd(30)} | ${"Matches".padEnd(15)} | ${"Total Time".padEnd(12)} | ${"Build Time".padEnd(20)} | ${"Match Time".padEnd(20)} | ${"Memory".padEnd(12)} | Structure Size`
       );
-      console.log("-".repeat(100));
+      console.log("-".repeat(130));
 
       try {
         const acResult = testAhoCorasick(alternatives, scenario.text);
@@ -683,11 +762,11 @@ function runTestScenario(
     // Test automaton-based algorithms WITHOUT prefiltering (if not excluded)
     if (!options.onlyLiteral) {
       console.log("AUTOMATON ALGORITHMS (without prefiltering)");
-      console.log("-".repeat(100));
+      console.log("-".repeat(130));
       console.log(
-        `  ${"Algorithm".padEnd(30)} | ${"Matches".padEnd(15)} | ${"Total Time".padEnd(12)} | ${"Build Time".padEnd(20)} | ${"Match Time".padEnd(20)} | Memory`
+        `  ${"Algorithm".padEnd(30)} | ${"Matches".padEnd(15)} | ${"Total Time".padEnd(12)} | ${"Build Time".padEnd(20)} | ${"Match Time".padEnd(20)} | ${"Memory".padEnd(12)} | Structure Size`
       );
-      console.log("-".repeat(100));
+      console.log("-".repeat(130));
 
       try {
         const nfaResult = testNFA(scenario.pattern, scenario.text);
@@ -728,11 +807,11 @@ function runTestScenario(
       // Test automaton-based algorithms WITH prefiltering (if applicable)
       if (!isLiteralPattern(scenario.pattern)) {
         console.log("AUTOMATON ALGORITHMS (with prefiltering)");
-        console.log("-".repeat(100));
+        console.log("-".repeat(130));
         console.log(
-          `  ${"Algorithm".padEnd(30)} | ${"Matches".padEnd(15)} | ${"Total Time".padEnd(12)} | ${"Build Time".padEnd(20)} | ${"Match Time".padEnd(20)} | Memory`
+          `  ${"Algorithm".padEnd(30)} | ${"Matches".padEnd(15)} | ${"Total Time".padEnd(12)} | ${"Build Time".padEnd(20)} | ${"Match Time".padEnd(20)} | ${"Memory".padEnd(12)} | Structure Size`
         );
-        console.log("-".repeat(100));
+        console.log("-".repeat(130));
 
         try {
           const nfaPrefilterResult = testNFAWithPrefilter(

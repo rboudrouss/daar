@@ -38,21 +38,27 @@ export function executeTest<TStructure>(
   algorithmName: string,
   getStructureSize?: (structure: TStructure) => { nodes?: number; kb?: number }
 ): AlgorithmResult {
-  const memTracker = new MemoryTracker(true);
+  // Create a fresh memory tracker with GC
+  const buildMemTracker = new MemoryTracker(true);
 
-  // Build phase
+  // Build phase - measure memory for structure construction only
   const startBuild = performance.now();
   const structure = buildFn();
   const buildTime = performance.now() - startBuild;
-  memTracker.update();
+  const buildMemMeasurement = buildMemTracker.getMeasurement();
 
-  // Match phase
+  // Force GC before match phase to get clean measurement
+  const matchMemTracker = new MemoryTracker(true);
+
+  // Match phase - measure memory for matching only
   const startMatch = performance.now();
   const matches = matchFn(structure);
   const matchTime = performance.now() - startMatch;
-  memTracker.update();
+  const matchMemMeasurement = matchMemTracker.getMeasurement();
 
-  const memMeasurement = memTracker.getMeasurement();
+  // Use build phase memory as the primary metric (structure size)
+  // This is more reliable than total memory delta
+  const memoryUsed = getSafeMemoryUsage(buildMemMeasurement);
 
   const result: AlgorithmResult = {
     algorithm: algorithmName,
@@ -60,7 +66,7 @@ export function executeTest<TStructure>(
     buildTime,
     matchTime,
     totalTime: buildTime + matchTime,
-    memoryUsed: getSafeMemoryUsage(memMeasurement),
+    memoryUsed,
   };
 
   if (getStructureSize) {
@@ -77,16 +83,16 @@ export function executeLiteralTest(
   matchFn: () => Match[],
   algorithmName: string
 ): AlgorithmResult {
+  // For literal algorithms, there's no build phase
+  // Just measure match phase memory
   const memTracker = new MemoryTracker(true);
 
   const startBuild = performance.now();
   const buildTime = performance.now() - startBuild;
-  memTracker.update();
 
   const startMatch = performance.now();
   const matches = matchFn();
   const matchTime = performance.now() - startMatch;
-  memTracker.update();
 
   const memMeasurement = memTracker.getMeasurement();
 

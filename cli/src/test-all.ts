@@ -30,6 +30,7 @@ import {
   printTestSuiteHeader,
   printTestSuiteFooter,
 } from "./utils/test-formatting";
+import { isGCAvailable } from "./utils/memory-utils";
 import {
   buildNFA,
   buildDFA,
@@ -37,7 +38,10 @@ import {
   getNFAStructureSize,
   getDFAStructureSize,
 } from "./utils/automaton-builders";
-import { matchWithPrefilter } from "./utils/prefilter-helpers";
+import {
+  matchWithPrefilter,
+  buildPrefilterStructure,
+} from "./utils/prefilter-helpers";
 
 interface TestScenario {
   name: string;
@@ -275,17 +279,44 @@ function testAhoCorasick(patterns: string[], text: string): AlgorithmResult {
 }
 
 /**
+ * Get structure size including prefilter
+ */
+function getPrefilterStructureSize<T>(
+  prefilterStructure: ReturnType<typeof buildPrefilterStructure<T>>,
+  getBaseSize: (structure: T) => { nodes: number; kb: number }
+): { nodes: number; kb: number } {
+  const baseSize = getBaseSize(prefilterStructure.structure);
+
+  // Add prefilter size if present
+  if (prefilterStructure.prefilter) {
+    const prefilterNodes = countTrieNodes(prefilterStructure.prefilter);
+    const prefilterKb = calculateStructureSize(prefilterStructure.prefilter);
+
+    return {
+      nodes: baseSize.nodes + prefilterNodes,
+      kb: baseSize.kb + prefilterKb,
+    };
+  }
+
+  return baseSize;
+}
+
+/**
  * Test NFA with prefiltering
  */
 function testNFAWithPrefilter(pattern: string, text: string): AlgorithmResult {
   return executeTest(
-    () => buildNFA(pattern),
-    ({ syntaxTree, nfa }) =>
-      matchWithPrefilter(syntaxTree, text, nfa, (nfa, text) =>
+    () => {
+      const { syntaxTree, nfa } = buildNFA(pattern);
+      return buildPrefilterStructure(syntaxTree, nfa);
+    },
+    (prefilterStructure) =>
+      matchWithPrefilter(prefilterStructure, text, (nfa, text) =>
         findAllMatchesNfa(nfa, text)
       ),
     "NFA (with prefilter)",
-    ({ nfa }) => getNFAStructureSize(nfa)
+    (prefilterStructure) =>
+      getPrefilterStructureSize(prefilterStructure, getNFAStructureSize)
   );
 }
 
@@ -294,13 +325,17 @@ function testNFAWithPrefilter(pattern: string, text: string): AlgorithmResult {
  */
 function testDFAWithPrefilter(pattern: string, text: string): AlgorithmResult {
   return executeTest(
-    () => buildDFA(pattern),
-    ({ syntaxTree, dfa }) =>
-      matchWithPrefilter(syntaxTree, text, dfa, (dfa, text) =>
+    () => {
+      const { syntaxTree, dfa } = buildDFA(pattern);
+      return buildPrefilterStructure(syntaxTree, dfa);
+    },
+    (prefilterStructure) =>
+      matchWithPrefilter(prefilterStructure, text, (dfa, text) =>
         findAllMatchesDfa(dfa, text)
       ),
     "DFA (with prefilter)",
-    ({ dfa }) => getDFAStructureSize(dfa)
+    (prefilterStructure) =>
+      getPrefilterStructureSize(prefilterStructure, getDFAStructureSize)
   );
 }
 
@@ -312,13 +347,17 @@ function testMinDFAWithPrefilter(
   text: string
 ): AlgorithmResult {
   return executeTest(
-    () => buildMinDFA(pattern),
-    ({ syntaxTree, minDfa }) =>
-      matchWithPrefilter(syntaxTree, text, minDfa, (minDfa, text) =>
+    () => {
+      const { syntaxTree, minDfa } = buildMinDFA(pattern);
+      return buildPrefilterStructure(syntaxTree, minDfa);
+    },
+    (prefilterStructure) =>
+      matchWithPrefilter(prefilterStructure, text, (minDfa, text) =>
         findAllMatchesDfa(minDfa, text)
       ),
     "min-DFA (with prefilter)",
-    ({ minDfa }) => getDFAStructureSize(minDfa)
+    (prefilterStructure) =>
+      getPrefilterStructureSize(prefilterStructure, getDFAStructureSize)
   );
 }
 
@@ -330,13 +369,17 @@ function testNFAWithDFACacheAndPrefilter(
   text: string
 ): AlgorithmResult {
   return executeTest(
-    () => buildNFA(pattern),
-    ({ syntaxTree, nfa }) =>
-      matchWithPrefilter(syntaxTree, text, nfa, (nfa, text) =>
+    () => {
+      const { syntaxTree, nfa } = buildNFA(pattern);
+      return buildPrefilterStructure(syntaxTree, nfa);
+    },
+    (prefilterStructure) =>
+      matchWithPrefilter(prefilterStructure, text, (nfa, text) =>
         findAllMatchesNfaWithDfaCache(nfa, text)
       ),
     "NFA+DFA-cache (with prefilter)",
-    ({ nfa }) => getNFAStructureSize(nfa)
+    (prefilterStructure) =>
+      getPrefilterStructureSize(prefilterStructure, getNFAStructureSize)
   );
 }
 
@@ -627,5 +670,6 @@ export function runAllTests(
   }
 
   // Print final summary
-  printTestSuiteFooter(allResults.length);
+  const gcAvailable = isGCAvailable();
+  printTestSuiteFooter(allResults.length, gcAvailable);
 }

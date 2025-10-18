@@ -12,7 +12,7 @@ export default defineConfig({
   treeshake: true,
   shims: true,
   banner: {
-    js: '#!/usr/bin/env node',
+    js: '#!/usr/bin/env -S node --expose-gc',
   },
 })
 

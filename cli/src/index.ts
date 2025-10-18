@@ -51,6 +51,16 @@ interface PerformanceMetrics {
   };
   algorithmUsed?: string;
   algorithmReason?: string;
+  structureStats?: {
+    nfaNodes?: number;
+    nfaSize?: number;
+    dfaNodes?: number;
+    dfaSize?: number;
+    minDfaNodes?: number;
+    minDfaSize?: number;
+    acNodes?: number;
+    acSize?: number;
+  };
 }
 
 function formatBytes(bytes: number): string {
@@ -68,6 +78,38 @@ function formatTime(ms: number): string {
   if (ms < 1) return `${(ms * 1000).toFixed(2)} μs`;
   if (ms < 1000) return `${ms.toFixed(2)} ms`;
   return `${(ms / 1000).toFixed(2)} s`;
+}
+
+/**
+ * Calculate the size of a structure in KB
+ */
+function calculateStructureSize(obj: any): number {
+  const str = JSON.stringify(obj);
+  return str.length / 1024; // Convert to KB
+}
+
+/**
+ * Count nodes in a trie structure (for Aho-Corasick)
+ */
+function countTrieNodes(ac: AhoCorasick): number {
+  // Access the private root through type assertion
+  const root = (ac as any).root;
+  let count = 0;
+
+  function traverse(node: any) {
+    count++;
+    if (node.children) {
+      for (const child of node.children.values()) {
+        traverse(child);
+      }
+    }
+  }
+
+  if (root) {
+    traverse(root);
+  }
+
+  return count;
 }
 
 function printPerformanceMetrics(metrics: PerformanceMetrics): void {
@@ -109,6 +151,26 @@ function printPerformanceMetrics(metrics: PerformanceMetrics): void {
     console.error(`  - Algorithm:        ${metrics.algorithmUsed}`);
     if (metrics.algorithmReason) {
       console.error(`  - Reason:           ${metrics.algorithmReason}`);
+    }
+  }
+
+  if (metrics.structureStats) {
+    console.error(`\nData structure size:`);
+
+    if (metrics.structureStats.nfaNodes !== undefined) {
+      console.error(`  - NFA:              ${metrics.structureStats.nfaNodes} nodes, ${metrics.structureStats.nfaSize?.toFixed(2)} KB`);
+    }
+
+    if (metrics.structureStats.dfaNodes !== undefined) {
+      console.error(`  - DFA:              ${metrics.structureStats.dfaNodes} nodes, ${metrics.structureStats.dfaSize?.toFixed(2)} KB`);
+    }
+
+    if (metrics.structureStats.minDfaNodes !== undefined) {
+      console.error(`  - min-DFA:          ${metrics.structureStats.minDfaNodes} nodes, ${metrics.structureStats.minDfaSize?.toFixed(2)} KB`);
+    }
+
+    if (metrics.structureStats.acNodes !== undefined) {
+      console.error(`  - Aho-Corasick:     ${metrics.structureStats.acNodes} nodes, ${metrics.structureStats.acSize?.toFixed(2)} KB`);
     }
   }
 
@@ -261,6 +323,18 @@ function main() {
     let minDfa: DFA | undefined;
     let literalPattern: string | undefined;
 
+    // Variables pour les statistiques de structure
+    const structureStats: {
+      nfaNodes?: number;
+      nfaSize?: number;
+      dfaNodes?: number;
+      dfaSize?: number;
+      minDfaNodes?: number;
+      minDfaSize?: number;
+      acNodes?: number;
+      acSize?: number;
+    } = {};
+
     // Créer la fonction de matching appropriée selon l'algorithme sélectionné
     let matcher: (
       line: string
@@ -303,6 +377,10 @@ function main() {
         : alternationCheck.literals;
       const ac = new AhoCorasick(patterns);
 
+      // Capturer les stats de structure pour Aho-Corasick
+      structureStats.acNodes = countTrieNodes(ac);
+      structureStats.acSize = calculateStructureSize(ac);
+
       matcher = (line: string) => {
         const searchLine = options.ignoreCase ? line.toLowerCase() : line;
         const results = ac.search(searchLine);
@@ -322,6 +400,10 @@ function main() {
       nfaTime = performance.now() - startNfa;
       memTracker.update();
 
+      // Capturer les stats de structure pour NFA
+      structureStats.nfaNodes = nfa.states.length;
+      structureStats.nfaSize = calculateStructureSize(nfa);
+
       if (selectedAlgorithm === "dfa" || selectedAlgorithm === "min-dfa") {
         // Build DFA
         const startDfa = performance.now();
@@ -329,12 +411,20 @@ function main() {
         dfaTime = performance.now() - startDfa;
         memTracker.update();
 
+        // Capturer les stats de structure pour DFA
+        structureStats.dfaNodes = dfa.states.length;
+        structureStats.dfaSize = calculateStructureSize(dfa);
+
         if (selectedAlgorithm === "min-dfa") {
           // Minimize DFA
           const startMinDfa = performance.now();
           minDfa = minimizeDfa(dfa);
           minDfaTime = performance.now() - startMinDfa;
           memTracker.update();
+
+          // Capturer les stats de structure pour min-DFA
+          structureStats.minDfaNodes = minDfa.states.length;
+          structureStats.minDfaSize = calculateStructureSize(minDfa);
 
           matcher = (line: string) => {
             const searchLine = options.ignoreCase ? line.toLowerCase() : line;
@@ -400,6 +490,7 @@ function main() {
         prefilterStats,
         algorithmUsed: getAlgorithmDescription(selectedAlgorithm),
         algorithmReason,
+        structureStats,
       });
     }
   } catch (error) {

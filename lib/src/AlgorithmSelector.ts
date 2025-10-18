@@ -132,9 +132,13 @@ function extractLiteralString(tree: SyntaxTree): string | null {
  *    - Ou min-DFA si on veut optimiser la mémoire du DFA
  *
  * @param tree L'arbre syntaxique du pattern
+ * @param textSizeBytes Taille estimée du texte en octets (optionnel)
  * @returns L'analyse complète avec l'algorithme recommandé
  */
-export function analyzePattern(tree: SyntaxTree): PatternAnalysis {
+export function analyzePattern(
+  tree: SyntaxTree,
+  textSizeBytes?: number
+): PatternAnalysis {
   const { isLiteral, hasWildcards, hasAlternations, hasStars, complexity } =
     analyzeTree(tree);
   const literals = extractLiterals(tree);
@@ -187,12 +191,44 @@ export function analyzePattern(tree: SyntaxTree): PatternAnalysis {
     }
   }
 
-  // Cas 2 : Pattern simple (peu de complexité)
-  if (complexity <= 10 && !hasAlternations) {
+  // Pour les patterns regex (non-littéraux), considérer la taille du texte
+  return analyzeRegexPattern(
+    complexity,
+    literals,
+    isLiteral,
+    hasWildcards,
+    hasAlternations,
+    hasStars,
+    textSizeBytes
+  );
+}
+
+/**
+ * Analyse un pattern regex (non-littéral) et choisit le meilleur algorithme
+ * en fonction de la complexité du pattern et de la taille du texte
+ */
+function analyzeRegexPattern(
+  complexity: number,
+  literals: string[],
+  isLiteral: boolean,
+  hasWildcards: boolean,
+  hasAlternations: boolean,
+  hasStars: boolean,
+  textSizeBytes?: number
+): PatternAnalysis {
+
+  // Seuils de taille de texte (en octets)
+  const SMALL_TEXT = 500; // < 500 bytes : petit texte
+  const MEDIUM_TEXT = 10 * 1024; // < 10KB : texte moyen
+  // >= 10KB : grand texte
+
+  // Petit texte (< 500 bytes)
+  // Pour les petits textes, le coût de construction du DFA n'est pas amorti
+  if (textSizeBytes !== undefined && textSizeBytes < SMALL_TEXT) {
     return {
-      patternType: "simple",
-      recommendedAlgorithm: "min-dfa",
-      reason: `Pattern simple (complexité ${complexity}) - DFA minimisé offre un bon compromis vitesse/mémoire`,
+      patternType: complexity <= 10 ? "simple" : "complex",
+      recommendedAlgorithm: "nfa",
+      reason: `Petit texte (${textSizeBytes} bytes) - NFA évite le coût de construction du DFA`,
       literals,
       complexity,
       isLiteral,
@@ -202,12 +238,17 @@ export function analyzePattern(tree: SyntaxTree): PatternAnalysis {
     };
   }
 
-  // Cas 3 : Pattern avec alternations mais pas trop complexe
-  if (hasAlternations && complexity <= 20) {
+  // Texte moyen (500 bytes - 10KB)
+  // NFA+DFA-cache est optimal : construit le DFA à la volée
+  if (
+    textSizeBytes !== undefined &&
+    textSizeBytes >= SMALL_TEXT &&
+    textSizeBytes < MEDIUM_TEXT
+  ) {
     return {
-      patternType: "simple",
-      recommendedAlgorithm: "dfa",
-      reason: `Pattern avec alternations (complexité ${complexity}) - DFA gère bien les alternations`,
+      patternType: complexity <= 10 ? "simple" : "complex",
+      recommendedAlgorithm: "nfa-dfa-cache",
+      reason: `Texte moyen (${(textSizeBytes / 1024).toFixed(1)}KB) - NFA+DFA-cache construit le DFA à la volée`,
       literals,
       complexity,
       isLiteral,
@@ -217,12 +258,15 @@ export function analyzePattern(tree: SyntaxTree): PatternAnalysis {
     };
   }
 
-  // Cas 4 : Pattern complexe
-  if (complexity > 20) {
+  // Grand texte (>= 10KB) ou taille inconnue
+  // Le coût de construction du DFA est amorti sur le grand texte
+
+  // Pattern complexe : NFA+DFA-cache pour éviter l'explosion du DFA
+  if (complexity > 200) {
     return {
       patternType: "complex",
       recommendedAlgorithm: "nfa-dfa-cache",
-      reason: `Pattern complexe (complexité ${complexity}) - NFA+DFA-cache utilise moins de mémoire`,
+      reason: `Pattern complexe (complexité ${complexity}) - NFA+DFA-cache évite l'explosion du DFA`,
       literals,
       complexity,
       isLiteral,
@@ -232,11 +276,11 @@ export function analyzePattern(tree: SyntaxTree): PatternAnalysis {
     };
   }
 
-  // Cas par défaut : DFA
+  // Cas par défaut : min-DFA
   return {
     patternType: "simple",
-    recommendedAlgorithm: "dfa",
-    reason: `Pattern standard (complexité ${complexity}) - DFA par défaut`,
+    recommendedAlgorithm: "min-dfa",
+    reason: `Pattern standard (complexité ${complexity}) - min-DFA par défaut`,
     literals,
     complexity,
     isLiteral,
@@ -273,13 +317,13 @@ export function getAlgorithmDescription(algorithm: AlgorithmType): string {
     case "aho-corasick":
       return "Aho-Corasick - Recherche multi-motifs optimale";
     case "nfa":
-      return "NFA (Non-deterministic Finite Automaton) - Faible empreinte mémoire";
+      return "NFA (Non-deterministic Finite Automaton)";
     case "nfa-dfa-cache":
-      return "NFA avec cache DFA (Lazy DFA) - Construction DFA à la volée style grep";
+      return "NFA avec cache DFA (Construction de DFA à la volée)";
     case "dfa":
-      return "DFA (Deterministic Finite Automaton) - Matching rapide";
+      return "DFA (Deterministic Finite Automaton)";
     case "min-dfa":
-      return "Minimized DFA - DFA optimisé en mémoire";
+      return "Minimized DFA (Deterministic Finite Automaton)";
     default:
       return "Unknown algorithm";
   }

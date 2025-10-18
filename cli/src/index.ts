@@ -1,4 +1,5 @@
 import { Command } from "commander";
+import * as fs from "fs";
 import {
   parseRegex,
   createGrepMatcher,
@@ -140,12 +141,22 @@ function main() {
     const parseTime = performance.now() - startParse;
     memTracker.update();
 
+    // Get file size for intelligent algorithm selection
+    let fileSize: number | undefined;
+    try {
+      const stats = fs.statSync(filename);
+      fileSize = stats.size;
+    } catch (error) {
+      // If we can't get file size, continue without it
+      fileSize = undefined;
+    }
+
     // Analyze pattern and choose optimal algorithm
     let selectedAlgorithm: AlgorithmType;
     let algorithmReason: string;
 
     if (optimizationLevel === "auto") {
-      const analysis = analyzePattern(syntaxTree);
+      const analysis = analyzePattern(syntaxTree, fileSize);
       selectedAlgorithm = analysis.recommendedAlgorithm;
       algorithmReason = analysis.reason;
     } else {

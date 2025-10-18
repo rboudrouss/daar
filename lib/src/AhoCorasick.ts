@@ -153,6 +153,47 @@ export class AhoCorasick {
   }
 
   /**
+   * Vérifie si TOUS les motifs sont présents dans le texte
+   * (utile pour le préfiltrage de patterns avec concaténation)
+   *
+   * @param text Le texte dans lequel rechercher
+   * @returns true si tous les motifs sont trouvés, false sinon
+   */
+  containsAll(text: string): boolean {
+    if (this.patterns.length === 0) {
+      return false;
+    }
+
+    // Utiliser un Set pour tracker les indices des patterns trouvés
+    const foundPatternIndices = new Set<number>();
+    let node = this.root;
+
+    for (let i = 0; i < text.length; i++) {
+      const char = text[i];
+
+      while (node !== this.root && !node.children.has(char)) {
+        node = node.failure!;
+      }
+
+      if (node.children.has(char)) {
+        node = node.children.get(char)!;
+      }
+
+      // Ajouter tous les indices de patterns trouvés à cette position
+      for (const patternIndex of node.output) {
+        foundPatternIndices.add(patternIndex);
+
+        // Optimisation: si on a trouvé tous les patterns, on peut s'arrêter
+        if (foundPatternIndices.size === this.patterns.length) {
+          return true;
+        }
+      }
+    }
+
+    return foundPatternIndices.size === this.patterns.length;
+  }
+
+  /**
    * Recherche et retourne le premier motif trouvé
    *
    * @param text Le texte dans lequel rechercher

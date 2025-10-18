@@ -7,6 +7,7 @@ import {
   analyzePattern,
   getAlgorithmDescription,
   type AlgorithmType,
+  PrefilterAlgorithm,
 } from "@monorepo/lib";
 import { MemoryTracker, getSafeMemoryUsage } from "./utils/memory-utils";
 import {
@@ -70,8 +71,9 @@ function main() {
       "auto"
     )
     .option(
-      "--no-prefilter",
-      "Disable prefiltering (use only NFA/DFA matching)"
+      "--prefilter <algorithm>",
+      "Prefilter algorithm: auto (default), boyer-moore, kmp, aho-corasick, or off",
+      "auto"
     )
     .option(
       "--test-all",
@@ -165,14 +167,21 @@ function main() {
       algorithmReason = `Manually selected: ${optimizationLevel}`;
     }
 
-    const enablePrefilter = options.prefilter !== false;
+    // Determine prefilter algorithm
+    let prefilterAlgorithm = options.prefilter as PrefilterAlgorithm;
+
+    // Handle deprecated --no-prefilter flag
+    if (!options.prefilter) {
+      prefilterAlgorithm = "off";
+    }
 
     const grepMatcher = createGrepMatcher(syntaxTree, {
       ignoreCase: options.ignoreCase,
       invertMatch: options.invertMatch,
       chunkSize: 64 * 1024, // 64KB chunks like grep
-      enablePrefilter,
+      prefilterAlgorithm,
       algorithm: selectedAlgorithm,
+      fileSize, // Pass file size to disable prefiltering for small files
     });
 
     // Get prefilter stats

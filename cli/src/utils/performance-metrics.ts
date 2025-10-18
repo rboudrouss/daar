@@ -28,6 +28,7 @@ export interface PerformanceMetrics {
     enabled: boolean;
     literals: string[];
     literalCount: number;
+    algorithm: string;
   };
   algorithmUsed?: string;
   algorithmReason?: string;
@@ -106,7 +107,7 @@ function printPrefilterStats(metrics: PerformanceMetrics): void {
       `  - Literals:         ${metrics.prefilterStats.literals.join(", ")}`
     );
     console.error(
-      `  - Algorithm:        ${metrics.prefilterStats.literalCount === 1 ? "Boyer-Moore" : "Aho-Corasick"}`
+      `  - Algorithm:        ${metrics.prefilterStats.algorithm}`
     );
   }
 }

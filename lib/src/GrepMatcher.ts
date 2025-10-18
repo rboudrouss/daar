@@ -13,10 +13,16 @@
 import { SyntaxTree } from "./RegexParser";
 import { extractLiterals, canUsePrefilter } from "./LiteralExtractor";
 import { boyerMooreContains } from "./BoyerMoore";
+import { kmpContains } from "./index";
 import { AhoCorasick } from "./AhoCorasick";
-import { ChunkedLineReader, LineMatch } from "./ChunkedLineReader";
+import { ChunkedLineReader } from "./ChunkedLineReader";
 import { Match } from "./Matcher";
 import type { AlgorithmType } from "./AlgorithmSelector";
+
+/**
+ * Type d'algorithme de préfiltrage
+ */
+export type PrefilterAlgorithm = "auto" | "boyer-moore" | "kmp" | "aho-corasick" | "off";
 
 export interface GrepMatcherOptions {
   /** Taille du chunk pour la lecture (défaut: 64KB) */
@@ -25,10 +31,14 @@ export interface GrepMatcherOptions {
   ignoreCase?: boolean;
   /** Inverser le match (défaut: false) */
   invertMatch?: boolean;
-  /** Activer le préfiltrage (défaut: true) */
+  /** Activer le préfiltrage (défaut: true) - deprecated, use prefilterAlgorithm instead */
   enablePrefilter?: boolean;
+  /** Algorithme de préfiltrage (défaut: "auto") */
+  prefilterAlgorithm?: PrefilterAlgorithm;
   /** Algorithme qui sera utilisé pour le matching (pour décider du préfiltrage) */
   algorithm?: AlgorithmType;
+  /** Taille du fichier en octets (pour décider si le préfiltrage vaut le coup) */
+  fileSize?: number;
 }
 
 export interface MatchResult {
@@ -44,6 +54,7 @@ export class GrepMatcher {
   private literals: string[];
   private prefilter: null | ((line: string) => boolean) = null;
   private usePrefilter: boolean;
+  private prefilterAlgorithm: PrefilterAlgorithm;
 
   constructor(
     private syntaxTree: SyntaxTree,
@@ -52,8 +63,19 @@ export class GrepMatcher {
     // Extraire les littéraux pour le préfiltrage
     this.literals = extractLiterals(syntaxTree);
 
-    // Vérifier si le préfiltrage est activé (par défaut: true)
-    const enablePrefilter = options.enablePrefilter !== false;
+    // Déterminer l'algorithme de préfiltrage à utiliser
+    this.prefilterAlgorithm = options.prefilterAlgorithm || "auto";
+
+    // Support pour l'ancienne option enablePrefilter (deprecated)
+    if (options.enablePrefilter === false) {
+      this.prefilterAlgorithm = "off";
+    }
+
+    // Si "off", désactiver le préfiltrage
+    if (this.prefilterAlgorithm === "off") {
+      this.usePrefilter = false;
+      return;
+    }
 
     // Déterminer si le préfiltrage est utile
     // Le préfiltrage n'est PAS utile si l'algorithme utilisé est déjà un algorithme de recherche littérale
@@ -62,8 +84,16 @@ export class GrepMatcher {
       options.algorithm === "literal-bm" ||
       options.algorithm === "aho-corasick";
 
+    // En mode "auto", désactiver le préfiltrage pour les petits fichiers (< 10KB)
+    // Le overhead de construction d'Aho-Corasick n'en vaut pas la peine
+    const MIN_FILE_SIZE_FOR_PREFILTER = 10 * 1024; // 10KB
+    const isFileTooSmall =
+      this.prefilterAlgorithm === "auto" &&
+      options.fileSize !== undefined &&
+      options.fileSize < MIN_FILE_SIZE_FOR_PREFILTER;
+
     this.usePrefilter =
-      enablePrefilter && !isLiteralAlgorithm && canUsePrefilter(syntaxTree);
+      !isLiteralAlgorithm && !isFileTooSmall && canUsePrefilter(syntaxTree);
 
     // Construire le préfiltre si activé
     if (this.usePrefilter) {
@@ -73,6 +103,14 @@ export class GrepMatcher {
 
   /**
    * Construit la fonction de préfiltrage en fonction des littéraux extraits
+   *
+   * Stratégie en mode "auto":
+   * - Pour un seul littéral: utiliser Boyer-Moore
+   * - Pour plusieurs littéraux: utiliser Aho-Corasick avec containsAll
+   *   pour vérifier que TOUS les littéraux sont présents (nécessaire pour
+   *   les patterns de concaténation comme "test.*keyword")
+   *
+   * En mode manuel, utilise l'algorithme spécifié.
    */
   private buildPrefilter(): void {
     if (this.literals.length === 0) {
@@ -85,21 +123,69 @@ export class GrepMatcher {
       ? this.literals.map((l) => l.toLowerCase())
       : this.literals;
 
-    if (literals.length === 1) {
-      // Un seul littéral: utiliser Boyer-Moore
-      const pattern = literals[0];
-      this.prefilter = (line: string) => {
-        const text = this.options.ignoreCase ? line.toLowerCase() : line;
-        return boyerMooreContains(text, pattern);
-      };
+    // Déterminer l'algorithme à utiliser
+    let algorithm: "boyer-moore" | "kmp" | "aho-corasick";
+
+    if (this.prefilterAlgorithm === "auto") {
+      // Mode auto: Boyer-Moore pour 1 littéral, Aho-Corasick pour plusieurs
+      algorithm = literals.length === 1 ? "boyer-moore" : "aho-corasick";
     } else {
-      // Plusieurs littéraux: utiliser Aho-Corasick
-      const ac = new AhoCorasick(literals);
-      this.prefilter = (line: string) => {
-        const text = this.options.ignoreCase ? line.toLowerCase() : line;
-        return ac.contains(text);
-      };
+      // Mode manuel
+      algorithm = this.prefilterAlgorithm as "boyer-moore" | "kmp" | "aho-corasick";
     }
+
+    // Construire le préfiltre selon l'algorithme choisi
+    switch (algorithm) {
+      case "boyer-moore":
+        this.buildBoyerMoorePrefilter(literals);
+        break;
+      case "kmp":
+        this.buildKmpPrefilter(literals);
+        break;
+      case "aho-corasick":
+        this.buildAhoCorasickPrefilter(literals);
+        break;
+    }
+  }
+
+  /**
+   * Construit un préfiltre Boyer-Moore
+   */
+  private buildBoyerMoorePrefilter(literals: string[]): void {
+    // Boyer-Moore fonctionne mieux avec un seul pattern
+    // Si plusieurs littéraux, utiliser le plus long
+    const pattern = literals[0];
+    this.prefilter = (line: string) => {
+      const text = this.options.ignoreCase ? line.toLowerCase() : line;
+      return boyerMooreContains(text, pattern);
+    };
+  }
+
+  /**
+   * Construit un préfiltre KMP
+   */
+  private buildKmpPrefilter(literals: string[]): void {
+    // KMP fonctionne mieux avec un seul pattern
+    // Si plusieurs littéraux, utiliser le plus long
+    const pattern = literals[0];
+    this.prefilter = (line: string) => {
+      const text = this.options.ignoreCase ? line.toLowerCase() : line;
+      return kmpContains(text, pattern);
+    };
+  }
+
+  /**
+   * Construit un préfiltre Aho-Corasick
+   */
+  private buildAhoCorasickPrefilter(literals: string[]): void {
+    // Aho-Corasick peut gérer plusieurs patterns efficacement
+    const ac = new AhoCorasick(literals);
+    this.prefilter = (line: string) => {
+      const text = this.options.ignoreCase ? line.toLowerCase() : line;
+      // Utiliser containsAll pour vérifier que TOUS les littéraux sont présents
+      // (nécessaire pour les patterns de concaténation comme "test.*keyword")
+      return ac.containsAll(text);
+    };
   }
 
   /**
@@ -176,11 +262,33 @@ export class GrepMatcher {
     enabled: boolean;
     literals: string[];
     literalCount: number;
+    algorithm: string;
   } {
+    let algorithm = "None";
+
+    if (this.usePrefilter) {
+      if (this.prefilterAlgorithm === "auto") {
+        algorithm = this.literals.length === 1 ? "Boyer-Moore" : "Aho-Corasick (containsAll)";
+      } else {
+        switch (this.prefilterAlgorithm) {
+          case "boyer-moore":
+            algorithm = "Boyer-Moore";
+            break;
+          case "kmp":
+            algorithm = "KMP";
+            break;
+          case "aho-corasick":
+            algorithm = "Aho-Corasick (containsAll)";
+            break;
+        }
+      }
+    }
+
     return {
       enabled: this.usePrefilter,
       literals: this.literals,
       literalCount: this.literals.length,
+      algorithm,
     };
   }
 }

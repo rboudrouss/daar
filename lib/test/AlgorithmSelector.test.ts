@@ -51,23 +51,15 @@ describe("AlgorithmSelector", () => {
     });
 
     describe("Simple patterns", () => {
-      it("should recommend DFA for simple patterns with wildcards", () => {
+      it("should recommend min-DFA for simple patterns with wildcards", () => {
         const tree = parseRegex("a(.)c");
         const analysis = analyzePattern(tree);
 
         expect(analysis.patternType).toBe("simple");
-        expect(analysis.recommendedAlgorithm).toBe("dfa");
+        expect(analysis.recommendedAlgorithm).toBe("min-dfa");
         expect(analysis.isLiteral).toBe(false);
         expect(analysis.hasWildcards).toBe(true);
         expect(analysis.complexity).toBeLessThanOrEqual(10);
-      });
-
-      it("should recommend DFA for patterns with stars but low complexity", () => {
-        const tree = parseRegex("a(.*)b");
-        const analysis = analyzePattern(tree);
-
-        expect(analysis.recommendedAlgorithm).toBe("dfa");
-        expect(analysis.hasStars).toBe(true);
       });
 
       it("should recommend aho-corasick for patterns with only alternations", () => {

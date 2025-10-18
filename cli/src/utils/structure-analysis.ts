@@ -35,4 +35,3 @@ export function countTrieNodes(ac: AhoCorasick): number {
 
   return count;
 }
-

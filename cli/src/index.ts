@@ -1,3 +1,4 @@
+import { Command } from "commander";
 import {
   parseRegex,
   createGrepMatcher,
@@ -6,16 +7,15 @@ import {
   getAlgorithmDescription,
   type AlgorithmType,
 } from "@monorepo/lib";
-import { Command } from "commander";
-import { runAllTests } from "./test-all";
-import { MemoryTracker, getSafeMemoryUsage } from "./memory-utils";
+import { MemoryTracker, getSafeMemoryUsage } from "./utils/memory-utils";
 import {
   type OptimizationLevel,
   isValidOptimizationLevel,
   getOptimizationLevelError,
 } from "./utils/validation";
-import { printPerformanceMetrics } from "./performance-metrics";
-import { createMatcher } from "./matcher-factory";
+import { printPerformanceMetrics } from "./utils/performance-metrics";
+import { createMatcher } from "./utils/matcher-factory";
+import { runAllTests } from "./test-all";
 
 /**
  * Format output line with optional colorization

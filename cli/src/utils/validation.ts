@@ -28,7 +28,9 @@ const VALID_OPTIMIZATION_LEVELS: OptimizationLevel[] = [
  * @param level - The optimization level to validate
  * @returns True if valid, false otherwise
  */
-export function isValidOptimizationLevel(level: string): level is OptimizationLevel {
+export function isValidOptimizationLevel(
+  level: string
+): level is OptimizationLevel {
   return VALID_OPTIMIZATION_LEVELS.includes(level as OptimizationLevel);
 }
 
@@ -40,4 +42,3 @@ export function isValidOptimizationLevel(level: string): level is OptimizationLe
 export function getOptimizationLevelError(level: string): string {
   return `Invalid optimization level: ${level}\nValid options are: ${VALID_OPTIMIZATION_LEVELS.join(", ")}`;
 }
-

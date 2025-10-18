@@ -18,10 +18,12 @@ import {
   isAlternationOfLiterals,
 } from "@monorepo/lib";
 import { MemoryTracker } from "./memory-utils";
-import { calculateStructureSize, countTrieNodes } from "./utils/structure-analysis";
+import { calculateStructureSize, countTrieNodes } from "./structure-analysis";
 
 export interface MatcherResult {
-  matcher: (line: string) => Array<{ start: number; end: number; text: string }>;
+  matcher: (
+    line: string
+  ) => Array<{ start: number; end: number; text: string }>;
   nfaTime: number;
   dfaTime?: number;
   minDfaTime?: number;
@@ -142,7 +144,9 @@ function createAhoCorasickMatcher(
   syntaxTree: SyntaxTree,
   ignoreCase: boolean
 ): {
-  matcher: (line: string) => Array<{ start: number; end: number; text: string }>;
+  matcher: (
+    line: string
+  ) => Array<{ start: number; end: number; text: string }>;
   acNodes: number;
   acSize: number;
 } {
@@ -185,7 +189,9 @@ function createNfaMatcher(
   ignoreCase: boolean
 ): (line: string) => Array<{ start: number; end: number; text: string }> {
   const matchFn =
-    algorithm === "nfa-dfa-cache" ? findAllMatchesNfaWithDfaCache : findAllMatchesNfa;
+    algorithm === "nfa-dfa-cache"
+      ? findAllMatchesNfaWithDfaCache
+      : findAllMatchesNfa;
 
   return (line: string) => {
     const searchLine = ignoreCase ? line.toLowerCase() : line;
@@ -205,4 +211,3 @@ function createDfaMatcher(
     return findAllMatchesDfa(dfa, searchLine);
   };
 }
-

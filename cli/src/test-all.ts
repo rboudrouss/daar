@@ -5,41 +5,45 @@
  */
 
 import {
-  parseRegex,
-  nfaFromSyntaxTree,
-  dfaFromNfa,
-  minimizeDfa,
   findAllMatchesNfa,
   findAllMatchesDfa,
   findAllMatchesNfaWithDfaCache,
   findAllMatchesLiteralKmp,
   findAllMatchesLiteralBm,
   AhoCorasick,
-  extractLiterals,
-  canUsePrefilter,
-  type Match,
 } from "@monorepo/lib";
 import * as fs from "fs";
-import { MemoryTracker, getSafeMemoryUsage } from "./memory-utils";
+import {
+  calculateStructureSize,
+  countTrieNodes,
+} from "./utils/structure-analysis";
+import {
+  executeTest,
+  executeLiteralTest,
+  safeExecute,
+  type AlgorithmResult,
+} from "./utils/test-execution";
+import {
+  formatAlgorithmResult,
+  printSectionHeader,
+  printScenarioHeader,
+  printTestSuiteHeader,
+  printTestSuiteFooter,
+} from "./utils/test-formatting";
+import {
+  buildNFA,
+  buildDFA,
+  buildMinDFA,
+  getNFAStructureSize,
+  getDFAStructureSize,
+} from "./utils/automaton-builders";
+import { matchWithPrefilter } from "./utils/prefilter-helpers";
 
 interface TestScenario {
   name: string;
   pattern: string;
   text: string;
   description: string;
-}
-
-interface AlgorithmResult {
-  algorithm: string;
-  matches: Match[];
-  buildTime: number;
-  matchTime: number;
-  totalTime: number;
-  memoryUsed: number;
-  structureSize?: {
-    nodes?: number;
-    kb?: number;
-  };
 }
 
 interface TestResult {
@@ -114,9 +118,11 @@ const TEST_SCENARIOS: TestScenario[] = [
   },
   {
     name: "Very complex Regex",
-    pattern: "((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D))",
+    pattern:
+      "((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D))",
     text: "The man said was alone at the end",
-    description: "Very complex regex with multiple operators (NFA might be better)",
+    description:
+      "Very complex regex with multiple operators (NFA might be better)",
   },
 
   // Edge cases
@@ -137,7 +143,7 @@ const TEST_SCENARIOS: TestScenario[] = [
     pattern: ".*",
     text: "abc def ghi jkl mno pqr",
     description: "Pattern with wildcards",
-  }
+  },
 ];
 
 /**
@@ -172,157 +178,57 @@ function generateLargeText(size: number): string {
  * Test a literal pattern with KMP
  */
 function testKMP(pattern: string, text: string): AlgorithmResult {
-  const memTracker = new MemoryTracker(true);
-
-  const startBuild = performance.now();
-  // KMP has minimal build time (just the pattern preprocessing)
-  const buildTime = performance.now() - startBuild;
-  memTracker.update();
-
-  const startMatch = performance.now();
-  const matches = findAllMatchesLiteralKmp(pattern, text);
-  const matchTime = performance.now() - startMatch;
-  memTracker.update();
-
-  const memMeasurement = memTracker.getMeasurement();
-
-  return {
-    algorithm: "KMP",
-    matches,
-    buildTime,
-    matchTime,
-    totalTime: buildTime + matchTime,
-    memoryUsed: getSafeMemoryUsage(memMeasurement),
-  };
+  return executeLiteralTest(
+    () => findAllMatchesLiteralKmp(pattern, text),
+    "KMP"
+  );
 }
 
 /**
  * Test a literal pattern with Boyer-Moore
  */
 function testBoyerMoore(pattern: string, text: string): AlgorithmResult {
-  const memTracker = new MemoryTracker(true);
-
-  const startBuild = performance.now();
-  // BM has minimal build time (bad character table)
-  const buildTime = performance.now() - startBuild;
-  memTracker.update();
-
-  const startMatch = performance.now();
-  const matches = findAllMatchesLiteralBm(pattern, text);
-  const matchTime = performance.now() - startMatch;
-  memTracker.update();
-
-  const memMeasurement = memTracker.getMeasurement();
-
-  return {
-    algorithm: "Boyer-Moore",
-    matches,
-    buildTime,
-    matchTime,
-    totalTime: buildTime + matchTime,
-    memoryUsed: getSafeMemoryUsage(memMeasurement),
-  };
+  return executeLiteralTest(
+    () => findAllMatchesLiteralBm(pattern, text),
+    "Boyer-Moore"
+  );
 }
 
 /**
  * Test with NFA
  */
 function testNFA(pattern: string, text: string): AlgorithmResult {
-  const memTracker = new MemoryTracker(true);
-
-  const startBuild = performance.now();
-  const syntaxTree = parseRegex(pattern);
-  const nfa = nfaFromSyntaxTree(syntaxTree);
-  const buildTime = performance.now() - startBuild;
-  memTracker.update();
-
-  const startMatch = performance.now();
-  const matches = findAllMatchesNfa(nfa, text);
-  const matchTime = performance.now() - startMatch;
-  memTracker.update();
-
-  const memMeasurement = memTracker.getMeasurement();
-
-  return {
-    algorithm: "NFA",
-    matches,
-    buildTime,
-    matchTime,
-    totalTime: buildTime + matchTime,
-    memoryUsed: getSafeMemoryUsage(memMeasurement),
-    structureSize: {
-      nodes: nfa.states.length,
-      kb: calculateStructureSize(nfa),
-    },
-  };
+  return executeTest(
+    () => buildNFA(pattern),
+    ({ nfa }) => findAllMatchesNfa(nfa, text),
+    "NFA",
+    ({ nfa }) => getNFAStructureSize(nfa)
+  );
 }
 
 /**
  * Test with NFA + DFA cache (lazy DFA construction)
  */
 function testNFAWithDFACache(pattern: string, text: string): AlgorithmResult {
-  const memTracker = new MemoryTracker(true);
-
-  const startBuild = performance.now();
-  const syntaxTree = parseRegex(pattern);
-  const nfa = nfaFromSyntaxTree(syntaxTree);
-  const buildTime = performance.now() - startBuild;
-  memTracker.update();
-
-  const startMatch = performance.now();
-  const matches = findAllMatchesNfaWithDfaCache(nfa, text);
-  const matchTime = performance.now() - startMatch;
-  memTracker.update();
-
-  const memMeasurement = memTracker.getMeasurement();
-
-  return {
-    algorithm: "NFA+DFA-cache",
-    matches,
-    buildTime,
-    matchTime,
-    totalTime: buildTime + matchTime,
-    memoryUsed: getSafeMemoryUsage(memMeasurement),
-    structureSize: {
-      nodes: nfa.states.length,
-      kb: calculateStructureSize(nfa),
-    },
-  };
+  return executeTest(
+    () => buildNFA(pattern),
+    ({ nfa }) => findAllMatchesNfaWithDfaCache(nfa, text),
+    "NFA+DFA-cache",
+    ({ nfa }) => getNFAStructureSize(nfa)
+  );
 }
 
 /**
  * Test with DFA
  */
 function testDFA(pattern: string, text: string): AlgorithmResult {
-  const memTracker = new MemoryTracker(true);
-
   try {
-    const startBuild = performance.now();
-    const syntaxTree = parseRegex(pattern);
-    const nfa = nfaFromSyntaxTree(syntaxTree);
-    const dfa = dfaFromNfa(nfa);
-    const buildTime = performance.now() - startBuild;
-    memTracker.update();
-
-    const startMatch = performance.now();
-    const matches = findAllMatchesDfa(dfa, text);
-    const matchTime = performance.now() - startMatch;
-    memTracker.update();
-
-    const memMeasurement = memTracker.getMeasurement();
-
-    return {
-      algorithm: "DFA",
-      matches,
-      buildTime,
-      matchTime,
-      totalTime: buildTime + matchTime,
-      memoryUsed: getSafeMemoryUsage(memMeasurement),
-      structureSize: {
-        nodes: dfa.states.length,
-        kb: calculateStructureSize(dfa),
-      },
-    };
+    return executeTest(
+      () => buildDFA(pattern),
+      ({ dfa }) => findAllMatchesDfa(dfa, text),
+      "DFA",
+      ({ dfa }) => getDFAStructureSize(dfa)
+    );
   } catch (error) {
     throw new Error(`DFA construction failed: ${error}`);
   }
@@ -332,319 +238,100 @@ function testDFA(pattern: string, text: string): AlgorithmResult {
  * Test with minimized DFA
  */
 function testMinDFA(pattern: string, text: string): AlgorithmResult {
-  const memTracker = new MemoryTracker(true);
-
-  const startBuild = performance.now();
-  const syntaxTree = parseRegex(pattern);
-  const nfa = nfaFromSyntaxTree(syntaxTree);
-  const dfa = dfaFromNfa(nfa);
-  const minDfa = minimizeDfa(dfa);
-  const buildTime = performance.now() - startBuild;
-  memTracker.update();
-
-  const startMatch = performance.now();
-  const matches = findAllMatchesDfa(minDfa, text);
-  const matchTime = performance.now() - startMatch;
-  memTracker.update();
-
-  const memMeasurement = memTracker.getMeasurement();
-
-  return {
-    algorithm: "min-DFA",
-    matches,
-    buildTime,
-    matchTime,
-    totalTime: buildTime + matchTime,
-    memoryUsed: getSafeMemoryUsage(memMeasurement),
-    structureSize: {
-      nodes: minDfa.states.length,
-      kb: calculateStructureSize(minDfa),
-    },
-  };
+  return executeTest(
+    () => buildMinDFA(pattern),
+    ({ minDfa }) => findAllMatchesDfa(minDfa, text),
+    "min-DFA",
+    ({ minDfa }) => getDFAStructureSize(minDfa)
+  );
 }
 
 /**
  * Test Aho-Corasick for multi-pattern matching
  */
 function testAhoCorasick(patterns: string[], text: string): AlgorithmResult {
-  const memTracker = new MemoryTracker(true);
-
-  const startBuild = performance.now();
-  const ac = new AhoCorasick(patterns);
-  const buildTime = performance.now() - startBuild;
-  memTracker.update();
-
-  const startMatch = performance.now();
-  const results = ac.search(text);
-  const matchTime = performance.now() - startMatch;
-  memTracker.update();
-
-  const memMeasurement = memTracker.getMeasurement();
-
-  // Convert AC results to Match format
-  const matches: Match[] = results.map(
-    (r: { pattern: string; position: number }) => ({
-      start: r.position,
-      end: r.position + r.pattern.length,
-      text: r.pattern,
-    })
-  );
-
-  return {
-    algorithm: "Aho-Corasick",
-    matches,
-    buildTime,
-    matchTime,
-    totalTime: buildTime + matchTime,
-    memoryUsed: getSafeMemoryUsage(memMeasurement),
-    structureSize: {
+  return executeTest(
+    () => new AhoCorasick(patterns),
+    (ac) => {
+      const results = ac.search(text);
+      return results.map((r: { pattern: string; position: number }) => ({
+        start: r.position,
+        end: r.position + r.pattern.length,
+        text: r.pattern,
+      }));
+    },
+    "Aho-Corasick",
+    (ac) => ({
       nodes: countTrieNodes(ac),
       kb: calculateStructureSize(ac),
-    },
-  };
+    })
+  );
 }
 
 /**
  * Test NFA with prefiltering
- *
- * Note: For in-memory text, we use extractLiterals + AhoCorasick.contains()
- * to quickly check if the text might match before running the full NFA.
- * This is the same approach used by GrepMatcher for file-based searching.
  */
 function testNFAWithPrefilter(pattern: string, text: string): AlgorithmResult {
-  const memTracker = new MemoryTracker(true);
-
-  const startBuild = performance.now();
-  const syntaxTree = parseRegex(pattern);
-  const nfa = nfaFromSyntaxTree(syntaxTree);
-  const buildTime = performance.now() - startBuild;
-  memTracker.update();
-
-  const startMatch = performance.now();
-  let matches: Match[] = [];
-
-  // Use prefiltering if beneficial
-  if (canUsePrefilter(syntaxTree)) {
-    const literals = extractLiterals(syntaxTree);
-    const ac = new AhoCorasick(literals);
-    // Only run full NFA matching if prefilter finds potential matches
-    if (ac.contains(text)) {
-      matches = findAllMatchesNfa(nfa, text);
-    }
-    // If prefilter doesn't find anything, matches stays empty (correct!)
-  } else {
-    // No useful prefilter, run NFA directly
-    matches = findAllMatchesNfa(nfa, text);
-  }
-
-  const matchTime = performance.now() - startMatch;
-  memTracker.update();
-
-  const memMeasurement = memTracker.getMeasurement();
-
-  return {
-    algorithm: "NFA (with prefilter)",
-    matches,
-    buildTime,
-    matchTime,
-    totalTime: buildTime + matchTime,
-    memoryUsed: getSafeMemoryUsage(memMeasurement),
-    structureSize: {
-      nodes: nfa.states.length,
-      kb: calculateStructureSize(nfa),
-    },
-  };
+  return executeTest(
+    () => buildNFA(pattern),
+    ({ syntaxTree, nfa }) =>
+      matchWithPrefilter(syntaxTree, text, nfa, (nfa, text) =>
+        findAllMatchesNfa(nfa, text)
+      ),
+    "NFA (with prefilter)",
+    ({ nfa }) => getNFAStructureSize(nfa)
+  );
 }
 
 /**
  * Test DFA with prefiltering
- *
- * Note: For in-memory text, we use extractLiterals + AhoCorasick.contains()
- * to quickly check if the text might match before running the full DFA.
  */
 function testDFAWithPrefilter(pattern: string, text: string): AlgorithmResult {
-  const memTracker = new MemoryTracker(true);
-
-  const startBuild = performance.now();
-  const syntaxTree = parseRegex(pattern);
-  const nfa = nfaFromSyntaxTree(syntaxTree);
-  const dfa = dfaFromNfa(nfa);
-  const buildTime = performance.now() - startBuild;
-  memTracker.update();
-
-  const startMatch = performance.now();
-  let matches: Match[] = [];
-
-  // Use prefiltering if beneficial
-  if (canUsePrefilter(syntaxTree)) {
-    const literals = extractLiterals(syntaxTree);
-    const ac = new AhoCorasick(literals);
-    // Only run full DFA matching if prefilter finds potential matches
-    if (ac.contains(text)) {
-      matches = findAllMatchesDfa(dfa, text);
-    }
-  } else {
-    // No useful prefilter, run DFA directly
-    matches = findAllMatchesDfa(dfa, text);
-  }
-
-  const matchTime = performance.now() - startMatch;
-  memTracker.update();
-
-  const memMeasurement = memTracker.getMeasurement();
-
-  return {
-    algorithm: "DFA (with prefilter)",
-    matches,
-    buildTime,
-    matchTime,
-    totalTime: buildTime + matchTime,
-    memoryUsed: getSafeMemoryUsage(memMeasurement),
-    structureSize: {
-      nodes: dfa.states.length,
-      kb: calculateStructureSize(dfa),
-    },
-  };
+  return executeTest(
+    () => buildDFA(pattern),
+    ({ syntaxTree, dfa }) =>
+      matchWithPrefilter(syntaxTree, text, dfa, (dfa, text) =>
+        findAllMatchesDfa(dfa, text)
+      ),
+    "DFA (with prefilter)",
+    ({ dfa }) => getDFAStructureSize(dfa)
+  );
 }
 
 /**
  * Test min-DFA with prefiltering
- *
- * Note: For in-memory text, we use extractLiterals + AhoCorasick.contains()
- * to quickly check if the text might match before running the full min-DFA.
  */
 function testMinDFAWithPrefilter(
   pattern: string,
   text: string
 ): AlgorithmResult {
-  const memTracker = new MemoryTracker(true);
-
-  const startBuild = performance.now();
-  const syntaxTree = parseRegex(pattern);
-  const nfa = nfaFromSyntaxTree(syntaxTree);
-  const dfa = dfaFromNfa(nfa);
-  const minDfa = minimizeDfa(dfa);
-  const buildTime = performance.now() - startBuild;
-  memTracker.update();
-
-  const startMatch = performance.now();
-  let matches: Match[] = [];
-
-  // Use prefiltering if beneficial
-  if (canUsePrefilter(syntaxTree)) {
-    const literals = extractLiterals(syntaxTree);
-    const ac = new AhoCorasick(literals);
-    // Only run full min-DFA matching if prefilter finds potential matches
-    if (ac.contains(text)) {
-      matches = findAllMatchesDfa(minDfa, text);
-    }
-  } else {
-    // No useful prefilter, run min-DFA directly
-    matches = findAllMatchesDfa(minDfa, text);
-  }
-
-  const matchTime = performance.now() - startMatch;
-  memTracker.update();
-
-  const memMeasurement = memTracker.getMeasurement();
-
-  return {
-    algorithm: "min-DFA (with prefilter)",
-    matches,
-    buildTime,
-    matchTime,
-    totalTime: buildTime + matchTime,
-    memoryUsed: getSafeMemoryUsage(memMeasurement),
-    structureSize: {
-      nodes: minDfa.states.length,
-      kb: calculateStructureSize(minDfa),
-    },
-  };
+  return executeTest(
+    () => buildMinDFA(pattern),
+    ({ syntaxTree, minDfa }) =>
+      matchWithPrefilter(syntaxTree, text, minDfa, (minDfa, text) =>
+        findAllMatchesDfa(minDfa, text)
+      ),
+    "min-DFA (with prefilter)",
+    ({ minDfa }) => getDFAStructureSize(minDfa)
+  );
 }
 
 /**
  * Test NFA+DFA-cache with prefiltering
- *
- * Note: For in-memory text, we use extractLiterals + AhoCorasick.contains()
- * to quickly check if the text might match before running the full NFA+DFA-cache.
  */
 function testNFAWithDFACacheAndPrefilter(
   pattern: string,
   text: string
 ): AlgorithmResult {
-  const memTracker = new MemoryTracker(true);
-
-  const startBuild = performance.now();
-  const syntaxTree = parseRegex(pattern);
-  const nfa = nfaFromSyntaxTree(syntaxTree);
-  const buildTime = performance.now() - startBuild;
-  memTracker.update();
-
-  const startMatch = performance.now();
-  let matches: Match[] = [];
-
-  // Use prefiltering if beneficial
-  if (canUsePrefilter(syntaxTree)) {
-    const literals = extractLiterals(syntaxTree);
-    const ac = new AhoCorasick(literals);
-    // Only run full NFA+DFA-cache matching if prefilter finds potential matches
-    if (ac.contains(text)) {
-      matches = findAllMatchesNfaWithDfaCache(nfa, text);
-    }
-  } else {
-    // No useful prefilter, run NFA+DFA-cache directly
-    matches = findAllMatchesNfaWithDfaCache(nfa, text);
-  }
-
-  const matchTime = performance.now() - startMatch;
-  memTracker.update();
-
-  const memMeasurement = memTracker.getMeasurement();
-
-  return {
-    algorithm: "NFA+DFA-cache (with prefilter)",
-    matches,
-    buildTime,
-    matchTime,
-    totalTime: buildTime + matchTime,
-    memoryUsed: getSafeMemoryUsage(memMeasurement),
-    structureSize: {
-      nodes: nfa.states.length,
-      kb: calculateStructureSize(nfa),
-    },
-  };
-}
-
-/**
- * Calculate the size of a structure in KB
- */
-function calculateStructureSize(obj: any): number {
-  const str = JSON.stringify(obj);
-  return str.length / 1024; // Convert to KB
-}
-
-/**
- * Count nodes in a trie structure (for Aho-Corasick)
- */
-function countTrieNodes(ac: AhoCorasick): number {
-  // Access the private root through type assertion
-  const root = (ac as any).root;
-  let count = 0;
-
-  function traverse(node: any) {
-    count++;
-    if (node.children) {
-      for (const child of node.children.values()) {
-        traverse(child);
-      }
-    }
-  }
-
-  if (root) {
-    traverse(root);
-  }
-
-  return count;
+  return executeTest(
+    () => buildNFA(pattern),
+    ({ syntaxTree, nfa }) =>
+      matchWithPrefilter(syntaxTree, text, nfa, (nfa, text) =>
+        findAllMatchesNfaWithDfaCache(nfa, text)
+      ),
+    "NFA+DFA-cache (with prefilter)",
+    ({ nfa }) => getNFAStructureSize(nfa)
+  );
 }
 
 /**
@@ -673,68 +360,42 @@ function extractAlternatives(pattern: string): string[] | null {
 }
 
 /**
- * Format a result line for an algorithm
- */
-function formatAlgorithmResult(name: string, result: AlgorithmResult): string {
-  const matchStr = `${result.matches.length} matches`.padEnd(15);
-  const totalTime = `${result.totalTime.toFixed(3)}ms`.padEnd(12);
-  const buildTime = `build: ${result.buildTime.toFixed(3)}ms`.padEnd(20);
-  const matchTime = `match: ${result.matchTime.toFixed(3)}ms`.padEnd(20);
-  const memory = `${(result.memoryUsed / 1024).toFixed(2)} KB`.padEnd(12);
-
-  let structureInfo = "-".padEnd(25);
-  if (result.structureSize) {
-    const nodes = result.structureSize.nodes ? `${result.structureSize.nodes} nodes` : "";
-    const kb = result.structureSize.kb ? `${result.structureSize.kb.toFixed(2)} KB` : "";
-    structureInfo = (nodes && kb ? `${nodes}, ${kb}` : nodes || kb).padEnd(25);
-  }
-
-  return `  ${name.padEnd(30)} | ${matchStr} | ${totalTime} | ${buildTime} | ${matchTime} | ${memory} | ${structureInfo}`;
-}
-
-/**
  * Run a single test scenario
  */
 function runTestScenario(
   scenario: TestScenario,
   options: { onlyAutomata?: boolean; onlyLiteral?: boolean } = {}
 ): TestResult {
-  console.log(`\n${"=".repeat(100)}`);
-  console.log(`TEST: ${scenario.name}`);
-  console.log(`${"=".repeat(100)}`);
-  console.log(`Pattern:     ${scenario.pattern}`);
-  console.log(`Description: ${scenario.description}`);
-  console.log(
-    `Text size:   ${scenario.text.length.toLocaleString()} characters (${(scenario.text.length / 1024).toFixed(2)} KB)`
+  printScenarioHeader(
+    scenario.name,
+    scenario.pattern,
+    scenario.description,
+    scenario.text.length
   );
-  console.log(`${"=".repeat(100)}\n`);
 
   const results: AlgorithmResult[] = [];
 
   try {
     // Test literal algorithms if pattern is literal (and not excluded)
     if (isLiteralPattern(scenario.pattern) && !options.onlyAutomata) {
-      console.log("LITERAL ALGORITHMS");
-      console.log("-".repeat(130));
-      console.log(
-        `  ${"Algorithm".padEnd(30)} | ${"Matches".padEnd(15)} | ${"Total Time".padEnd(12)} | ${"Build Time".padEnd(20)} | ${"Match Time".padEnd(20)} | ${"Memory".padEnd(12)} | Structure Size`
-      );
-      console.log("-".repeat(130));
+      printSectionHeader("LITERAL ALGORITHMS");
 
-      try {
-        const kmpResult = testKMP(scenario.pattern, scenario.text);
+      const kmpResult = safeExecute(
+        () => testKMP(scenario.pattern, scenario.text),
+        "KMP"
+      );
+      if (kmpResult) {
         results.push(kmpResult);
         console.log(formatAlgorithmResult("KMP", kmpResult));
-      } catch (e) {
-        console.log(`  KMP: FAILED - ${e}`);
       }
 
-      try {
-        const bmResult = testBoyerMoore(scenario.pattern, scenario.text);
+      const bmResult = safeExecute(
+        () => testBoyerMoore(scenario.pattern, scenario.text),
+        "Boyer-Moore"
+      );
+      if (bmResult) {
         results.push(bmResult);
         console.log(formatAlgorithmResult("Boyer-Moore", bmResult));
-      } catch (e) {
-        console.log(`  Boyer-Moore: FAILED - ${e}`);
       }
       console.log();
     }
@@ -742,95 +403,81 @@ function runTestScenario(
     // Test Aho-Corasick if pattern has alternations (and not excluded)
     const alternatives = extractAlternatives(scenario.pattern);
     if (alternatives && !options.onlyAutomata) {
-      console.log("MULTI-PATTERN ALGORITHM");
-      console.log("-".repeat(130));
-      console.log(
-        `  ${"Algorithm".padEnd(30)} | ${"Matches".padEnd(15)} | ${"Total Time".padEnd(12)} | ${"Build Time".padEnd(20)} | ${"Match Time".padEnd(20)} | ${"Memory".padEnd(12)} | Structure Size`
-      );
-      console.log("-".repeat(130));
+      printSectionHeader("MULTI-PATTERN ALGORITHM");
 
-      try {
-        const acResult = testAhoCorasick(alternatives, scenario.text);
+      const acResult = safeExecute(
+        () => testAhoCorasick(alternatives, scenario.text),
+        "Aho-Corasick"
+      );
+      if (acResult) {
         results.push(acResult);
         console.log(formatAlgorithmResult("Aho-Corasick", acResult));
-      } catch (e) {
-        console.log(`  Aho-Corasick: FAILED - ${e}`);
       }
       console.log();
     }
 
     // Test automaton-based algorithms WITHOUT prefiltering (if not excluded)
     if (!options.onlyLiteral) {
-      console.log("AUTOMATON ALGORITHMS (without prefiltering)");
-      console.log("-".repeat(130));
-      console.log(
-        `  ${"Algorithm".padEnd(30)} | ${"Matches".padEnd(15)} | ${"Total Time".padEnd(12)} | ${"Build Time".padEnd(20)} | ${"Match Time".padEnd(20)} | ${"Memory".padEnd(12)} | Structure Size`
-      );
-      console.log("-".repeat(130));
+      printSectionHeader("AUTOMATON ALGORITHMS (without prefiltering)");
 
-      try {
-        const nfaResult = testNFA(scenario.pattern, scenario.text);
+      const nfaResult = safeExecute(
+        () => testNFA(scenario.pattern, scenario.text),
+        "NFA"
+      );
+      if (nfaResult) {
         results.push(nfaResult);
         console.log(formatAlgorithmResult("NFA", nfaResult));
-      } catch (e) {
-        console.log(`  NFA: FAILED - ${e}`);
       }
 
-      try {
-        const nfaDfaCacheResult = testNFAWithDFACache(
-          scenario.pattern,
-          scenario.text
-        );
+      const nfaDfaCacheResult = safeExecute(
+        () => testNFAWithDFACache(scenario.pattern, scenario.text),
+        "NFA+DFA-cache"
+      );
+      if (nfaDfaCacheResult) {
         results.push(nfaDfaCacheResult);
         console.log(formatAlgorithmResult("NFA+DFA-cache", nfaDfaCacheResult));
-      } catch (e) {
-        console.log(`  NFA+DFA-cache: FAILED - ${e}`);
       }
 
-      try {
-        const dfaResult = testDFA(scenario.pattern, scenario.text);
+      const dfaResult = safeExecute(
+        () => testDFA(scenario.pattern, scenario.text),
+        "DFA"
+      );
+      if (dfaResult) {
         results.push(dfaResult);
         console.log(formatAlgorithmResult("DFA", dfaResult));
-      } catch (e) {
-        console.log(`  DFA: FAILED - ${e}`);
       }
 
-      try {
-        const minDfaResult = testMinDFA(scenario.pattern, scenario.text);
+      const minDfaResult = safeExecute(
+        () => testMinDFA(scenario.pattern, scenario.text),
+        "min-DFA"
+      );
+      if (minDfaResult) {
         results.push(minDfaResult);
         console.log(formatAlgorithmResult("min-DFA", minDfaResult));
-      } catch (e) {
-        console.log(`  min-DFA: FAILED - ${e}`);
       }
       console.log();
 
       // Test automaton-based algorithms WITH prefiltering (if applicable)
       if (!isLiteralPattern(scenario.pattern)) {
-        console.log("AUTOMATON ALGORITHMS (with prefiltering)");
-        console.log("-".repeat(130));
-        console.log(
-          `  ${"Algorithm".padEnd(30)} | ${"Matches".padEnd(15)} | ${"Total Time".padEnd(12)} | ${"Build Time".padEnd(20)} | ${"Match Time".padEnd(20)} | ${"Memory".padEnd(12)} | Structure Size`
-        );
-        console.log("-".repeat(130));
+        printSectionHeader("AUTOMATON ALGORITHMS (with prefiltering)");
 
-        try {
-          const nfaPrefilterResult = testNFAWithPrefilter(
-            scenario.pattern,
-            scenario.text
-          );
+        const nfaPrefilterResult = safeExecute(
+          () => testNFAWithPrefilter(scenario.pattern, scenario.text),
+          "NFA (prefiltered)"
+        );
+        if (nfaPrefilterResult) {
           results.push(nfaPrefilterResult);
           console.log(
             formatAlgorithmResult("NFA (prefiltered)", nfaPrefilterResult)
           );
-        } catch (e) {
-          console.log(`  NFA (prefiltered): FAILED - ${e}`);
         }
 
-        try {
-          const nfaDfaCachePrefilterResult = testNFAWithDFACacheAndPrefilter(
-            scenario.pattern,
-            scenario.text
-          );
+        const nfaDfaCachePrefilterResult = safeExecute(
+          () =>
+            testNFAWithDFACacheAndPrefilter(scenario.pattern, scenario.text),
+          "NFA+DFA-cache (prefiltered)"
+        );
+        if (nfaDfaCachePrefilterResult) {
           results.push(nfaDfaCachePrefilterResult);
           console.log(
             formatAlgorithmResult(
@@ -838,28 +485,24 @@ function runTestScenario(
               nfaDfaCachePrefilterResult
             )
           );
-        } catch (e) {
-          console.log(`  NFA+DFA-cache (prefiltered): FAILED - ${e}`);
         }
 
-        try {
-          const dfaPrefilterResult = testDFAWithPrefilter(
-            scenario.pattern,
-            scenario.text
-          );
+        const dfaPrefilterResult = safeExecute(
+          () => testDFAWithPrefilter(scenario.pattern, scenario.text),
+          "DFA (prefiltered)"
+        );
+        if (dfaPrefilterResult) {
           results.push(dfaPrefilterResult);
           console.log(
             formatAlgorithmResult("DFA (prefiltered)", dfaPrefilterResult)
           );
-        } catch (e) {
-          console.log(`  DFA (prefiltered): FAILED - ${e}`);
         }
 
-        try {
-          const minDfaPrefilterResult = testMinDFAWithPrefilter(
-            scenario.pattern,
-            scenario.text
-          );
+        const minDfaPrefilterResult = safeExecute(
+          () => testMinDFAWithPrefilter(scenario.pattern, scenario.text),
+          "min-DFA (prefiltered)"
+        );
+        if (minDfaPrefilterResult) {
           results.push(minDfaPrefilterResult);
           console.log(
             formatAlgorithmResult(
@@ -867,8 +510,6 @@ function runTestScenario(
               minDfaPrefilterResult
             )
           );
-        } catch (e) {
-          console.log(`  min-DFA (prefiltered): FAILED - ${e}`);
         }
         console.log();
       }
@@ -884,33 +525,12 @@ function runTestScenario(
 }
 
 /**
- * Main test runner
+ * Prepare test scenarios with appropriate text content
  */
-export function runAllTests(
-  options: {
-    verbose?: boolean;
-    dataFile?: string;
-    dataFolder?: string;
-    onlyAutomata?: boolean;
-    onlyLiteral?: boolean;
-  } = {}
-) {
-  // Determine which algorithms to test
-  let algorithmsToTest = "KMP, Boyer-Moore, Aho-Corasick, NFA, DFA, min-DFA";
-  if (options.onlyAutomata) {
-    algorithmsToTest = "NFA, DFA, min-DFA (automata only)";
-  } else if (options.onlyLiteral) {
-    algorithmsToTest = "KMP, Boyer-Moore, Aho-Corasick (literal search only)";
-  }
-
-  console.log("\n" + "=".repeat(100));
-  console.log("COMPREHENSIVE ALGORITHM TEST SUITE");
-  console.log("=".repeat(100));
-  console.log(`Algorithms: ${algorithmsToTest}`);
-  console.log(`Scenarios:  Simple patterns, complex regex, small/large texts`);
-  console.log("=".repeat(100));
-
-  // Prepare test scenarios
+function prepareTestScenarios(options: {
+  dataFile?: string;
+  dataFolder?: string;
+}): TestScenario[] {
   let scenarios = [...TEST_SCENARIOS];
 
   // Fill in large text scenarios
@@ -921,7 +541,7 @@ export function runAllTests(
     }
   });
 
-  // If a data file is provided, add a scenario for it
+  // If a data file is provided, use it for all scenarios
   if (options.dataFile && fs.existsSync(options.dataFile)) {
     const fileContent = fs.readFileSync(options.dataFile, "utf-8");
     const fileSizeKB = (fileContent.length / 1024).toFixed(2);
@@ -932,7 +552,7 @@ export function runAllTests(
     });
   }
 
-  // If a data folder is provided, add scenarios for all files in it
+  // If a data folder is provided, create scenarios for all files
   if (options.dataFolder && fs.existsSync(options.dataFolder)) {
     const files = fs
       .readdirSync(options.dataFolder)
@@ -958,7 +578,33 @@ export function runAllTests(
     });
   }
 
-  console.log(`\nTotal scenarios to test: ${scenarios.length}\n`);
+  return scenarios;
+}
+
+/**
+ * Main test runner
+ */
+export function runAllTests(
+  options: {
+    verbose?: boolean;
+    dataFile?: string;
+    dataFolder?: string;
+    onlyAutomata?: boolean;
+    onlyLiteral?: boolean;
+  } = {}
+) {
+  // Determine which algorithms to test
+  let algorithmsToTest = "KMP, Boyer-Moore, Aho-Corasick, NFA, DFA, min-DFA";
+  if (options.onlyAutomata) {
+    algorithmsToTest = "NFA, DFA, min-DFA (automata only)";
+  } else if (options.onlyLiteral) {
+    algorithmsToTest = "KMP, Boyer-Moore, Aho-Corasick (literal search only)";
+  }
+
+  // Prepare test scenarios
+  const scenarios = prepareTestScenarios(options);
+
+  printTestSuiteHeader(algorithmsToTest, scenarios.length);
 
   // Run all scenarios
   const allResults: TestResult[] = [];
@@ -975,9 +621,5 @@ export function runAllTests(
   }
 
   // Print final summary
-  console.log("\n" + "=".repeat(100));
-  console.log("ALL TESTS COMPLETED");
-  console.log("=".repeat(100));
-  console.log(`Total scenarios tested: ${allResults.length}`);
-  console.log("=".repeat(100) + "\n");
+  printTestSuiteFooter(allResults.length);
 }

@@ -3,7 +3,17 @@
  */
 
 import { formatBytes } from "./memory-utils";
-import { formatTime } from "./utils/formatting";
+
+/**
+ * Format time in milliseconds to a human-readable string
+ * @param ms - Time in milliseconds
+ * @returns Formatted time string (μs, ms, or s)
+ */
+export function formatTime(ms: number): string {
+  if (ms < 1) return `${(ms * 1000).toFixed(2)} μs`;
+  if (ms < 1000) return `${ms.toFixed(2)} ms`;
+  return `${(ms / 1000).toFixed(2)} s`;
+}
 
 export interface PerformanceMetrics {
   totalTime: number;
@@ -39,13 +49,13 @@ export interface PerformanceMetrics {
  */
 export function printPerformanceMetrics(metrics: PerformanceMetrics): void {
   console.error("\n=== Performance Metrics ===");
-  
+
   printTimingMetrics(metrics);
   printMemoryMetrics(metrics);
   printPrefilterStats(metrics);
   printAlgorithmSelection(metrics);
   printStructureStats(metrics);
-  
+
   console.error("===========================\n");
 }
 
@@ -56,15 +66,15 @@ function printTimingMetrics(metrics: PerformanceMetrics): void {
   console.error(`Total execution time: ${formatTime(metrics.totalTime)}`);
   console.error(`  - Regex parsing:    ${formatTime(metrics.parseTime)}`);
   console.error(`  - NFA construction: ${formatTime(metrics.nfaTime)}`);
-  
+
   if (metrics.dfaTime !== undefined) {
     console.error(`  - DFA construction: ${formatTime(metrics.dfaTime)}`);
   }
-  
+
   if (metrics.minDfaTime !== undefined) {
     console.error(`  - DFA minimization: ${formatTime(metrics.minDfaTime)}`);
   }
-  
+
   console.error(`  - Pattern matching: ${formatTime(metrics.matchTime)}`);
 }
 
@@ -87,7 +97,7 @@ function printPrefilterStats(metrics: PerformanceMetrics): void {
   console.error(
     `  - Enabled:          ${metrics.prefilterStats.enabled ? "Yes" : "No"}`
   );
-  
+
   if (metrics.prefilterStats.enabled) {
     console.error(
       `  - Literal count:    ${metrics.prefilterStats.literalCount}`
@@ -109,7 +119,7 @@ function printAlgorithmSelection(metrics: PerformanceMetrics): void {
 
   console.error(`\nAlgorithm selection:`);
   console.error(`  - Algorithm:        ${metrics.algorithmUsed}`);
-  
+
   if (metrics.algorithmReason) {
     console.error(`  - Reason:           ${metrics.algorithmReason}`);
   }
@@ -148,4 +158,3 @@ function printStructureStats(metrics: PerformanceMetrics): void {
     );
   }
 }
-

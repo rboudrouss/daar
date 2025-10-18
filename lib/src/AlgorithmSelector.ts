@@ -262,7 +262,7 @@ function analyzeRegexPattern(
   // Le coût de construction du DFA est amorti sur le grand texte
 
   // Pattern complexe : NFA+DFA-cache pour éviter l'explosion du DFA
-  if (complexity > 200) {
+  if (complexity > 50) {
     return {
       patternType: "complex",
       recommendedAlgorithm: "nfa-dfa-cache",

@@ -144,6 +144,12 @@ const TEST_SCENARIOS: TestScenario[] = [
     text: "abc def ghi jkl mno pqr",
     description: "Pattern with wildcards",
   },
+  {
+    name: "Worst case DFA",
+    pattern: "(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)",
+    text: "a" + "b".repeat(1000) + "c",
+    description: "Worst case for DFA (exponential blowup)",
+  }
 ];
 
 /**

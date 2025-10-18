@@ -11,7 +11,7 @@
 interface TrieNode {
   children: Map<string, TrieNode>;
   failure: TrieNode | null;
-  output: number[]; // Indices des motifs qui se terminent à ce nœud
+  output: number[]; // Indices des motifs qui se terminent à ce noeud
 }
 
 export class AhoCorasick {
@@ -48,7 +48,7 @@ export class AhoCorasick {
         node = node.children.get(char)!;
       }
 
-      // Marquer ce nœud comme fin d'un motif
+      // Marquer ce noeud comme fin d'un motif
       node.output.push(i);
     }
   }
@@ -83,7 +83,7 @@ export class AhoCorasick {
           child.failure = this.root;
         } else {
           child.failure = failure.children.get(char)!;
-          // Hériter des outputs du nœud de failure
+          // Hériter des outputs du noeud de failure
           child.output.push(...child.failure.output);
         }
       }

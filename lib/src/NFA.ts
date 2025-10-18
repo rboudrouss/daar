@@ -18,15 +18,15 @@ export function nfaFromSyntaxTree(tree: SyntaxTree): NFA {
   }
 
   /**
-   * Construit récursivement un NFA à partir d'un nœud de l'arbre syntaxique
+   * Construit récursivement un NFA à partir d'un noeud de l'arbre syntaxique
    * Cette fonction implémente les constructions de Thompson pour chaque opérateur
    *
-   * @param t - Le nœud de l'arbre syntaxique à traiter
+   * @param t - Le noeud de l'arbre syntaxique à traiter
    * @returns Un objet contenant :
    *          - start: l'état initial du fragment
    *          - end: l'état final du fragment
    *          - nfa: le fragment d'NFA construit
-   * @throws {Error} Si le type de nœud n'est pas reconnu
+   * @throws {Error} Si le type de noeud n'est pas reconnu
    */
   function build(t: SyntaxTree): { start: state_ID; end: state_ID; nfa: NFA } {
     if (t.type === "char") {

@@ -83,10 +83,10 @@ export function canUsePrefilter(tree: SyntaxTree): boolean {
 }
 
 /**
- * Vérifie si un nœud de l'arbre syntaxique est un littéral pur (sans wildcards ni étoiles)
+ * Vérifie si un noeud de l'arbre syntaxique est un littéral pur (sans wildcards ni étoiles)
  *
- * @param node Le nœud à vérifier
- * @returns true si le nœud est un littéral pur
+ * @param node Le noeud à vérifier
+ * @returns true si le noeud est un littéral pur
  */
 function isPureLiteral(node: SyntaxTree): boolean {
   if (node.type === "char") {

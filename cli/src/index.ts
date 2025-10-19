@@ -95,6 +95,14 @@ function main() {
       "--test-only-literal",
       "Only test literal search algorithms (KMP, Boyer-Moore, Aho-Corasick)"
     )
+    .option(
+      "--csv [filename]",
+      "Export test results to CSV file (with --test-all). Default: performance-test-<timestamp>.csv"
+    )
+    .option(
+      "--json [filename]",
+      "Export test results to JSON file (with --test-all). Default: performance-test-<timestamp>.json"
+    )
     .version("0.0.1");
 
   program.parse();
@@ -109,6 +117,8 @@ function main() {
       dataFolder: options.testFolder,
       onlyAutomata: options.testOnlyAutomata,
       onlyLiteral: options.testOnlyLiteral,
+      csvFile: options.csv,
+      jsonFile: options.json,
     });
     process.exit(0);
   }

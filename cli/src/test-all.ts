@@ -42,6 +42,11 @@ import {
   matchWithPrefilter,
   buildPrefilterStructure,
 } from "./utils/prefilter-helpers";
+import {
+  getExportFilename,
+  exportToCSV,
+  exportToJSON,
+} from "./utils/export-results";
 
 interface TestScenario {
   name: string;
@@ -640,6 +645,8 @@ export function runAllTests(
     dataFolder?: string;
     onlyAutomata?: boolean;
     onlyLiteral?: boolean;
+    csvFile?: string | boolean;
+    jsonFile?: string | boolean;
   } = {}
 ) {
   // Determine which algorithms to test
@@ -657,6 +664,10 @@ export function runAllTests(
 
   // Run all scenarios
   const allResults: TestResult[] = [];
+  const scenarioMetadata = new Map<
+    string,
+    { pattern: string; textLength: number }
+  >();
   let scenarioNumber = 1;
 
   for (const scenario of scenarios) {
@@ -666,10 +677,28 @@ export function runAllTests(
       onlyLiteral: options.onlyLiteral,
     });
     allResults.push(result);
+
+    // Store metadata for export
+    scenarioMetadata.set(scenario.name, {
+      pattern: scenario.pattern,
+      textLength: scenario.text.length,
+    });
+
     scenarioNumber++;
   }
 
   // Print final summary
   const gcAvailable = isGCAvailable();
   printTestSuiteFooter(allResults.length, gcAvailable);
+
+  // Export results if requested
+  const csvFilename = getExportFilename(options.csvFile, "csv");
+  if (csvFilename) {
+    exportToCSV(allResults, scenarioMetadata, csvFilename);
+  }
+
+  const jsonFilename = getExportFilename(options.jsonFile, "json");
+  if (jsonFilename) {
+    exportToJSON(allResults, scenarioMetadata, jsonFilename);
+  }
 }

@@ -136,6 +136,25 @@ function extractAlternationLiterals(tree: SyntaxTree): string[] | null {
 }
 
 /**
+ * Vérifie si l'arbre syntaxique contient au moins un noeud d'alternation
+ *
+ * @param tree L'arbre syntaxique du regex
+ * @returns true si l'arbre contient une alternation
+ */
+function containsAlternation(tree: SyntaxTree): boolean {
+  if (tree.type === "alt") {
+    return true;
+  }
+  if (tree.type === "concat") {
+    return containsAlternation(tree.left) || containsAlternation(tree.right);
+  }
+  if (tree.type === "star") {
+    return containsAlternation(tree.child);
+  }
+  return false;
+}
+
+/**
  * Détermine si le pattern est une alternation pure de littéraux (ex: "from|what|who")
  * et retourne les littéraux si c'est le cas
  *
@@ -153,4 +172,20 @@ export function isAlternationOfLiterals(tree: SyntaxTree): {
   }
 
   return { isAlternation: false, literals: null };
+}
+
+/**
+ * Détermine si le pattern contient une alternation (même imbriquée)
+ * qui nécessite l'utilisation de contains() au lieu de containsAll()
+ *
+ * Exemples:
+ * - "(cat|dog|bird)" → true (alternation pure)
+ * - "\.(com|org|net)" → true (alternation imbriquée dans concat)
+ * - "test.*keyword" → false (concat simple sans alternation)
+ *
+ * @param tree L'arbre syntaxique du regex
+ * @returns true si le pattern contient une alternation
+ */
+export function hasAlternation(tree: SyntaxTree): boolean {
+  return containsAlternation(tree);
 }

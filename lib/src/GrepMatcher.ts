@@ -11,7 +11,7 @@
  */
 
 import { SyntaxTree } from "./RegexParser";
-import { extractLiterals, canUsePrefilter, isAlternationOfLiterals } from "./LiteralExtractor";
+import { extractLiterals, canUsePrefilter, hasAlternation } from "./LiteralExtractor";
 import { boyerMooreContains } from "./BoyerMoore";
 import { kmpContains } from "./index";
 import { AhoCorasick } from "./AhoCorasick";
@@ -64,9 +64,9 @@ export class GrepMatcher {
     // Extraire les littéraux pour le préfiltrage
     this.literals = extractLiterals(syntaxTree);
 
-    // Déterminer si c'est une alternation de littéraux
-    const alternationCheck = isAlternationOfLiterals(syntaxTree);
-    this.isAlternation = alternationCheck.isAlternation;
+    // Déterminer si le pattern contient une alternation (même imbriquée)
+    // Si oui, on doit utiliser contains() au lieu de containsAll()
+    this.isAlternation = hasAlternation(syntaxTree);
 
     // Déterminer l'algorithme de préfiltrage à utiliser
     this.prefilterAlgorithm = options.prefilterAlgorithm || "auto";

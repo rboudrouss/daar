@@ -7,7 +7,7 @@
 import {
   canUsePrefilter,
   extractLiterals,
-  isAlternationOfLiterals,
+  hasAlternation,
   AhoCorasick,
   type SyntaxTree,
   type Match,
@@ -37,10 +37,9 @@ export function buildPrefilterStructure<TStructure>(
   let prefilter: AhoCorasick | undefined;
   const literals = extractLiterals(syntaxTree);
 
-  // Check if this is an alternation of literals (e.g., "cat|dog|bird")
-  // vs a concatenation pattern (e.g., "test.*keyword")
-  const alternationCheck = isAlternationOfLiterals(syntaxTree);
-  const isAlternation = alternationCheck.isAlternation;
+  // Check if the pattern contains an alternation (even nested, e.g., "\.(com|org|net)")
+  // If yes, we should use contains() instead of containsAll()
+  const isAlternation = hasAlternation(syntaxTree);
 
   // Build prefilter if beneficial
   if (canUsePrefilter(syntaxTree) && literals.length > 0) {

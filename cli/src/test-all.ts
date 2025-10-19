@@ -57,6 +57,8 @@ interface TestScenario {
 
 interface TestResult {
   scenario: string;
+  pattern: string;
+  textLength: number;
   results: AlgorithmResult[];
 }
 
@@ -574,6 +576,8 @@ function runTestScenario(
 
   return {
     scenario: scenario.name,
+    pattern: scenario.pattern,
+    textLength: scenario.text.length,
     results,
   };
 }
@@ -664,10 +668,6 @@ export function runAllTests(
 
   // Run all scenarios
   const allResults: TestResult[] = [];
-  const scenarioMetadata = new Map<
-    string,
-    { pattern: string; textLength: number }
-  >();
   let scenarioNumber = 1;
 
   for (const scenario of scenarios) {
@@ -677,13 +677,6 @@ export function runAllTests(
       onlyLiteral: options.onlyLiteral,
     });
     allResults.push(result);
-
-    // Store metadata for export
-    scenarioMetadata.set(scenario.name, {
-      pattern: scenario.pattern,
-      textLength: scenario.text.length,
-    });
-
     scenarioNumber++;
   }
 
@@ -694,11 +687,11 @@ export function runAllTests(
   // Export results if requested
   const csvFilename = getExportFilename(options.csvFile, "csv");
   if (csvFilename) {
-    exportToCSV(allResults, scenarioMetadata, csvFilename);
+    exportToCSV(allResults, csvFilename);
   }
 
   const jsonFilename = getExportFilename(options.jsonFile, "json");
   if (jsonFilename) {
-    exportToJSON(allResults, scenarioMetadata, jsonFilename);
+    exportToJSON(allResults, jsonFilename);
   }
 }

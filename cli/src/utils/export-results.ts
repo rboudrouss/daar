@@ -7,6 +7,8 @@ import type { AlgorithmResult } from "./test-execution";
 
 interface TestResult {
   scenario: string;
+  pattern: string;
+  textLength: number;
   results: AlgorithmResult[];
 }
 
@@ -51,21 +53,15 @@ export function getExportFilename(
 /**
  * Convert test results to flat rows for export
  */
-function flattenResults(
-  testResults: TestResult[],
-  scenarioMetadata: Map<string, { pattern: string; textLength: number }>
-): ExportRow[] {
+function flattenResults(testResults: TestResult[]): ExportRow[] {
   const rows: ExportRow[] = [];
 
   for (const testResult of testResults) {
-    const metadata = scenarioMetadata.get(testResult.scenario);
-    if (!metadata) continue;
-
     for (const result of testResult.results) {
       rows.push({
         scenario: testResult.scenario,
-        pattern: metadata.pattern,
-        textLength: metadata.textLength,
+        pattern: testResult.pattern,
+        textLength: testResult.textLength,
         algorithm: result.algorithm,
         matches: result.matches.length,
         buildTime: result.buildTime,
@@ -86,10 +82,9 @@ function flattenResults(
  */
 export function exportToCSV(
   testResults: TestResult[],
-  scenarioMetadata: Map<string, { pattern: string; textLength: number }>,
   filename: string
 ): void {
-  const rows = flattenResults(testResults, scenarioMetadata);
+  const rows = flattenResults(testResults);
 
   if (rows.length === 0) {
     console.log("\nNo results to export to CSV.");
@@ -152,10 +147,9 @@ function escapeCSV(value: string | number): string {
  */
 export function exportToJSON(
   testResults: TestResult[],
-  scenarioMetadata: Map<string, { pattern: string; textLength: number }>,
   filename: string
 ): void {
-  const rows = flattenResults(testResults, scenarioMetadata);
+  const rows = flattenResults(testResults);
 
   if (rows.length === 0) {
     console.log("\nNo results to export to JSON.");

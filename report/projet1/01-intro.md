@@ -1,6 +1,6 @@
 # 1. Introduction
 
-## 1.2. Contexte
+## 1.1. Contexte
 
 Ce projet vise à développer un clone fonctionnel de `egrep` supportant un sous-ensemble de la norme ERE POSIX. Les opérateurs implémentés sont :
 
@@ -19,24 +19,36 @@ L'approche classique décrite par Aho et Ullman dans *Foundations of Computer Sc
 4. Minimiser le DFA pour réduire le nombre d'états
 5. Utiliser l'automate pour matcher les lignes du fichier
 
-## 1.3. Démarche
+## 1.2. Démarche
 
-L'exécution d'un automate peut s'avérer parfois couteuse en temps (NFA) ou en mémoire (DFA). Nous avons donc aussi implémenté des algorithmes de recherche de motifs littéraux pour améliorer les performances dans certains cas. Notamment :
+En étudiant l'implémentation de grep, nous avons remarqué que GNU grep utilise une approche similaire mais avec plusieurs optimisations supplémentaires.
+Notamment :
+
+- Un préfiltrage des lignes candidates avant le matching regex complet (quand c'est pertinent)
+- Une lecture par chunks pour gérer efficacement les fichiers volumineux
+- Une sélection automatique des algorithmes les plus adaptés en fonction de la complexité du pattern et de la taille du texte
+
+Nous avons donc décidé d'implémenter des optimisations supplémentaires dans notre projet. Voici dans un premier temps les algorithmes de recherche de motifs littéraux implémentés :
 
 - Knuth-Morris-Pratt (KMP) : recherche linéaire garantie O(n+m) pour les motifs courts
 - Boyer-Moore : recherche optimisée pour les motifs longs avec heuristique du mauvais caractère
 - Aho-Corasick : recherche multi-motifs pour les alternations de littéraux
 
-D'autres améliorations ont été apportées pour gérer efficacement les fichiers volumineux :
+Puis nous avons implémenté les automates finis :
 
-- Analyse du pattern pour identifier les segments fixes
-- Utilisation de Boyer-Moore ou Aho-Corasick pour éliminer rapidement les lignes non-candidates avant le matching regex complet
-- Choix du meilleur algorithme en fonction de la complexité du pattern
-- Traitement efficace de fichiers volumineux avec gestion mémoire optimisée
+- NFA : automate fini non-déterministe avec $\epsilon$-transitions
+   - Construit à partir de l'arbre syntaxique par la méthode de Thompson
+- DFA : automate fini déterministe obtenu par la méthode des sous-ensembles
+   - Construit à partir du NFA par la méthode des sous-ensembles
+- Min-DFA : automate fini déterministe minimisé pour réduire la mémoire
+   - Construit à partir du DFA par l'algorithme de partitionnement
+- NFA+DFA-cache : simulation de l'NFA avec construction de DFA à la volée
 
-Nous nous sommes énormement inspirés de l'implémentation de GNU grep pour ce projet. Notamment, l'architecture par chunks et le préfiltrage sont directement inspirés de cette implémentation.
+Enfin, nous avons implémenté un préfiltrage des lignes candidates avant le matching regex complet, en utilisant KMP, Boyer-Moore ou Aho-Corasick en extractant les littéraux du pattern.
 
-## 1.4. Architecture Technique
+Dans ce rapport, nous discuterons des algorithmes implémentés, de leurs performances respectives, et des situations dans lesquelles ils sont les plus pertinents dans le cadre d'un outil de recherche de motifs tel que `egrep`.
+
+## 1.3. Architecture Technique
 
 L'implémentation est réalisée en TypeScript dans une architecture monorepo comprenant :
 
@@ -47,6 +59,8 @@ Le projet inclut une suite de tests exhaustive (Vitest) et des benchmarks de per
 
 Le choix de TypeScript a été fait pour son coté fonctionnel et son typage statique, mais aussi pour sa rapidité d'exécution après transpilation en JavaScript.
 
-## 1.5. Organisation du Rapport
+Pour savoir comment lancer le projet, voir le fichier `README.md` à la racine du projet.
+
+## 1.4. Organisation du Rapport
 
 Ce rapport présente d'abord les fondements théoriques des algorithmes implémentés (Section 2), puis détaille les stratégies d'optimisation développées (Section 3). L'implémentation est exposée en Section 4, suivie d'une analyse de performance comparative (Section 5). Nous concluons par une discussion des résultats et des perspectives d'amélioration (Section 6).

@@ -21,9 +21,11 @@ Le caractère non-déterministe signifie que depuis un état donné, plusieurs t
 
 ### 2.2.2 Construction de Thompson (Algorithme d'Aho-Ullman)
 
-La construction de Thompson est un algorithme récursif qui construit un NFA à partir d'un arbre syntaxique en appliquant des règles de composition pour chaque opérateur. Chaque sous-expression est transformée en un fragment de NFA avec un état initial et un état final unique.
+Pour transformer un arbre syntaxique en un NFA, nous utilisons l'algorithme de construction de Thompson. La construction de Thompson est un algorithme récursif qui construit un NFA à partir d'un arbre syntaxique en appliquant des règles de composition pour chaque opérateur. Chaque sous-expression est transformée en un fragment de NFA avec un état initial et un état final unique.
 
 La complexité est $O(n)$ où n est la taille de l'arbre syntaxique. Chaque nœud est visité exactement une fois, et chaque opération (création d'états, ajout de transitions) est en temps constant.
+
+Son implémentation est dans le fichier `lib/src/NFA.ts` dans la fonction `nfaFromSyntaxTree`.
 
 ### 2.2.3 Fermeture $\epsilon$ (Epsilon Closure)
 
@@ -34,5 +36,9 @@ La complexité est $O(|Q| + |\delta|)$ où Q est l'ensemble des états et $\delt
 ### 2.2.4 Matching avec NFA
 
 Pour vérifier si une chaîne w est acceptée par un NFA, on simule l'exécution de l'automate en maintenant l'ensemble des états actifs à chaque étape.
+
+Initiallement les états actifs sont la fermeture $\epsilon$ de l'état initial. Ensuite, pour chaque caractère de l'entrée, on calcule l'ensemble des états atteignables en suivant les transitions marquées par ce caractère, puis on applique la fermeture $\epsilon$. Si à la fin de l'entrée, l'ensemble des états actifs contient un état acceptant, alors la chaîne est acceptée.
+
+Une implémentation est dans le fichier `lib/src/NFA.ts` dans la fonction `matchNfa`. Mais une implémentation plus complexe répondant à nos contraintes (notamment celle de trouver toutes les correspondances, et leur positionnement dans la chaîne) est dans le fichier `lib/src/Matcher.ts` dans la fonction `findAllMatchesNfa` et `findLongestMatchNfa`.
 
 La complexité est $O(|w| \times |Q|^2)$ où w est la longueur de l'entrée et Q l'ensemble des états. Pour chaque caractère, on peut avoir jusqu'à $|Q|$ états actifs, et la fermeture $\epsilon$ peut visiter tous les états.

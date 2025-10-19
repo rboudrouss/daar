@@ -1,0 +1,910 @@
+Scenario,Pattern,Text Length,Algorithm,Matches,Build Time (ms),Match Time (ms),Total Time (ms),Memory Used (KB),Structure Nodes,Structure Size (KB)
+Short Literal - Small Text,abc,1572864,KMP,0,0.002,17.204,17.207,128896.00,,
+Short Literal - Small Text,abc,1572864,Boyer-Moore,0,0.001,18.896,18.896,21240.00,,
+Short Literal - Small Text,abc,1572864,NFA,0,0.390,406.374,406.764,26200.00,6,0.14
+Short Literal - Small Text,abc,1572864,NFA+DFA-cache,0,0.076,191.398,191.475,12240.00,6,0.14
+Short Literal - Small Text,abc,1572864,DFA,0,0.368,51.973,52.341,27152.00,4,0.10
+Short Literal - Small Text,abc,1572864,min-DFA,0,0.548,53.733,54.281,56408.00,4,0.10
+Short Literal - Large Text,the,1572864,KMP,25596,0.001,19.365,19.366,2498552.00,,
+Short Literal - Large Text,the,1572864,Boyer-Moore,25596,0.001,21.480,21.481,2469344.00,,
+Short Literal - Large Text,the,1572864,NFA,25596,0.160,432.960,433.120,24336.00,6,0.14
+Short Literal - Large Text,the,1572864,NFA+DFA-cache,25596,0.078,194.644,194.722,10208.00,6,0.14
+Short Literal - Large Text,the,1572864,DFA,25596,0.179,53.859,54.038,25648.00,4,0.10
+Short Literal - Large Text,the,1572864,min-DFA,25596,0.296,48.731,49.026,44344.00,4,0.10
+Long Literal - Small Text,abcdefghijklmnop,1572864,KMP,0,0.001,18.510,18.511,18048.00,,
+Long Literal - Small Text,abcdefghijklmnop,1572864,Boyer-Moore,0,0.001,7.087,7.088,19448.00,,
+Long Literal - Small Text,abcdefghijklmnop,1572864,NFA,0,0.095,422.310,422.405,48928.00,32,0.69
+Long Literal - Small Text,abcdefghijklmnop,1572864,NFA+DFA-cache,0,0.078,193.895,193.973,48360.00,32,0.69
+Long Literal - Small Text,abcdefghijklmnop,1572864,DFA,0,0.233,52.015,52.248,101624.00,17,0.30
+Long Literal - Small Text,abcdefghijklmnop,1572864,min-DFA,0,0.747,50.990,51.736,252256.00,17,0.30
+Long Literal - Large Text,constitution,1572864,KMP,10,0.001,8.604,8.606,2192.00,,
+Long Literal - Large Text,constitution,1572864,Boyer-Moore,10,0.001,7.277,7.278,16184.00,,
+Long Literal - Large Text,constitution,1572864,NFA,10,0.071,453.156,453.227,32528.00,24,0.52
+Long Literal - Large Text,constitution,1572864,NFA+DFA-cache,10,0.062,220.774,220.836,32128.00,24,0.52
+Long Literal - Large Text,constitution,1572864,DFA,10,0.139,66.067,66.205,68976.00,13,0.23
+Long Literal - Large Text,constitution,1572864,min-DFA,10,0.425,67.257,67.683,183216.00,13,0.23
+Simple Regex - Dot,a.c,1572864,NFA,2453,0.051,487.671,487.722,9120.00,6,0.15
+Simple Regex - Dot,a.c,1572864,NFA+DFA-cache,2453,0.036,230.249,230.285,8936.00,6,0.15
+Simple Regex - Dot,a.c,1572864,DFA,2453,0.145,66.164,66.309,26032.00,4,0.11
+Simple Regex - Dot,a.c,1572864,min-DFA,2453,0.143,66.089,66.233,35336.00,4,0.11
+Simple Regex - Dot,a.c,1572864,NFA (with prefilter),2453,0.257,483.143,483.400,16704.00,6,0.15
+Simple Regex - Dot,a.c,1572864,NFA+DFA-cache (with prefilter),2453,0.155,233.394,233.548,12968.00,6,0.15
+Simple Regex - Dot,a.c,1572864,DFA (with prefilter),2453,0.179,67.064,67.243,23312.00,4,0.11
+Simple Regex - Dot,a.c,1572864,min-DFA (with prefilter),2453,0.245,67.319,67.564,38688.00,4,0.11
+Simple Regex - Star,ab*c,1572864,NFA,3723,0.065,485.456,485.521,11024.00,8,0.19
+Simple Regex - Star,ab*c,1572864,NFA+DFA-cache,3723,0.045,247.962,248.006,10800.00,8,0.19
+Simple Regex - Star,ab*c,1572864,DFA,3723,0.101,62.489,62.589,25128.00,4,0.11
+Simple Regex - Star,ab*c,1572864,min-DFA,3723,0.173,63.196,63.369,40280.00,3,0.09
+Simple Regex - Star,ab*c,1572864,NFA (with prefilter),3723,0.084,500.045,500.129,14984.00,8,0.19
+Simple Regex - Star,ab*c,1572864,NFA+DFA-cache (with prefilter),3723,0.062,232.971,233.033,14360.00,8,0.19
+Simple Regex - Star,ab*c,1572864,DFA (with prefilter),3723,0.109,65.357,65.466,29328.00,4,0.11
+Simple Regex - Star,ab*c,1572864,min-DFA (with prefilter),3723,0.158,64.212,64.370,44512.00,3,0.09
+Complex Regex - Alternation,(cat|dog|bird),1572864,Aho-Corasick,362,0.433,30.980,31.413,26608.00,11,0.08
+Complex Regex - Alternation,(cat|dog|bird),1572864,NFA,362,0.106,1056.026,1056.132,32336.00,24,0.53
+Complex Regex - Alternation,(cat|dog|bird),1572864,NFA+DFA-cache,362,0.060,1141.909,1141.969,31040.00,24,0.53
+Complex Regex - Alternation,(cat|dog|bird),1572864,DFA,362,0.174,65.907,66.080,66216.00,11,0.21
+Complex Regex - Alternation,(cat|dog|bird),1572864,min-DFA,362,0.315,71.392,71.707,128728.00,9,0.18
+Complex Regex - Alternation,(cat|dog|bird),1572864,NFA (with prefilter),0,0.150,36.616,36.766,47208.00,35,0.61
+Complex Regex - Alternation,(cat|dog|bird),1572864,NFA+DFA-cache (with prefilter),0,0.131,36.022,36.153,45520.00,35,0.61
+Complex Regex - Alternation,(cat|dog|bird),1572864,DFA (with prefilter),0,0.215,34.974,35.189,81424.00,22,0.29
+Complex Regex - Alternation,(cat|dog|bird),1572864,min-DFA (with prefilter),0,0.375,40.659,41.034,142968.00,20,0.26
+Complex Regex - Multiple Operators,(a|b).*c,1572864,NFA,1,0.056,929.430,929.486,14096.00,12,0.28
+Complex Regex - Multiple Operators,(a|b).*c,1572864,NFA+DFA-cache,1,0.057,53.337,53.394,14096.00,12,0.28
+Complex Regex - Multiple Operators,(a|b).*c,1572864,DFA,1,0.112,54.032,54.144,47184.00,5,0.17
+Complex Regex - Multiple Operators,(a|b).*c,1572864,min-DFA,1,0.209,53.306,53.515,65816.00,3,0.12
+Complex Regex - Multiple Operators,(a|b).*c,1572864,NFA (with prefilter),1,0.070,857.673,857.743,19256.00,12,0.28
+Complex Regex - Multiple Operators,(a|b).*c,1572864,NFA+DFA-cache (with prefilter),1,0.060,50.246,50.306,19208.00,12,0.28
+Complex Regex - Multiple Operators,(a|b).*c,1572864,DFA (with prefilter),1,0.145,54.954,55.098,52296.00,5,0.17
+Complex Regex - Multiple Operators,(a|b).*c,1572864,min-DFA (with prefilter),1,0.181,53.512,53.692,70200.00,3,0.12
+Complex Regex,(a|b)*c(d|e)*,1572864,NFA,31669,0.062,1315.939,1316.001,20888.00,18,0.43
+Complex Regex,(a|b)*c(d|e)*,1572864,NFA+DFA-cache,31669,0.068,1338.677,1338.745,20888.00,18,0.43
+Complex Regex,(a|b)*c(d|e)*,1572864,DFA,31669,0.176,66.510,66.686,75664.00,6,0.19
+Complex Regex,(a|b)*c(d|e)*,1572864,min-DFA,31669,0.197,69.012,69.209,88552.00,2,0.10
+Complex Regex,(a|b)*c(d|e)*,1572864,NFA (with prefilter),31669,0.072,1292.299,1292.371,22696.00,18,0.43
+Complex Regex,(a|b)*c(d|e)*,1572864,NFA+DFA-cache (with prefilter),31669,0.096,1332.460,1332.556,22696.00,18,0.43
+Complex Regex,(a|b)*c(d|e)*,1572864,DFA (with prefilter),31669,0.163,69.757,69.919,77472.00,6,0.19
+Complex Regex,(a|b)*c(d|e)*,1572864,min-DFA (with prefilter),31669,0.200,67.647,67.848,90360.00,2,0.10
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),1572864,NFA,126,0.343,3067.730,3068.073,373880.00,184,4.52
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),1572864,NFA+DFA-cache,126,0.347,3087.152,3087.499,373880.00,184,4.52
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),1572864,DFA,126,0.864,81.767,82.631,774624.00,52,1.28
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),1572864,min-DFA,126,3.466,75.001,78.467,1795928.00,21,0.55
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),1572864,NFA (with prefilter),126,0.409,3165.495,3165.904,429456.00,184,4.52
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),1572864,NFA+DFA-cache (with prefilter),126,0.423,3166.753,3167.175,429456.00,184,4.52
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),1572864,DFA (with prefilter),126,0.954,82.400,83.354,830208.00,52,1.28
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),1572864,min-DFA (with prefilter),126,3.792,78.903,82.694,1851504.00,21,0.55
+Empty Matches,xyz,1572864,KMP,0,0.001,7.978,7.979,1232.00,,
+Empty Matches,xyz,1572864,Boyer-Moore,0,0.001,22.204,22.206,32200.00,,
+Empty Matches,xyz,1572864,NFA,0,0.039,438.472,438.511,8360.00,6,0.14
+Empty Matches,xyz,1572864,NFA+DFA-cache,0,0.037,228.206,228.243,8360.00,6,0.14
+Empty Matches,xyz,1572864,DFA,0,0.079,61.941,62.020,17848.00,4,0.10
+Empty Matches,xyz,1572864,min-DFA,0,0.135,60.406,60.541,33856.00,4,0.10
+Many Matches,a,1572864,KMP,85520,0.001,11.528,11.528,7855048.00,,
+Many Matches,a,1572864,Boyer-Moore,85520,0.001,52.598,52.599,7776240.00,,
+Many Matches,a,1572864,NFA,85520,0.024,525.178,525.202,3680.00,2,0.07
+Many Matches,a,1572864,NFA+DFA-cache,85520,0.023,232.136,232.159,3680.00,2,0.07
+Many Matches,a,1572864,DFA,85520,0.056,64.801,64.856,7424.00,2,0.07
+Many Matches,a,1572864,min-DFA,85520,0.078,64.696,64.774,13512.00,2,0.07
+Wildcards,.*,1572864,NFA,1,0.032,719.528,719.560,5392.00,4,0.12
+Wildcards,.*,1572864,NFA+DFA-cache,1,0.029,54.798,54.827,5392.00,4,0.12
+Wildcards,.*,1572864,DFA,1,0.084,54.484,54.568,14472.00,2,0.09
+Wildcards,.*,1572864,min-DFA,1,0.096,54.280,54.376,19432.00,1,0.07
+Wildcards,.*,1572864,NFA (with prefilter),1,0.046,719.628,719.674,6616.00,4,0.12
+Wildcards,.*,1572864,NFA+DFA-cache (with prefilter),1,0.043,59.762,59.805,6616.00,4,0.12
+Wildcards,.*,1572864,DFA (with prefilter),1,0.078,55.397,55.475,15696.00,2,0.09
+Wildcards,.*,1572864,min-DFA (with prefilter),1,0.112,54.624,54.736,20656.00,1,0.07
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),1572864,NFA,0,0.148,1355.410,1355.557,105792.00,76,1.75
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),1572864,NFA+DFA-cache,0,0.157,1500.289,1500.445,105792.00,76,1.75
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),1572864,DFA,0,84.064,2617.420,2701.484,6546400.00,4097,133.04
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),1572864,min-DFA,0,495.281,2610.568,3105.848,5693736.00,4096,132.63
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),1572864,NFA (with prefilter),0,0.251,29.379,29.631,131400.00,81,1.83
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),1572864,NFA+DFA-cache (with prefilter),0,0.202,31.831,32.033,131056.00,81,1.83
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),1572864,DFA (with prefilter),0,86.394,28.838,115.232,7572368.00,4102,133.12
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),1572864,min-DFA (with prefilter),0,489.728,29.300,519.028,20026952.00,4101,132.71
+Short Literal - Small Text,abc,102400,KMP,0,0.001,0.630,0.631,1264.00,,
+Short Literal - Small Text,abc,102400,Boyer-Moore,0,0.001,3.062,3.062,5264.00,,
+Short Literal - Small Text,abc,102400,NFA,0,0.046,30.491,30.537,8360.00,6,0.14
+Short Literal - Small Text,abc,102400,NFA+DFA-cache,0,0.032,25.059,25.090,8360.00,6,0.14
+Short Literal - Small Text,abc,102400,DFA,0,0.082,4.177,4.259,17848.00,4,0.10
+Short Literal - Small Text,abc,102400,min-DFA,0,0.139,4.234,4.373,33856.00,4,0.10
+Short Literal - Large Text,the,102400,KMP,1885,0.001,0.751,0.752,181232.00,,
+Short Literal - Large Text,the,102400,Boyer-Moore,1885,0.001,1.131,1.132,185152.00,,
+Short Literal - Large Text,the,102400,NFA,1885,0.032,33.345,33.376,8360.00,6,0.14
+Short Literal - Large Text,the,102400,NFA+DFA-cache,1885,0.033,21.908,21.941,8360.00,6,0.14
+Short Literal - Large Text,the,102400,DFA,1885,0.080,4.296,4.376,17848.00,4,0.10
+Short Literal - Large Text,the,102400,min-DFA,1885,0.132,4.235,4.367,33856.00,4,0.10
+Long Literal - Small Text,abcdefghijklmnop,102400,KMP,0,0.001,0.608,0.608,1544.00,,
+Long Literal - Small Text,abcdefghijklmnop,102400,Boyer-Moore,0,0.001,0.312,0.313,8000.00,,
+Long Literal - Small Text,abcdefghijklmnop,102400,NFA,0,0.098,30.616,30.714,47608.00,32,0.69
+Long Literal - Small Text,abcdefghijklmnop,102400,NFA+DFA-cache,0,0.063,21.038,21.101,47608.00,32,0.69
+Long Literal - Small Text,abcdefghijklmnop,102400,DFA,0,0.159,4.152,4.311,95728.00,17,0.30
+Long Literal - Small Text,abcdefghijklmnop,102400,min-DFA,0,0.580,4.211,4.791,238856.00,17,0.30
+Long Literal - Large Text,constitution,102400,KMP,0,0.000,0.593,0.594,1368.00,,
+Long Literal - Large Text,constitution,102400,Boyer-Moore,0,0.000,0.345,0.346,6192.00,,
+Long Literal - Large Text,constitution,102400,NFA,0,0.057,30.960,31.017,32560.00,24,0.52
+Long Literal - Large Text,constitution,102400,NFA+DFA-cache,0,0.060,22.739,22.799,32560.00,24,0.52
+Long Literal - Large Text,constitution,102400,DFA,0,0.143,4.174,4.317,68208.00,13,0.23
+Long Literal - Large Text,constitution,102400,min-DFA,0,0.539,4.213,4.752,181936.00,13,0.23
+Simple Regex - Dot,a.c,102400,NFA,162,0.042,32.383,32.425,8352.00,6,0.15
+Simple Regex - Dot,a.c,102400,NFA+DFA-cache,162,0.031,21.343,21.374,8352.00,6,0.15
+Simple Regex - Dot,a.c,102400,DFA,162,0.072,4.363,4.435,17680.00,4,0.11
+Simple Regex - Dot,a.c,102400,min-DFA,162,0.113,4.339,4.453,33624.00,4,0.11
+Simple Regex - Dot,a.c,102400,NFA (with prefilter),162,0.056,33.778,33.834,12096.00,6,0.15
+Simple Regex - Dot,a.c,102400,NFA+DFA-cache (with prefilter),162,0.047,22.587,22.635,12096.00,6,0.15
+Simple Regex - Dot,a.c,102400,DFA (with prefilter),162,0.089,4.421,4.511,21424.00,4,0.11
+Simple Regex - Dot,a.c,102400,min-DFA (with prefilter),162,0.128,4.393,4.521,37368.00,4,0.11
+Simple Regex - Star,ab*c,102400,NFA,224,0.033,33.322,33.355,10128.00,8,0.19
+Simple Regex - Star,ab*c,102400,NFA+DFA-cache,224,0.037,22.012,22.049,10128.00,8,0.19
+Simple Regex - Star,ab*c,102400,DFA,224,0.105,4.200,4.305,25128.00,4,0.11
+Simple Regex - Star,ab*c,102400,min-DFA,224,0.124,4.197,4.321,39720.00,3,0.09
+Simple Regex - Star,ab*c,102400,NFA (with prefilter),224,0.044,32.796,32.840,13752.00,8,0.19
+Simple Regex - Star,ab*c,102400,NFA+DFA-cache (with prefilter),224,0.045,22.344,22.389,13752.00,8,0.19
+Simple Regex - Star,ab*c,102400,DFA (with prefilter),224,0.111,4.307,4.418,28752.00,4,0.11
+Simple Regex - Star,ab*c,102400,min-DFA (with prefilter),224,0.126,4.258,4.383,43344.00,3,0.09
+Complex Regex - Alternation,(cat|dog|bird),102400,Aho-Corasick,38,0.031,6.965,6.995,8624.00,11,0.08
+Complex Regex - Alternation,(cat|dog|bird),102400,NFA,38,0.059,68.054,68.113,31072.00,24,0.53
+Complex Regex - Alternation,(cat|dog|bird),102400,NFA+DFA-cache,38,0.060,78.298,78.359,31072.00,24,0.53
+Complex Regex - Alternation,(cat|dog|bird),102400,DFA,38,0.138,4.520,4.658,66248.00,11,0.21
+Complex Regex - Alternation,(cat|dog|bird),102400,min-DFA,38,0.338,4.469,4.807,127704.00,9,0.18
+Complex Regex - Alternation,(cat|dog|bird),102400,NFA (with prefilter),0,0.097,6.748,6.845,45608.00,35,0.61
+Complex Regex - Alternation,(cat|dog|bird),102400,NFA+DFA-cache (with prefilter),0,0.160,7.794,7.954,45608.00,35,0.61
+Complex Regex - Alternation,(cat|dog|bird),102400,DFA (with prefilter),0,0.238,6.946,7.183,80784.00,22,0.29
+Complex Regex - Alternation,(cat|dog|bird),102400,min-DFA (with prefilter),0,0.314,6.833,7.147,142240.00,20,0.26
+Complex Regex - Multiple Operators,(a|b).*c,102400,NFA,1,0.043,59.876,59.919,14112.00,12,0.28
+Complex Regex - Multiple Operators,(a|b).*c,102400,NFA+DFA-cache,1,0.045,8.662,8.707,14112.00,12,0.28
+Complex Regex - Multiple Operators,(a|b).*c,102400,DFA,1,0.147,3.620,3.767,47200.00,5,0.17
+Complex Regex - Multiple Operators,(a|b).*c,102400,min-DFA,1,0.146,12.352,12.498,57976.00,3,0.12
+Complex Regex - Multiple Operators,(a|b).*c,102400,NFA (with prefilter),1,0.071,60.327,60.398,19208.00,12,0.28
+Complex Regex - Multiple Operators,(a|b).*c,102400,NFA+DFA-cache (with prefilter),1,0.054,9.091,9.145,19208.00,12,0.28
+Complex Regex - Multiple Operators,(a|b).*c,102400,DFA (with prefilter),1,0.145,3.881,4.026,52296.00,5,0.17
+Complex Regex - Multiple Operators,(a|b).*c,102400,min-DFA (with prefilter),1,0.188,3.507,3.694,70200.00,3,0.12
+Complex Regex,(a|b)*c(d|e)*,102400,NFA,2207,0.063,83.635,83.698,20816.00,18,0.43
+Complex Regex,(a|b)*c(d|e)*,102400,NFA+DFA-cache,2207,0.050,90.715,90.765,20816.00,18,0.43
+Complex Regex,(a|b)*c(d|e)*,102400,DFA,2207,0.144,4.556,4.700,75592.00,6,0.19
+Complex Regex,(a|b)*c(d|e)*,102400,min-DFA,2207,0.202,4.472,4.674,88480.00,2,0.10
+Complex Regex,(a|b)*c(d|e)*,102400,NFA (with prefilter),2207,0.059,85.868,85.927,22696.00,18,0.43
+Complex Regex,(a|b)*c(d|e)*,102400,NFA+DFA-cache (with prefilter),2207,0.064,92.166,92.230,22696.00,18,0.43
+Complex Regex,(a|b)*c(d|e)*,102400,DFA (with prefilter),2207,0.142,4.554,4.696,77472.00,6,0.19
+Complex Regex,(a|b)*c(d|e)*,102400,min-DFA (with prefilter),2207,0.186,4.406,4.592,90360.00,2,0.10
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),102400,NFA,11,0.415,203.699,204.114,373880.00,184,4.52
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),102400,NFA+DFA-cache,11,0.377,203.750,204.127,373880.00,184,4.52
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),102400,DFA,11,0.908,5.586,6.495,774624.00,52,1.28
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),102400,min-DFA,11,3.880,5.158,9.039,1796880.00,21,0.55
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),102400,NFA (with prefilter),11,0.449,204.742,205.192,429456.00,184,4.52
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),102400,NFA+DFA-cache (with prefilter),11,0.434,202.706,203.140,429456.00,184,4.52
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),102400,DFA (with prefilter),11,0.944,5.691,6.635,830208.00,52,1.28
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),102400,min-DFA (with prefilter),11,4.318,5.258,9.576,1851504.00,21,0.55
+Empty Matches,xyz,102400,KMP,0,0.000,0.501,0.501,1264.00,,
+Empty Matches,xyz,102400,Boyer-Moore,0,0.000,0.983,0.983,34504.00,,
+Empty Matches,xyz,102400,NFA,0,0.029,28.499,28.527,8360.00,6,0.14
+Empty Matches,xyz,102400,NFA+DFA-cache,0,0.030,20.599,20.629,8360.00,6,0.14
+Empty Matches,xyz,102400,DFA,0,0.071,3.967,4.037,17848.00,4,0.10
+Empty Matches,xyz,102400,min-DFA,0,0.113,3.974,4.087,33856.00,4,0.10
+Many Matches,a,102400,KMP,5370,0.000,0.819,0.820,544584.00,,
+Many Matches,a,102400,Boyer-Moore,5370,0.000,2.734,2.734,548408.00,,
+Many Matches,a,102400,NFA,5370,0.016,30.780,30.796,3680.00,2,0.07
+Many Matches,a,102400,NFA+DFA-cache,5370,0.016,22.110,22.126,3680.00,2,0.07
+Many Matches,a,102400,DFA,5370,0.038,4.210,4.248,7424.00,2,0.07
+Many Matches,a,102400,min-DFA,5370,0.068,4.176,4.244,13512.00,2,0.07
+Wildcards,.*,102400,NFA,1,0.030,46.519,46.549,5392.00,4,0.12
+Wildcards,.*,102400,NFA+DFA-cache,1,0.030,8.715,8.745,5392.00,4,0.12
+Wildcards,.*,102400,DFA,1,0.062,3.612,3.674,14472.00,2,0.09
+Wildcards,.*,102400,min-DFA,1,0.080,3.688,3.769,19432.00,1,0.07
+Wildcards,.*,102400,NFA (with prefilter),1,0.031,46.724,46.755,6616.00,4,0.12
+Wildcards,.*,102400,NFA+DFA-cache (with prefilter),1,0.032,9.430,9.461,6616.00,4,0.12
+Wildcards,.*,102400,DFA (with prefilter),1,0.065,3.685,3.751,15696.00,2,0.09
+Wildcards,.*,102400,min-DFA (with prefilter),1,0.115,3.651,3.767,20656.00,1,0.07
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),102400,NFA,0,0.170,85.728,85.898,105792.00,76,1.75
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),102400,NFA+DFA-cache,0,0.154,89.714,89.868,105792.00,76,1.75
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),102400,DFA,0,82.999,172.115,255.114,6333656.00,4097,133.04
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),102400,min-DFA,0,477.931,170.934,648.865,20257008.00,4096,132.63
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),102400,NFA (with prefilter),0,0.169,6.889,7.058,131072.00,81,1.83
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),102400,NFA+DFA-cache (with prefilter),0,0.224,7.655,7.879,131072.00,81,1.83
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),102400,DFA (with prefilter),0,83.643,1.682,85.324,5226176.00,4102,133.12
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),102400,min-DFA (with prefilter),0,471.311,6.719,478.030,11874544.00,4101,132.71
+Short Literal - Small Text,abc,10240,KMP,0,0.001,0.076,0.076,1264.00,,
+Short Literal - Small Text,abc,10240,Boyer-Moore,0,0.000,0.114,0.115,4768.00,,
+Short Literal - Small Text,abc,10240,NFA,0,0.034,3.558,3.592,8360.00,6,0.14
+Short Literal - Small Text,abc,10240,NFA+DFA-cache,0,0.030,5.095,5.125,6920.00,6,0.14
+Short Literal - Small Text,abc,10240,DFA,0,0.071,0.603,0.673,19224.00,4,0.10
+Short Literal - Small Text,abc,10240,min-DFA,0,0.118,0.475,0.593,33856.00,4,0.10
+Short Literal - Large Text,the,10240,KMP,123,0.000,0.072,0.072,12456.00,,
+Short Literal - Large Text,the,10240,Boyer-Moore,123,0.001,0.127,0.128,15960.00,,
+Short Literal - Large Text,the,10240,NFA,123,0.058,3.337,3.395,8360.00,6,0.14
+Short Literal - Large Text,the,10240,NFA+DFA-cache,123,0.028,5.032,5.060,7784.00,6,0.14
+Short Literal - Large Text,the,10240,DFA,123,0.131,0.573,0.704,23360.00,4,0.10
+Short Literal - Large Text,the,10240,min-DFA,123,0.111,0.498,0.609,33856.00,4,0.10
+Long Literal - Small Text,abcdefghijklmnop,10240,KMP,0,0.000,0.060,0.061,1368.00,,
+Long Literal - Small Text,abcdefghijklmnop,10240,Boyer-Moore,0,0.000,0.053,0.054,7088.00,,
+Long Literal - Small Text,abcdefghijklmnop,10240,NFA,0,0.063,3.470,3.533,47608.00,32,0.69
+Long Literal - Small Text,abcdefghijklmnop,10240,NFA+DFA-cache,0,0.062,5.065,5.128,47608.00,32,0.69
+Long Literal - Small Text,abcdefghijklmnop,10240,DFA,0,0.208,0.567,0.776,101240.00,17,0.30
+Long Literal - Small Text,abcdefghijklmnop,10240,min-DFA,0,0.607,0.471,1.078,238856.00,17,0.30
+Long Literal - Large Text,constitution,10240,KMP,0,0.000,0.058,0.058,1336.00,,
+Long Literal - Large Text,constitution,10240,Boyer-Moore,0,0.000,0.057,0.058,5456.00,,
+Long Literal - Large Text,constitution,10240,NFA,0,0.052,3.343,3.394,32560.00,24,0.52
+Long Literal - Large Text,constitution,10240,NFA+DFA-cache,0,0.079,5.134,5.214,32560.00,24,0.52
+Long Literal - Large Text,constitution,10240,DFA,0,0.117,0.464,0.581,68208.00,13,0.23
+Long Literal - Large Text,constitution,10240,min-DFA,0,0.444,0.493,0.937,181936.00,13,0.23
+Simple Regex - Dot,a.c,10240,NFA,12,0.031,3.685,3.716,8352.00,6,0.15
+Simple Regex - Dot,a.c,10240,NFA+DFA-cache,12,0.032,5.321,5.353,8776.00,6,0.15
+Simple Regex - Dot,a.c,10240,DFA,12,0.168,0.476,0.644,23192.00,4,0.11
+Simple Regex - Dot,a.c,10240,min-DFA,12,0.162,0.466,0.628,33624.00,4,0.11
+Simple Regex - Dot,a.c,10240,NFA (with prefilter),12,0.045,4.155,4.199,11976.00,6,0.15
+Simple Regex - Dot,a.c,10240,NFA+DFA-cache (with prefilter),12,0.045,5.256,5.301,10536.00,6,0.15
+Simple Regex - Dot,a.c,10240,DFA (with prefilter),12,0.126,0.586,0.712,26816.00,4,0.11
+Simple Regex - Dot,a.c,10240,min-DFA (with prefilter),12,0.113,0.484,0.597,37248.00,4,0.11
+Simple Regex - Star,ab*c,10240,NFA,17,0.037,3.662,3.699,10128.00,8,0.19
+Simple Regex - Star,ab*c,10240,NFA+DFA-cache,17,0.032,5.336,5.368,10128.00,8,0.19
+Simple Regex - Star,ab*c,10240,DFA,17,0.128,0.554,0.682,30640.00,4,0.11
+Simple Regex - Star,ab*c,10240,min-DFA,17,0.160,0.471,0.632,39720.00,3,0.09
+Simple Regex - Star,ab*c,10240,NFA (with prefilter),17,0.041,3.784,3.825,13752.00,8,0.19
+Simple Regex - Star,ab*c,10240,NFA+DFA-cache (with prefilter),17,0.045,5.380,5.424,13176.00,8,0.19
+Simple Regex - Star,ab*c,10240,DFA (with prefilter),17,0.147,0.566,0.712,34264.00,4,0.11
+Simple Regex - Star,ab*c,10240,min-DFA (with prefilter),17,0.145,0.436,0.582,43344.00,3,0.09
+Complex Regex - Alternation,(cat|dog|bird),10240,Aho-Corasick,8,0.048,1.073,1.121,8624.00,11,0.08
+Complex Regex - Alternation,(cat|dog|bird),10240,NFA,8,0.065,7.716,7.781,31072.00,24,0.53
+Complex Regex - Alternation,(cat|dog|bird),10240,NFA+DFA-cache,8,0.066,11.996,12.062,31072.00,24,0.53
+Complex Regex - Alternation,(cat|dog|bird),10240,DFA,8,0.178,0.478,0.655,66248.00,11,0.21
+Complex Regex - Alternation,(cat|dog|bird),10240,min-DFA,8,0.269,0.541,0.810,121816.00,9,0.18
+Complex Regex - Alternation,(cat|dog|bird),10240,NFA (with prefilter),0,0.101,1.162,1.263,45608.00,35,0.61
+Complex Regex - Alternation,(cat|dog|bird),10240,NFA+DFA-cache (with prefilter),0,0.086,0.256,0.342,45216.00,35,0.61
+Complex Regex - Alternation,(cat|dog|bird),10240,DFA (with prefilter),0,0.220,1.156,1.376,80784.00,22,0.29
+Complex Regex - Alternation,(cat|dog|bird),10240,min-DFA (with prefilter),0,0.327,0.256,0.583,150448.00,20,0.26
+Complex Regex - Multiple Operators,(a|b).*c,10240,NFA,1,0.079,7.144,7.223,14112.00,12,0.28
+Complex Regex - Multiple Operators,(a|b).*c,10240,NFA+DFA-cache,1,0.047,1.517,1.564,14112.00,12,0.28
+Complex Regex - Multiple Operators,(a|b).*c,10240,DFA,1,0.122,0.458,0.580,49608.00,5,0.17
+Complex Regex - Multiple Operators,(a|b).*c,10240,min-DFA,1,0.155,0.383,0.538,65104.00,3,0.12
+Complex Regex - Multiple Operators,(a|b).*c,10240,NFA (with prefilter),1,0.055,6.938,6.993,19208.00,12,0.28
+Complex Regex - Multiple Operators,(a|b).*c,10240,NFA+DFA-cache (with prefilter),1,0.057,1.596,1.653,19208.00,12,0.28
+Complex Regex - Multiple Operators,(a|b).*c,10240,DFA (with prefilter),1,0.117,0.460,0.577,54704.00,5,0.17
+Complex Regex - Multiple Operators,(a|b).*c,10240,min-DFA (with prefilter),1,0.168,0.410,0.579,70200.00,3,0.12
+Complex Regex,(a|b)*c(d|e)*,10240,NFA,147,0.051,8.652,8.704,20816.00,18,0.43
+Complex Regex,(a|b)*c(d|e)*,10240,NFA+DFA-cache,147,0.050,13.446,13.496,20816.00,18,0.43
+Complex Regex,(a|b)*c(d|e)*,10240,DFA,147,0.139,0.464,0.602,75592.00,6,0.19
+Complex Regex,(a|b)*c(d|e)*,10240,min-DFA,147,0.221,0.447,0.668,88480.00,2,0.10
+Complex Regex,(a|b)*c(d|e)*,10240,NFA (with prefilter),147,0.054,8.655,8.709,22696.00,18,0.43
+Complex Regex,(a|b)*c(d|e)*,10240,NFA+DFA-cache (with prefilter),147,0.081,13.080,13.161,22696.00,18,0.43
+Complex Regex,(a|b)*c(d|e)*,10240,DFA (with prefilter),147,0.185,0.477,0.662,77472.00,6,0.19
+Complex Regex,(a|b)*c(d|e)*,10240,min-DFA (with prefilter),147,0.199,0.459,0.658,90328.00,2,0.10
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),10240,NFA,2,0.377,20.253,20.630,373880.00,184,4.52
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),10240,NFA+DFA-cache,2,0.403,25.097,25.500,373880.00,184,4.52
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),10240,DFA,2,0.931,0.591,1.522,774624.00,52,1.28
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),10240,min-DFA,2,3.368,0.528,3.897,1759888.00,21,0.55
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),10240,NFA (with prefilter),2,0.471,20.905,21.376,427640.00,184,4.52
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),10240,NFA+DFA-cache (with prefilter),2,0.436,25.187,25.624,429456.00,184,4.52
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),10240,DFA (with prefilter),2,0.951,0.649,1.600,830208.00,52,1.28
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),10240,min-DFA (with prefilter),2,4.293,0.555,4.849,1784656.00,21,0.55
+Empty Matches,xyz,10240,KMP,0,0.001,0.068,0.068,1264.00,,
+Empty Matches,xyz,10240,Boyer-Moore,0,0.000,0.123,0.124,5200.00,,
+Empty Matches,xyz,10240,NFA,0,0.069,3.529,3.598,8360.00,6,0.14
+Empty Matches,xyz,10240,NFA+DFA-cache,0,0.038,5.252,5.290,8256.00,6,0.14
+Empty Matches,xyz,10240,DFA,0,0.115,0.531,0.646,17744.00,4,0.10
+Empty Matches,xyz,10240,min-DFA,0,0.116,0.462,0.579,33680.00,4,0.10
+Many Matches,a,10240,KMP,409,0.000,0.075,0.075,42192.00,,
+Many Matches,a,10240,Boyer-Moore,409,0.000,0.314,0.315,44664.00,,
+Many Matches,a,10240,NFA,409,0.015,3.426,3.441,3680.00,2,0.07
+Many Matches,a,10240,NFA+DFA-cache,409,0.018,5.186,5.203,3680.00,2,0.07
+Many Matches,a,10240,DFA,409,0.039,0.530,0.570,7424.00,2,0.07
+Many Matches,a,10240,min-DFA,409,0.068,0.437,0.505,13512.00,2,0.07
+Wildcards,.*,10240,NFA,1,0.027,6.292,6.319,5392.00,4,0.12
+Wildcards,.*,10240,NFA+DFA-cache,1,0.029,1.305,1.334,5392.00,4,0.12
+Wildcards,.*,10240,DFA,1,0.071,0.387,0.458,14472.00,2,0.09
+Wildcards,.*,10240,min-DFA,1,0.081,0.378,0.459,19432.00,1,0.07
+Wildcards,.*,10240,NFA (with prefilter),1,0.029,5.918,5.947,6616.00,4,0.12
+Wildcards,.*,10240,NFA+DFA-cache (with prefilter),1,0.029,1.352,1.380,6616.00,4,0.12
+Wildcards,.*,10240,DFA (with prefilter),1,0.080,0.435,0.515,15696.00,2,0.09
+Wildcards,.*,10240,min-DFA (with prefilter),1,0.077,0.419,0.495,20656.00,1,0.07
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),10240,NFA,0,0.139,8.728,8.867,105792.00,76,1.75
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),10240,NFA+DFA-cache,0,0.112,13.488,13.600,105792.00,76,1.75
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),10240,DFA,0,83.032,16.936,99.969,6234760.00,4097,133.04
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),10240,min-DFA,0,492.254,17.099,509.354,20118392.00,4096,132.63
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),10240,NFA (with prefilter),0,0.225,1.117,1.342,131072.00,81,1.83
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),10240,NFA+DFA-cache (with prefilter),0,0.178,0.210,0.388,130680.00,81,1.83
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),10240,DFA (with prefilter),0,83.656,1.082,84.738,6093080.00,4102,133.12
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),10240,min-DFA (with prefilter),0,488.323,0.241,488.564,6452792.00,4101,132.71
+Short Literal - Small Text,abc,1024,KMP,0,0.000,0.011,0.011,1264.00,,
+Short Literal - Small Text,abc,1024,Boyer-Moore,0,0.000,0.031,0.031,4096.00,,
+Short Literal - Small Text,abc,1024,NFA,0,0.045,0.411,0.455,8360.00,6,0.14
+Short Literal - Small Text,abc,1024,NFA+DFA-cache,0,0.031,0.660,0.690,8360.00,6,0.14
+Short Literal - Small Text,abc,1024,DFA,0,0.078,0.072,0.149,17848.00,4,0.10
+Short Literal - Small Text,abc,1024,min-DFA,0,0.184,0.069,0.253,33856.00,4,0.10
+Short Literal - Large Text,the,1024,KMP,12,0.000,0.013,0.014,2296.00,,
+Short Literal - Large Text,the,1024,Boyer-Moore,12,0.001,0.035,0.036,5064.00,,
+Short Literal - Large Text,the,1024,NFA,12,0.031,0.421,0.452,8360.00,6,0.14
+Short Literal - Large Text,the,1024,NFA+DFA-cache,12,0.029,0.681,0.710,8360.00,6,0.14
+Short Literal - Large Text,the,1024,DFA,12,0.071,0.072,0.143,17848.00,4,0.10
+Short Literal - Large Text,the,1024,min-DFA,12,0.154,0.071,0.225,33856.00,4,0.10
+Long Literal - Small Text,abcdefghijklmnop,1024,KMP,0,0.000,0.010,0.010,1368.00,,
+Long Literal - Small Text,abcdefghijklmnop,1024,Boyer-Moore,0,0.000,0.029,0.030,6576.00,,
+Long Literal - Small Text,abcdefghijklmnop,1024,NFA,0,0.072,0.413,0.485,47608.00,32,0.69
+Long Literal - Small Text,abcdefghijklmnop,1024,NFA+DFA-cache,0,0.064,0.646,0.710,47608.00,32,0.69
+Long Literal - Small Text,abcdefghijklmnop,1024,DFA,0,0.172,0.068,0.240,95728.00,17,0.30
+Long Literal - Small Text,abcdefghijklmnop,1024,min-DFA,0,0.594,0.068,0.662,239048.00,17,0.30
+Long Literal - Large Text,constitution,1024,KMP,0,0.000,0.010,0.010,1336.00,,
+Long Literal - Large Text,constitution,1024,Boyer-Moore,0,0.001,0.028,0.029,4752.00,,
+Long Literal - Large Text,constitution,1024,NFA,0,0.056,0.412,0.468,32560.00,24,0.52
+Long Literal - Large Text,constitution,1024,NFA+DFA-cache,0,0.052,0.652,0.704,32560.00,24,0.52
+Long Literal - Large Text,constitution,1024,DFA,0,0.153,0.071,0.224,68208.00,13,0.23
+Long Literal - Large Text,constitution,1024,min-DFA,0,0.439,0.071,0.511,181936.00,13,0.23
+Simple Regex - Dot,a.c,1024,NFA,0,0.037,0.465,0.502,8352.00,6,0.15
+Simple Regex - Dot,a.c,1024,NFA+DFA-cache,0,0.027,0.665,0.692,7776.00,6,0.15
+Simple Regex - Dot,a.c,1024,DFA,0,0.075,0.075,0.150,17680.00,4,0.11
+Simple Regex - Dot,a.c,1024,min-DFA,0,0.130,0.074,0.204,33624.00,4,0.11
+Simple Regex - Dot,a.c,1024,NFA (with prefilter),0,0.043,0.364,0.407,11976.00,6,0.15
+Simple Regex - Dot,a.c,1024,NFA+DFA-cache (with prefilter),0,0.043,2.916,2.960,11976.00,6,0.15
+Simple Regex - Dot,a.c,1024,DFA (with prefilter),0,0.083,0.076,0.160,21304.00,4,0.11
+Simple Regex - Dot,a.c,1024,min-DFA (with prefilter),0,0.173,0.076,0.249,37248.00,4,0.11
+Simple Regex - Star,ab*c,1024,NFA,0,0.042,0.482,0.524,10128.00,8,0.19
+Simple Regex - Star,ab*c,1024,NFA+DFA-cache,0,0.035,0.668,0.703,10128.00,8,0.19
+Simple Regex - Star,ab*c,1024,DFA,0,0.088,0.069,0.157,25128.00,4,0.11
+Simple Regex - Star,ab*c,1024,min-DFA,0,0.136,0.072,0.208,39720.00,3,0.09
+Simple Regex - Star,ab*c,1024,NFA (with prefilter),0,0.044,0.447,0.491,13752.00,8,0.19
+Simple Regex - Star,ab*c,1024,NFA+DFA-cache (with prefilter),0,0.045,0.666,0.710,13752.00,8,0.19
+Simple Regex - Star,ab*c,1024,DFA (with prefilter),0,0.090,0.071,0.161,30352.00,4,0.11
+Simple Regex - Star,ab*c,1024,min-DFA (with prefilter),0,0.193,0.073,0.266,43344.00,3,0.09
+Complex Regex - Alternation,(cat|dog|bird),1024,Aho-Corasick,2,0.025,0.120,0.145,8624.00,11,0.08
+Complex Regex - Alternation,(cat|dog|bird),1024,NFA,2,0.059,0.924,0.983,31072.00,24,0.53
+Complex Regex - Alternation,(cat|dog|bird),1024,NFA+DFA-cache,2,0.058,1.715,1.773,31072.00,24,0.53
+Complex Regex - Alternation,(cat|dog|bird),1024,DFA,2,0.169,0.073,0.241,68656.00,11,0.21
+Complex Regex - Alternation,(cat|dog|bird),1024,min-DFA,2,0.309,0.074,0.383,127704.00,9,0.18
+Complex Regex - Alternation,(cat|dog|bird),1024,NFA (with prefilter),0,0.097,0.129,0.227,45608.00,35,0.61
+Complex Regex - Alternation,(cat|dog|bird),1024,NFA+DFA-cache (with prefilter),0,0.131,0.129,0.261,45608.00,35,0.61
+Complex Regex - Alternation,(cat|dog|bird),1024,DFA (with prefilter),0,0.209,0.159,0.368,80784.00,22,0.29
+Complex Regex - Alternation,(cat|dog|bird),1024,min-DFA (with prefilter),0,0.348,0.134,0.482,142240.00,20,0.26
+Complex Regex - Multiple Operators,(a|b).*c,1024,NFA,1,0.043,0.856,0.899,14112.00,12,0.28
+Complex Regex - Multiple Operators,(a|b).*c,1024,NFA+DFA-cache,1,0.048,0.432,0.481,13416.00,12,0.28
+Complex Regex - Multiple Operators,(a|b).*c,1024,DFA,1,0.134,0.065,0.200,47200.00,5,0.17
+Complex Regex - Multiple Operators,(a|b).*c,1024,min-DFA,1,0.148,0.071,0.220,65080.00,3,0.12
+Complex Regex - Multiple Operators,(a|b).*c,1024,NFA (with prefilter),1,0.055,0.881,0.936,19208.00,12,0.28
+Complex Regex - Multiple Operators,(a|b).*c,1024,NFA+DFA-cache (with prefilter),1,0.051,0.463,0.515,17648.00,12,0.28
+Complex Regex - Multiple Operators,(a|b).*c,1024,DFA (with prefilter),1,0.158,0.070,0.228,53896.00,5,0.17
+Complex Regex - Multiple Operators,(a|b).*c,1024,min-DFA (with prefilter),1,0.156,0.071,0.227,70200.00,3,0.12
+Complex Regex,(a|b)*c(d|e)*,1024,NFA,19,0.050,0.996,1.046,20816.00,18,0.43
+Complex Regex,(a|b)*c(d|e)*,1024,NFA+DFA-cache,19,0.049,1.978,2.027,20816.00,18,0.43
+Complex Regex,(a|b)*c(d|e)*,1024,DFA,19,0.171,0.072,0.243,78000.00,6,0.19
+Complex Regex,(a|b)*c(d|e)*,1024,min-DFA,19,0.201,0.092,0.293,88480.00,2,0.10
+Complex Regex,(a|b)*c(d|e)*,1024,NFA (with prefilter),19,0.057,0.963,1.019,22696.00,18,0.43
+Complex Regex,(a|b)*c(d|e)*,1024,NFA+DFA-cache (with prefilter),19,0.063,1.974,2.036,22696.00,18,0.43
+Complex Regex,(a|b)*c(d|e)*,1024,DFA (with prefilter),19,0.162,0.081,0.243,79880.00,6,0.19
+Complex Regex,(a|b)*c(d|e)*,1024,min-DFA (with prefilter),19,0.406,0.081,0.487,90360.00,2,0.10
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),1024,NFA,0,0.402,2.544,2.946,373880.00,184,4.52
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),1024,NFA+DFA-cache,0,0.402,4.119,4.520,373880.00,184,4.52
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),1024,DFA,0,0.901,0.100,1.001,774624.00,52,1.28
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),1024,min-DFA,0,4.054,0.116,4.170,1710816.00,21,0.55
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),1024,NFA (with prefilter),0,0.404,2.325,2.729,425376.00,184,4.52
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),1024,NFA+DFA-cache (with prefilter),0,0.452,4.125,4.578,429456.00,184,4.52
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),1024,DFA (with prefilter),0,0.915,0.104,1.019,861840.00,52,1.28
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),1024,min-DFA (with prefilter),0,4.374,0.113,4.488,1852176.00,21,0.55
+Empty Matches,xyz,1024,KMP,0,0.000,0.012,0.012,1264.00,,
+Empty Matches,xyz,1024,Boyer-Moore,0,0.000,0.030,0.031,4064.00,,
+Empty Matches,xyz,1024,NFA,0,0.030,0.367,0.397,8360.00,6,0.14
+Empty Matches,xyz,1024,NFA+DFA-cache,0,0.033,0.656,0.689,8360.00,6,0.14
+Empty Matches,xyz,1024,DFA,0,0.078,0.067,0.144,17848.00,4,0.10
+Empty Matches,xyz,1024,min-DFA,0,0.137,0.068,0.205,33856.00,4,0.10
+Many Matches,a,1024,KMP,37,0.000,0.012,0.013,4440.00,,
+Many Matches,a,1024,Boyer-Moore,37,0.000,0.051,0.051,6368.00,,
+Many Matches,a,1024,NFA,37,0.016,0.403,0.419,3680.00,2,0.07
+Many Matches,a,1024,NFA+DFA-cache,37,0.015,0.640,0.654,3680.00,2,0.07
+Many Matches,a,1024,DFA,37,0.111,0.069,0.180,9024.00,2,0.07
+Many Matches,a,1024,min-DFA,37,0.076,0.077,0.153,13512.00,2,0.07
+Wildcards,.*,1024,NFA,1,0.026,0.737,0.763,5392.00,4,0.12
+Wildcards,.*,1024,NFA+DFA-cache,1,0.024,0.334,0.358,4192.00,4,0.12
+Wildcards,.*,1024,DFA,1,0.065,0.064,0.129,14472.00,2,0.09
+Wildcards,.*,1024,min-DFA,1,0.078,0.067,0.145,19432.00,1,0.07
+Wildcards,.*,1024,NFA (with prefilter),1,0.031,0.738,0.769,6616.00,4,0.12
+Wildcards,.*,1024,NFA+DFA-cache (with prefilter),1,0.030,0.567,0.597,7280.00,4,0.12
+Wildcards,.*,1024,DFA (with prefilter),1,0.068,0.065,0.134,15696.00,2,0.09
+Wildcards,.*,1024,min-DFA (with prefilter),1,0.078,0.063,0.140,20656.00,1,0.07
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),1024,NFA,0,0.110,1.006,1.116,105792.00,76,1.75
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),1024,NFA+DFA-cache,0,0.151,1.988,2.139,105792.00,76,1.75
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),1024,DFA,0,84.758,1.841,86.599,8286240.00,4097,133.04
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),1024,min-DFA,0,486.389,1.829,488.217,20091584.00,4096,132.63
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),1024,NFA (with prefilter),0,0.226,0.180,0.406,131072.00,81,1.83
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),1024,NFA+DFA-cache (with prefilter),0,0.178,0.030,0.207,130680.00,81,1.83
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),1024,DFA (with prefilter),0,84.645,0.033,84.678,8219576.00,4102,133.12
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),1024,min-DFA (with prefilter),0,491.157,0.152,491.310,20309824.00,4101,132.71
+Short Literal - Small Text,abc,1048576,KMP,0,0.000,6.450,6.451,7792.00,,
+Short Literal - Small Text,abc,1048576,Boyer-Moore,0,0.000,9.316,9.316,5696.00,,
+Short Literal - Small Text,abc,1048576,NFA,0,0.031,303.493,303.524,8360.00,6,0.14
+Short Literal - Small Text,abc,1048576,NFA+DFA-cache,0,0.029,157.924,157.952,8360.00,6,0.14
+Short Literal - Small Text,abc,1048576,DFA,0,0.068,42.376,42.444,17848.00,4,0.10
+Short Literal - Small Text,abc,1048576,min-DFA,0,0.112,42.462,42.574,33856.00,4,0.10
+Short Literal - Large Text,the,1048576,KMP,17160,0.000,7.389,7.390,1753880.00,,
+Short Literal - Large Text,the,1048576,Boyer-Moore,17160,0.000,11.444,11.444,1749192.00,,
+Short Literal - Large Text,the,1048576,NFA,17160,0.030,324.943,324.973,8360.00,6,0.14
+Short Literal - Large Text,the,1048576,NFA+DFA-cache,17160,0.032,149.375,149.407,8360.00,6,0.14
+Short Literal - Large Text,the,1048576,DFA,17160,0.094,41.955,42.049,17848.00,4,0.10
+Short Literal - Large Text,the,1048576,min-DFA,17160,0.159,42.087,42.246,33856.00,4,0.10
+Long Literal - Small Text,abcdefghijklmnop,1048576,KMP,0,0.000,6.236,6.236,3608.00,,
+Long Literal - Small Text,abcdefghijklmnop,1048576,Boyer-Moore,0,0.000,2.743,2.743,8400.00,,
+Long Literal - Small Text,abcdefghijklmnop,1048576,NFA,0,0.062,305.700,305.762,47608.00,32,0.69
+Long Literal - Small Text,abcdefghijklmnop,1048576,NFA+DFA-cache,0,0.100,157.724,157.823,47608.00,32,0.69
+Long Literal - Small Text,abcdefghijklmnop,1048576,DFA,0,0.162,43.839,44.001,95728.00,17,0.30
+Long Literal - Small Text,abcdefghijklmnop,1048576,min-DFA,0,0.623,42.344,42.967,238856.00,17,0.30
+Long Literal - Large Text,constitution,1048576,KMP,8,0.001,5.911,5.912,2080.00,,
+Long Literal - Large Text,constitution,1048576,Boyer-Moore,8,0.001,3.098,3.099,7320.00,,
+Long Literal - Large Text,constitution,1048576,NFA,8,0.051,294.355,294.406,32560.00,24,0.52
+Long Literal - Large Text,constitution,1048576,NFA+DFA-cache,8,0.074,158.981,159.055,32560.00,24,0.52
+Long Literal - Large Text,constitution,1048576,DFA,8,0.128,40.621,40.748,68208.00,13,0.23
+Long Literal - Large Text,constitution,1048576,min-DFA,8,0.435,41.131,41.565,181936.00,13,0.23
+Simple Regex - Dot,a.c,1048576,NFA,1716,0.030,322.061,322.091,8352.00,6,0.15
+Simple Regex - Dot,a.c,1048576,NFA+DFA-cache,1716,0.036,161.852,161.888,8352.00,6,0.15
+Simple Regex - Dot,a.c,1048576,DFA,1716,0.090,43.872,43.962,17680.00,4,0.11
+Simple Regex - Dot,a.c,1048576,min-DFA,1716,0.146,44.911,45.056,33624.00,4,0.11
+Simple Regex - Dot,a.c,1048576,NFA (with prefilter),1716,0.059,325.281,325.340,11976.00,6,0.15
+Simple Regex - Dot,a.c,1048576,NFA+DFA-cache (with prefilter),1716,0.069,155.289,155.358,11976.00,6,0.15
+Simple Regex - Dot,a.c,1048576,DFA (with prefilter),1716,0.103,43.530,43.633,21304.00,4,0.11
+Simple Regex - Dot,a.c,1048576,min-DFA (with prefilter),1716,0.131,44.157,44.288,37248.00,4,0.11
+Simple Regex - Star,ab*c,1048576,NFA,2589,0.058,330.049,330.108,10128.00,8,0.19
+Simple Regex - Star,ab*c,1048576,NFA+DFA-cache,2589,0.036,163.727,163.763,10128.00,8,0.19
+Simple Regex - Star,ab*c,1048576,DFA,2589,0.107,43.038,43.145,25128.00,4,0.11
+Simple Regex - Star,ab*c,1048576,min-DFA,2589,0.137,42.546,42.683,39720.00,3,0.09
+Simple Regex - Star,ab*c,1048576,NFA (with prefilter),2589,0.051,326.384,326.435,13752.00,8,0.19
+Simple Regex - Star,ab*c,1048576,NFA+DFA-cache (with prefilter),2589,0.047,161.654,161.701,13752.00,8,0.19
+Simple Regex - Star,ab*c,1048576,DFA (with prefilter),2589,0.097,42.369,42.467,28752.00,4,0.11
+Simple Regex - Star,ab*c,1048576,min-DFA (with prefilter),2589,0.129,42.430,42.559,43344.00,3,0.09
+Complex Regex - Alternation,(cat|dog|bird),1048576,Aho-Corasick,260,0.030,28.794,28.823,8624.00,11,0.08
+Complex Regex - Alternation,(cat|dog|bird),1048576,NFA,260,0.059,707.189,707.249,31072.00,24,0.53
+Complex Regex - Alternation,(cat|dog|bird),1048576,NFA+DFA-cache,260,0.062,786.932,786.994,31072.00,24,0.53
+Complex Regex - Alternation,(cat|dog|bird),1048576,DFA,260,0.172,45.219,45.392,66248.00,11,0.21
+Complex Regex - Alternation,(cat|dog|bird),1048576,min-DFA,260,0.312,42.706,43.018,127704.00,9,0.18
+Complex Regex - Alternation,(cat|dog|bird),1048576,NFA (with prefilter),0,0.110,26.418,26.528,45608.00,35,0.61
+Complex Regex - Alternation,(cat|dog|bird),1048576,NFA+DFA-cache (with prefilter),0,0.106,27.558,27.663,45608.00,35,0.61
+Complex Regex - Alternation,(cat|dog|bird),1048576,DFA (with prefilter),0,0.212,25.929,26.142,80784.00,22,0.29
+Complex Regex - Alternation,(cat|dog|bird),1048576,min-DFA (with prefilter),0,0.372,27.011,27.383,142240.00,20,0.26
+Complex Regex - Multiple Operators,(a|b).*c,1048576,NFA,1,0.073,566.847,566.921,14112.00,12,0.28
+Complex Regex - Multiple Operators,(a|b).*c,1048576,NFA+DFA-cache,1,0.046,36.934,36.980,14112.00,12,0.28
+Complex Regex - Multiple Operators,(a|b).*c,1048576,DFA,1,0.107,34.877,34.984,47200.00,5,0.17
+Complex Regex - Multiple Operators,(a|b).*c,1048576,min-DFA,1,0.196,35.018,35.214,65104.00,3,0.12
+Complex Regex - Multiple Operators,(a|b).*c,1048576,NFA (with prefilter),1,0.097,572.345,572.442,19208.00,12,0.28
+Complex Regex - Multiple Operators,(a|b).*c,1048576,NFA+DFA-cache (with prefilter),1,0.058,37.101,37.160,19208.00,12,0.28
+Complex Regex - Multiple Operators,(a|b).*c,1048576,DFA (with prefilter),1,0.126,35.036,35.162,52296.00,5,0.17
+Complex Regex - Multiple Operators,(a|b).*c,1048576,min-DFA (with prefilter),1,0.207,35.521,35.728,70200.00,3,0.12
+Complex Regex,(a|b)*c(d|e)*,1048576,NFA,21356,0.054,840.595,840.649,20816.00,18,0.43
+Complex Regex,(a|b)*c(d|e)*,1048576,NFA+DFA-cache,21356,0.053,889.080,889.133,20816.00,18,0.43
+Complex Regex,(a|b)*c(d|e)*,1048576,DFA,21356,0.186,44.017,44.202,75592.00,6,0.19
+Complex Regex,(a|b)*c(d|e)*,1048576,min-DFA,21356,0.187,43.844,44.031,88480.00,2,0.10
+Complex Regex,(a|b)*c(d|e)*,1048576,NFA (with prefilter),21356,0.067,873.800,873.867,22696.00,18,0.43
+Complex Regex,(a|b)*c(d|e)*,1048576,NFA+DFA-cache (with prefilter),21356,0.061,901.813,901.875,22696.00,18,0.43
+Complex Regex,(a|b)*c(d|e)*,1048576,DFA (with prefilter),21356,0.230,44.410,44.640,77472.00,6,0.19
+Complex Regex,(a|b)*c(d|e)*,1048576,min-DFA (with prefilter),21356,0.241,44.495,44.736,90360.00,2,0.10
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),1048576,NFA,71,0.389,2060.930,2061.319,373880.00,184,4.52
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),1048576,NFA+DFA-cache,71,0.380,2061.810,2062.190,373880.00,184,4.52
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),1048576,DFA,71,0.883,55.317,56.200,774624.00,52,1.28
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),1048576,min-DFA,71,4.254,50.840,55.094,1792264.00,21,0.55
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),1048576,NFA (with prefilter),71,0.463,2162.679,2163.142,429456.00,184,4.52
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),1048576,NFA+DFA-cache (with prefilter),71,0.483,2122.716,2123.199,427504.00,184,4.52
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),1048576,DFA (with prefilter),71,0.968,56.176,57.144,828256.00,52,1.28
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),1048576,min-DFA (with prefilter),71,4.453,51.889,56.342,1845856.00,21,0.55
+Empty Matches,xyz,1048576,KMP,0,0.001,5.782,5.783,1264.00,,
+Empty Matches,xyz,1048576,Boyer-Moore,0,0.000,10.116,10.117,5632.00,,
+Empty Matches,xyz,1048576,NFA,0,0.034,316.071,316.106,8360.00,6,0.14
+Empty Matches,xyz,1048576,NFA+DFA-cache,0,0.036,152.226,152.263,8360.00,6,0.14
+Empty Matches,xyz,1048576,DFA,0,0.071,40.781,40.852,17848.00,4,0.10
+Empty Matches,xyz,1048576,min-DFA,0,0.130,41.144,41.273,33856.00,4,0.10
+Many Matches,a,1048576,KMP,57453,0.000,7.901,7.902,5315864.00,,
+Many Matches,a,1048576,Boyer-Moore,57453,0.001,26.858,26.859,5302896.00,,
+Many Matches,a,1048576,NFA,57453,0.018,320.424,320.442,3680.00,2,0.07
+Many Matches,a,1048576,NFA+DFA-cache,57453,0.020,164.575,164.595,3680.00,2,0.07
+Many Matches,a,1048576,DFA,57453,0.050,43.387,43.436,7424.00,2,0.07
+Many Matches,a,1048576,min-DFA,57453,0.080,43.766,43.845,13512.00,2,0.07
+Wildcards,.*,1048576,NFA,1,0.030,490.890,490.921,5392.00,4,0.12
+Wildcards,.*,1048576,NFA+DFA-cache,1,0.032,41.828,41.860,5392.00,4,0.12
+Wildcards,.*,1048576,DFA,1,0.081,36.441,36.522,14472.00,2,0.09
+Wildcards,.*,1048576,min-DFA,1,0.094,36.627,36.721,19432.00,1,0.07
+Wildcards,.*,1048576,NFA (with prefilter),1,0.031,485.464,485.495,6584.00,4,0.12
+Wildcards,.*,1048576,NFA+DFA-cache (with prefilter),1,0.041,47.504,47.545,6584.00,4,0.12
+Wildcards,.*,1048576,DFA (with prefilter),1,0.084,43.254,43.338,15664.00,2,0.09
+Wildcards,.*,1048576,min-DFA (with prefilter),1,0.094,36.624,36.718,20624.00,1,0.07
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),1048576,NFA,0,0.167,873.653,873.820,105792.00,76,1.75
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),1048576,NFA+DFA-cache,0,0.177,909.022,909.198,105792.00,76,1.75
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),1048576,DFA,0,85.709,1752.292,1838.001,5719640.00,4097,133.04
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),1048576,min-DFA,0,480.728,1748.703,2229.431,19058960.00,4096,132.63
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),1048576,NFA (with prefilter),0,0.190,23.053,23.242,130336.00,81,1.83
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),1048576,NFA+DFA-cache (with prefilter),0,0.179,23.836,24.015,130336.00,81,1.83
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),1048576,DFA (with prefilter),0,85.057,23.182,108.239,5797488.00,4102,133.12
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),1048576,min-DFA (with prefilter),0,491.001,22.771,513.772,19978968.00,4101,132.71
+Short Literal - Small Text,abc,256000,KMP,0,0.000,1.611,1.611,1264.00,,
+Short Literal - Small Text,abc,256000,Boyer-Moore,0,0.000,2.314,2.314,5504.00,,
+Short Literal - Small Text,abc,256000,NFA,0,0.031,75.649,75.680,8360.00,6,0.14
+Short Literal - Small Text,abc,256000,NFA+DFA-cache,0,0.028,46.073,46.101,8360.00,6,0.14
+Short Literal - Small Text,abc,256000,DFA,0,0.085,10.393,10.478,17848.00,4,0.10
+Short Literal - Small Text,abc,256000,min-DFA,0,0.189,10.363,10.553,33856.00,4,0.10
+Short Literal - Large Text,the,256000,KMP,4605,0.001,1.925,1.926,489480.00,,
+Short Literal - Large Text,the,256000,Boyer-Moore,4605,0.001,2.744,2.745,494768.00,,
+Short Literal - Large Text,the,256000,NFA,4605,0.034,80.752,80.786,8360.00,6,0.14
+Short Literal - Large Text,the,256000,NFA+DFA-cache,4605,0.053,45.770,45.823,8360.00,6,0.14
+Short Literal - Large Text,the,256000,DFA,4605,0.077,10.358,10.435,17848.00,4,0.10
+Short Literal - Large Text,the,256000,min-DFA,4605,0.125,10.548,10.672,33856.00,4,0.10
+Long Literal - Small Text,abcdefghijklmnop,256000,KMP,0,0.000,1.565,1.566,1368.00,,
+Long Literal - Small Text,abcdefghijklmnop,256000,Boyer-Moore,0,0.000,0.725,0.725,8144.00,,
+Long Literal - Small Text,abcdefghijklmnop,256000,NFA,0,0.065,75.150,75.214,47608.00,32,0.69
+Long Literal - Small Text,abcdefghijklmnop,256000,NFA+DFA-cache,0,0.062,46.361,46.423,47608.00,32,0.69
+Long Literal - Small Text,abcdefghijklmnop,256000,DFA,0,0.166,10.437,10.603,95728.00,17,0.30
+Long Literal - Small Text,abcdefghijklmnop,256000,min-DFA,0,0.569,10.340,10.909,238824.00,17,0.30
+Long Literal - Large Text,constitution,256000,KMP,0,0.000,1.416,1.416,1336.00,,
+Long Literal - Large Text,constitution,256000,Boyer-Moore,0,0.000,0.804,0.804,6512.00,,
+Long Literal - Large Text,constitution,256000,NFA,0,0.051,73.344,73.395,32560.00,24,0.52
+Long Literal - Large Text,constitution,256000,NFA+DFA-cache,0,0.052,45.208,45.259,32560.00,24,0.52
+Long Literal - Large Text,constitution,256000,DFA,0,0.192,10.215,10.407,68208.00,13,0.23
+Long Literal - Large Text,constitution,256000,min-DFA,0,0.408,10.394,10.802,181936.00,13,0.23
+Simple Regex - Dot,a.c,256000,NFA,384,0.033,82.058,82.091,8352.00,6,0.15
+Simple Regex - Dot,a.c,256000,NFA+DFA-cache,384,0.032,46.474,46.506,8352.00,6,0.15
+Simple Regex - Dot,a.c,256000,DFA,384,0.091,11.024,11.115,17680.00,4,0.11
+Simple Regex - Dot,a.c,256000,min-DFA,384,0.126,10.979,11.104,33624.00,4,0.11
+Simple Regex - Dot,a.c,256000,NFA (with prefilter),384,0.048,82.421,82.469,11944.00,6,0.15
+Simple Regex - Dot,a.c,256000,NFA+DFA-cache (with prefilter),384,0.050,47.008,47.058,11944.00,6,0.15
+Simple Regex - Dot,a.c,256000,DFA (with prefilter),384,0.091,10.749,10.840,21272.00,4,0.11
+Simple Regex - Dot,a.c,256000,min-DFA (with prefilter),384,0.117,10.822,10.939,37216.00,4,0.11
+Simple Regex - Star,ab*c,256000,NFA,602,0.035,82.113,82.149,10128.00,8,0.19
+Simple Regex - Star,ab*c,256000,NFA+DFA-cache,602,0.037,48.870,48.907,10128.00,8,0.19
+Simple Regex - Star,ab*c,256000,DFA,602,0.085,10.403,10.488,25128.00,4,0.11
+Simple Regex - Star,ab*c,256000,min-DFA,602,0.131,10.530,10.661,39720.00,3,0.09
+Simple Regex - Star,ab*c,256000,NFA (with prefilter),602,0.046,79.893,79.939,13720.00,8,0.19
+Simple Regex - Star,ab*c,256000,NFA+DFA-cache (with prefilter),602,0.060,48.948,49.008,13720.00,8,0.19
+Simple Regex - Star,ab*c,256000,DFA (with prefilter),602,0.092,10.401,10.493,28720.00,4,0.11
+Simple Regex - Star,ab*c,256000,min-DFA (with prefilter),602,0.134,10.464,10.599,43312.00,3,0.09
+Complex Regex - Alternation,(cat|dog|bird),256000,Aho-Corasick,59,0.039,11.752,11.791,8624.00,11,0.08
+Complex Regex - Alternation,(cat|dog|bird),256000,NFA,59,0.088,172.389,172.477,31072.00,24,0.53
+Complex Regex - Alternation,(cat|dog|bird),256000,NFA+DFA-cache,59,0.057,194.066,194.123,31072.00,24,0.53
+Complex Regex - Alternation,(cat|dog|bird),256000,DFA,59,0.146,10.872,11.018,66248.00,11,0.21
+Complex Regex - Alternation,(cat|dog|bird),256000,min-DFA,59,0.273,10.864,11.137,127704.00,9,0.18
+Complex Regex - Alternation,(cat|dog|bird),256000,NFA (with prefilter),0,0.108,10.718,10.827,45448.00,35,0.61
+Complex Regex - Alternation,(cat|dog|bird),256000,NFA+DFA-cache (with prefilter),0,0.110,12.105,12.215,45448.00,35,0.61
+Complex Regex - Alternation,(cat|dog|bird),256000,DFA (with prefilter),0,0.186,12.267,12.453,80624.00,22,0.29
+Complex Regex - Alternation,(cat|dog|bird),256000,min-DFA (with prefilter),0,0.335,12.951,13.287,142080.00,20,0.26
+Complex Regex - Multiple Operators,(a|b).*c,256000,NFA,1,0.045,145.591,145.637,14112.00,12,0.28
+Complex Regex - Multiple Operators,(a|b).*c,256000,NFA+DFA-cache,1,0.062,17.644,17.706,14112.00,12,0.28
+Complex Regex - Multiple Operators,(a|b).*c,256000,DFA,1,0.136,8.715,8.851,47200.00,5,0.17
+Complex Regex - Multiple Operators,(a|b).*c,256000,min-DFA,1,0.158,8.649,8.807,65104.00,3,0.12
+Complex Regex - Multiple Operators,(a|b).*c,256000,NFA (with prefilter),1,0.101,144.021,144.121,19112.00,12,0.28
+Complex Regex - Multiple Operators,(a|b).*c,256000,NFA+DFA-cache (with prefilter),1,0.059,15.063,15.122,19112.00,12,0.28
+Complex Regex - Multiple Operators,(a|b).*c,256000,DFA (with prefilter),1,0.142,8.928,9.070,52200.00,5,0.17
+Complex Regex - Multiple Operators,(a|b).*c,256000,min-DFA (with prefilter),1,0.193,8.833,9.026,69776.00,3,0.12
+Complex Regex,(a|b)*c(d|e)*,256000,NFA,5286,0.073,210.516,210.588,20816.00,18,0.43
+Complex Regex,(a|b)*c(d|e)*,256000,NFA+DFA-cache,5286,0.049,224.887,224.936,20816.00,18,0.43
+Complex Regex,(a|b)*c(d|e)*,256000,DFA,5286,0.149,11.067,11.215,75592.00,6,0.19
+Complex Regex,(a|b)*c(d|e)*,256000,min-DFA,5286,0.192,11.070,11.262,88480.00,2,0.10
+Complex Regex,(a|b)*c(d|e)*,256000,NFA (with prefilter),5286,0.071,219.528,219.599,22664.00,18,0.43
+Complex Regex,(a|b)*c(d|e)*,256000,NFA+DFA-cache (with prefilter),5286,0.122,228.207,228.329,22664.00,18,0.43
+Complex Regex,(a|b)*c(d|e)*,256000,DFA (with prefilter),5286,0.167,11.140,11.307,77440.00,6,0.19
+Complex Regex,(a|b)*c(d|e)*,256000,min-DFA (with prefilter),5286,0.187,11.089,11.276,90328.00,2,0.10
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),256000,NFA,24,0.378,525.604,525.982,373880.00,184,4.52
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),256000,NFA+DFA-cache,24,0.382,520.468,520.851,373880.00,184,4.52
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),256000,DFA,24,0.997,14.162,15.158,774624.00,52,1.28
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),256000,min-DFA,24,4.200,12.723,16.923,1792264.00,21,0.55
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),256000,NFA (with prefilter),24,0.487,525.898,526.385,427504.00,184,4.52
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),256000,NFA+DFA-cache (with prefilter),24,0.456,515.423,515.879,427504.00,184,4.52
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),256000,DFA (with prefilter),24,1.015,14.534,15.550,828216.00,52,1.28
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),256000,min-DFA (with prefilter),24,5.206,13.022,18.228,1845824.00,21,0.55
+Empty Matches,xyz,256000,KMP,0,0.000,1.315,1.315,1264.00,,
+Empty Matches,xyz,256000,Boyer-Moore,0,0.001,2.289,2.290,5376.00,,
+Empty Matches,xyz,256000,NFA,0,0.029,74.642,74.671,8360.00,6,0.14
+Empty Matches,xyz,256000,NFA+DFA-cache,0,0.029,43.447,43.476,8360.00,6,0.14
+Empty Matches,xyz,256000,DFA,0,0.068,9.928,9.996,17848.00,4,0.10
+Empty Matches,xyz,256000,min-DFA,0,0.109,10.247,10.357,33856.00,4,0.10
+Many Matches,a,256000,KMP,13523,0.001,4.204,4.204,1352136.00,,
+Many Matches,a,256000,Boyer-Moore,13523,0.000,6.727,6.728,1356152.00,,
+Many Matches,a,256000,NFA,13523,0.018,79.067,79.085,3680.00,2,0.07
+Many Matches,a,256000,NFA+DFA-cache,13523,0.018,45.818,45.835,3680.00,2,0.07
+Many Matches,a,256000,DFA,13523,0.040,10.623,10.663,7424.00,2,0.07
+Many Matches,a,256000,min-DFA,13523,0.063,10.580,10.642,13512.00,2,0.07
+Wildcards,.*,256000,NFA,1,0.026,117.674,117.700,5392.00,4,0.12
+Wildcards,.*,256000,NFA+DFA-cache,1,0.031,15.400,15.432,5392.00,4,0.12
+Wildcards,.*,256000,DFA,1,0.099,8.914,9.013,14472.00,2,0.09
+Wildcards,.*,256000,min-DFA,1,0.111,9.005,9.116,19432.00,1,0.07
+Wildcards,.*,256000,NFA (with prefilter),1,0.030,122.164,122.194,6584.00,4,0.12
+Wildcards,.*,256000,NFA+DFA-cache (with prefilter),1,0.029,19.625,19.655,6584.00,4,0.12
+Wildcards,.*,256000,DFA (with prefilter),1,0.066,8.949,9.015,15664.00,2,0.09
+Wildcards,.*,256000,min-DFA (with prefilter),1,0.079,8.907,8.986,20624.00,1,0.07
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),256000,NFA,0,0.115,214.886,215.001,105792.00,76,1.75
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),256000,NFA+DFA-cache,0,0.137,232.388,232.525,105792.00,76,1.75
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),256000,DFA,0,85.884,432.959,518.843,5556752.00,4097,133.04
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),256000,min-DFA,0,486.931,432.396,919.327,19250304.00,4096,132.63
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),256000,NFA (with prefilter),0,0.175,11.854,12.029,130336.00,81,1.83
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),256000,NFA+DFA-cache (with prefilter),0,0.268,4.954,5.222,138312.00,81,1.83
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),256000,DFA (with prefilter),0,86.110,4.410,90.520,7113280.00,4102,133.12
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),256000,min-DFA (with prefilter),0,495.122,12.451,507.573,19345000.00,4101,132.71
+Short Literal - Small Text,abc,2014783,KMP,0,0.000,12.077,12.078,1264.00,,
+Short Literal - Small Text,abc,2014783,Boyer-Moore,0,0.000,17.742,17.742,7208.00,,
+Short Literal - Small Text,abc,2014783,NFA,0,0.063,615.270,615.333,8360.00,6,0.14
+Short Literal - Small Text,abc,2014783,NFA+DFA-cache,0,0.030,341.754,341.784,8360.00,6,0.14
+Short Literal - Small Text,abc,2014783,DFA,0,0.070,82.300,82.370,17848.00,4,0.10
+Short Literal - Small Text,abc,2014783,min-DFA,0,0.115,82.351,82.466,33856.00,4,0.10
+Short Literal - Large Text,the,2014783,KMP,30994,0.000,14.020,14.020,2798952.00,,
+Short Literal - Large Text,the,2014783,Boyer-Moore,30994,0.000,20.876,20.877,2807256.00,,
+Short Literal - Large Text,the,2014783,NFA,30994,0.034,645.004,645.038,8360.00,6,0.14
+Short Literal - Large Text,the,2014783,NFA+DFA-cache,30994,0.063,288.750,288.814,8360.00,6,0.14
+Short Literal - Large Text,the,2014783,DFA,30994,0.105,82.731,82.836,17848.00,4,0.10
+Short Literal - Large Text,the,2014783,min-DFA,30994,0.133,82.292,82.424,33856.00,4,0.10
+Long Literal - Small Text,abcdefghijklmnop,2014783,KMP,0,0.000,11.848,11.848,1368.00,,
+Long Literal - Small Text,abcdefghijklmnop,2014783,Boyer-Moore,0,0.000,5.270,5.271,8624.00,,
+Long Literal - Small Text,abcdefghijklmnop,2014783,NFA,0,0.063,616.991,617.054,47608.00,32,0.69
+Long Literal - Small Text,abcdefghijklmnop,2014783,NFA+DFA-cache,0,0.070,310.188,310.258,47608.00,32,0.69
+Long Literal - Small Text,abcdefghijklmnop,2014783,DFA,0,0.241,82.763,83.005,95728.00,17,0.30
+Long Literal - Small Text,abcdefghijklmnop,2014783,min-DFA,0,0.628,81.960,82.588,238952.00,17,0.30
+Long Literal - Large Text,constitution,2014783,KMP,11,0.000,10.998,10.998,2296.00,,
+Long Literal - Large Text,constitution,2014783,Boyer-Moore,11,0.000,5.819,5.820,7784.00,,
+Long Literal - Large Text,constitution,2014783,NFA,11,0.052,588.772,588.824,32560.00,24,0.52
+Long Literal - Large Text,constitution,2014783,NFA+DFA-cache,11,0.052,288.088,288.140,32560.00,24,0.52
+Long Literal - Large Text,constitution,2014783,DFA,11,0.139,79.217,79.356,68208.00,13,0.23
+Long Literal - Large Text,constitution,2014783,min-DFA,11,0.423,78.948,79.371,181936.00,13,0.23
+Simple Regex - Dot,a.c,2014783,NFA,3050,0.033,648.471,648.504,8352.00,6,0.15
+Simple Regex - Dot,a.c,2014783,NFA+DFA-cache,3050,0.034,320.813,320.847,8352.00,6,0.15
+Simple Regex - Dot,a.c,2014783,DFA,3050,0.082,85.889,85.971,17680.00,4,0.11
+Simple Regex - Dot,a.c,2014783,min-DFA,3050,0.131,84.423,84.555,33624.00,4,0.11
+Simple Regex - Dot,a.c,2014783,NFA (with prefilter),3050,0.042,646.783,646.825,11944.00,6,0.15
+Simple Regex - Dot,a.c,2014783,NFA+DFA-cache (with prefilter),3050,0.044,296.084,296.129,11944.00,6,0.15
+Simple Regex - Dot,a.c,2014783,DFA (with prefilter),3050,0.082,85.766,85.847,21272.00,4,0.11
+Simple Regex - Dot,a.c,2014783,min-DFA (with prefilter),3050,0.128,84.460,84.588,37216.00,4,0.11
+Simple Regex - Star,ab*c,2014783,NFA,4495,0.035,650.341,650.376,10128.00,8,0.19
+Simple Regex - Star,ab*c,2014783,NFA+DFA-cache,4495,0.038,340.532,340.571,10128.00,8,0.19
+Simple Regex - Star,ab*c,2014783,DFA,4495,0.096,80.644,80.740,25128.00,4,0.11
+Simple Regex - Star,ab*c,2014783,min-DFA,4495,0.130,81.996,82.126,39720.00,3,0.09
+Simple Regex - Star,ab*c,2014783,NFA (with prefilter),4495,0.052,660.482,660.534,13720.00,8,0.19
+Simple Regex - Star,ab*c,2014783,NFA+DFA-cache (with prefilter),4495,0.049,307.587,307.636,13720.00,8,0.19
+Simple Regex - Star,ab*c,2014783,DFA (with prefilter),4495,0.108,82.381,82.489,28720.00,4,0.11
+Simple Regex - Star,ab*c,2014783,min-DFA (with prefilter),4495,0.129,81.261,81.389,43312.00,3,0.09
+Complex Regex - Alternation,(cat|dog|bird),2014783,Aho-Corasick,481,0.027,50.155,50.183,8624.00,11,0.08
+Complex Regex - Alternation,(cat|dog|bird),2014783,NFA,481,0.057,1381.191,1381.247,31072.00,24,0.53
+Complex Regex - Alternation,(cat|dog|bird),2014783,NFA+DFA-cache,481,0.066,1519.518,1519.584,31072.00,24,0.53
+Complex Regex - Alternation,(cat|dog|bird),2014783,DFA,481,0.146,88.462,88.608,66248.00,11,0.21
+Complex Regex - Alternation,(cat|dog|bird),2014783,min-DFA,481,0.358,91.584,91.942,127560.00,9,0.18
+Complex Regex - Alternation,(cat|dog|bird),2014783,NFA (with prefilter),0,0.120,48.813,48.933,45304.00,35,0.61
+Complex Regex - Alternation,(cat|dog|bird),2014783,NFA+DFA-cache (with prefilter),0,0.193,50.724,50.917,45304.00,35,0.61
+Complex Regex - Alternation,(cat|dog|bird),2014783,DFA (with prefilter),0,0.229,47.980,48.209,80480.00,22,0.29
+Complex Regex - Alternation,(cat|dog|bird),2014783,min-DFA (with prefilter),0,0.366,48.354,48.720,141936.00,20,0.26
+Complex Regex - Multiple Operators,(a|b).*c,2014783,NFA,1,0.056,1156.612,1156.668,13968.00,12,0.28
+Complex Regex - Multiple Operators,(a|b).*c,2014783,NFA+DFA-cache,1,0.044,77.589,77.633,13968.00,12,0.28
+Complex Regex - Multiple Operators,(a|b).*c,2014783,DFA,1,0.109,72.239,72.348,47056.00,5,0.17
+Complex Regex - Multiple Operators,(a|b).*c,2014783,min-DFA,1,0.165,67.632,67.797,64960.00,3,0.12
+Complex Regex - Multiple Operators,(a|b).*c,2014783,NFA (with prefilter),1,0.087,1162.324,1162.410,18968.00,12,0.28
+Complex Regex - Multiple Operators,(a|b).*c,2014783,NFA+DFA-cache (with prefilter),1,0.056,68.106,68.162,18968.00,12,0.28
+Complex Regex - Multiple Operators,(a|b).*c,2014783,DFA (with prefilter),1,0.126,68.138,68.264,52056.00,5,0.17
+Complex Regex - Multiple Operators,(a|b).*c,2014783,min-DFA (with prefilter),1,0.176,68.398,68.575,69960.00,3,0.12
+Complex Regex,(a|b)*c(d|e)*,2014783,NFA,39843,0.066,1710.894,1710.960,20672.00,18,0.43
+Complex Regex,(a|b)*c(d|e)*,2014783,NFA+DFA-cache,39843,0.063,1792.346,1792.409,20672.00,18,0.43
+Complex Regex,(a|b)*c(d|e)*,2014783,DFA,39843,0.171,87.704,87.875,75448.00,6,0.19
+Complex Regex,(a|b)*c(d|e)*,2014783,min-DFA,39843,0.185,91.833,92.017,88336.00,2,0.10
+Complex Regex,(a|b)*c(d|e)*,2014783,NFA (with prefilter),39843,0.061,1741.114,1741.174,22520.00,18,0.43
+Complex Regex,(a|b)*c(d|e)*,2014783,NFA+DFA-cache (with prefilter),39843,0.084,1859.958,1860.043,22520.00,18,0.43
+Complex Regex,(a|b)*c(d|e)*,2014783,DFA (with prefilter),39843,0.202,90.523,90.725,77296.00,6,0.19
+Complex Regex,(a|b)*c(d|e)*,2014783,min-DFA (with prefilter),39843,0.204,87.904,88.108,90184.00,2,0.10
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),2014783,NFA,156,0.394,4125.793,4126.187,373760.00,184,4.52
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),2014783,NFA+DFA-cache,156,0.408,4139.172,4139.580,373760.00,184,4.52
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),2014783,DFA,156,0.959,106.567,107.527,774512.00,52,1.28
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),2014783,min-DFA,156,4.268,103.920,108.189,1792128.00,21,0.55
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),2014783,NFA (with prefilter),156,0.488,4115.816,4116.305,427384.00,184,4.52
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),2014783,NFA+DFA-cache (with prefilter),156,0.459,4107.147,4107.606,427384.00,184,4.52
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),2014783,DFA (with prefilter),156,1.066,105.759,106.825,828184.00,52,1.28
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),2014783,min-DFA (with prefilter),156,4.242,97.355,101.597,1845784.00,21,0.55
+Empty Matches,xyz,2014783,KMP,0,0.000,10.507,10.507,976.00,,
+Empty Matches,xyz,2014783,Boyer-Moore,0,0.000,17.316,17.317,6472.00,,
+Empty Matches,xyz,2014783,NFA,0,0.030,579.637,579.667,8216.00,6,0.14
+Empty Matches,xyz,2014783,NFA+DFA-cache,0,0.050,301.045,301.095,8216.00,6,0.14
+Empty Matches,xyz,2014783,DFA,0,0.083,78.178,78.260,17704.00,4,0.10
+Empty Matches,xyz,2014783,min-DFA,0,0.140,79.991,80.131,33712.00,4,0.10
+Many Matches,a,2014783,KMP,108276,0.000,14.016,14.017,9085744.00,,
+Many Matches,a,2014783,Boyer-Moore,108276,0.000,50.384,50.384,9091216.00,,
+Many Matches,a,2014783,NFA,108276,0.018,632.591,632.609,3536.00,2,0.07
+Many Matches,a,2014783,NFA+DFA-cache,108276,0.020,312.101,312.121,3536.00,2,0.07
+Many Matches,a,2014783,DFA,108276,0.072,83.192,83.264,7280.00,2,0.07
+Many Matches,a,2014783,min-DFA,108276,0.073,82.633,82.706,13368.00,2,0.07
+Wildcards,.*,2014783,NFA,1,0.030,975.295,975.325,5248.00,4,0.12
+Wildcards,.*,2014783,NFA+DFA-cache,1,0.029,74.091,74.120,5248.00,4,0.12
+Wildcards,.*,2014783,DFA,1,0.071,70.395,70.467,14328.00,2,0.09
+Wildcards,.*,2014783,min-DFA,1,0.078,70.657,70.735,19288.00,1,0.07
+Wildcards,.*,2014783,NFA (with prefilter),1,0.030,952.550,952.580,6440.00,4,0.12
+Wildcards,.*,2014783,NFA+DFA-cache (with prefilter),1,0.031,78.367,78.398,6440.00,4,0.12
+Wildcards,.*,2014783,DFA (with prefilter),1,0.075,69.406,69.480,15520.00,2,0.09
+Wildcards,.*,2014783,min-DFA (with prefilter),1,0.097,69.214,69.311,20480.00,1,0.07
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),2014783,NFA,0,0.153,1759.751,1759.903,105648.00,76,1.75
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),2014783,NFA+DFA-cache,0,0.145,1812.433,1812.579,105648.00,76,1.75
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),2014783,DFA,0,90.561,3435.687,3526.249,4105608.00,4097,133.04
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),2014783,min-DFA,0,490.694,3441.819,3932.513,18202968.00,4096,132.63
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),2014783,NFA (with prefilter),0,0.219,42.636,42.855,130192.00,81,1.83
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),2014783,NFA+DFA-cache (with prefilter),0,0.181,42.767,42.948,130192.00,81,1.83
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),2014783,DFA (with prefilter),0,93.298,46.748,140.046,4296104.00,4102,133.12
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),2014783,min-DFA (with prefilter),0,510.851,46.587,557.438,18815792.00,4101,132.71
+Short Literal - Small Text,abc,512000,KMP,0,0.000,3.018,3.018,976.00,,
+Short Literal - Small Text,abc,512000,Boyer-Moore,0,0.000,4.519,4.519,5248.00,,
+Short Literal - Small Text,abc,512000,NFA,0,0.034,159.659,159.692,8216.00,6,0.14
+Short Literal - Small Text,abc,512000,NFA+DFA-cache,0,0.037,88.964,89.000,8216.00,6,0.14
+Short Literal - Small Text,abc,512000,DFA,0,0.086,20.926,21.012,17704.00,4,0.10
+Short Literal - Small Text,abc,512000,min-DFA,0,0.159,20.629,20.788,33712.00,4,0.10
+Short Literal - Large Text,the,512000,KMP,8909,0.000,3.806,3.806,899392.00,,
+Short Literal - Large Text,the,512000,Boyer-Moore,8909,0.000,5.546,5.547,903440.00,,
+Short Literal - Large Text,the,512000,NFA,8909,0.034,164.270,164.303,9232.00,6,0.14
+Short Literal - Large Text,the,512000,NFA+DFA-cache,8909,0.038,93.091,93.129,8216.00,6,0.14
+Short Literal - Large Text,the,512000,DFA,8909,0.094,20.867,20.962,17704.00,4,0.10
+Short Literal - Large Text,the,512000,min-DFA,8909,0.112,20.865,20.977,33712.00,4,0.10
+Long Literal - Small Text,abcdefghijklmnop,512000,KMP,0,0.001,3.068,3.069,1080.00,,
+Long Literal - Small Text,abcdefghijklmnop,512000,Boyer-Moore,0,0.001,1.450,1.451,7984.00,,
+Long Literal - Small Text,abcdefghijklmnop,512000,NFA,0,0.064,159.271,159.336,47464.00,32,0.69
+Long Literal - Small Text,abcdefghijklmnop,512000,NFA+DFA-cache,0,0.064,89.810,89.875,47464.00,32,0.69
+Long Literal - Small Text,abcdefghijklmnop,512000,DFA,0,0.159,21.222,21.380,95584.00,17,0.30
+Long Literal - Small Text,abcdefghijklmnop,512000,min-DFA,0,0.626,30.696,31.322,238648.00,17,0.30
+Long Literal - Large Text,constitution,512000,KMP,0,0.000,2.824,2.824,1048.00,,
+Long Literal - Large Text,constitution,512000,Boyer-Moore,0,0.000,1.564,1.565,6288.00,,
+Long Literal - Large Text,constitution,512000,NFA,0,0.054,155.644,155.698,32416.00,24,0.52
+Long Literal - Large Text,constitution,512000,NFA+DFA-cache,0,0.051,83.974,84.026,32416.00,24,0.52
+Long Literal - Large Text,constitution,512000,DFA,0,0.127,20.188,20.316,68064.00,13,0.23
+Long Literal - Large Text,constitution,512000,min-DFA,0,0.439,21.133,21.572,181792.00,13,0.23
+Simple Regex - Dot,a.c,512000,NFA,802,0.040,182.780,182.821,8104.00,6,0.15
+Simple Regex - Dot,a.c,512000,NFA+DFA-cache,802,0.035,89.284,89.319,8208.00,6,0.15
+Simple Regex - Dot,a.c,512000,DFA,802,0.108,21.793,21.901,17536.00,4,0.11
+Simple Regex - Dot,a.c,512000,min-DFA,802,0.137,22.478,22.615,33480.00,4,0.11
+Simple Regex - Dot,a.c,512000,NFA (with prefilter),802,0.049,171.351,171.401,11800.00,6,0.15
+Simple Regex - Dot,a.c,512000,NFA+DFA-cache (with prefilter),802,0.042,86.149,86.191,11800.00,6,0.15
+Simple Regex - Dot,a.c,512000,DFA (with prefilter),802,0.082,22.082,22.164,21128.00,4,0.11
+Simple Regex - Dot,a.c,512000,min-DFA (with prefilter),802,0.135,21.804,21.939,37072.00,4,0.11
+Simple Regex - Star,ab*c,512000,NFA,1278,0.059,173.428,173.487,9984.00,8,0.19
+Simple Regex - Star,ab*c,512000,NFA+DFA-cache,1278,0.037,95.751,95.788,9984.00,8,0.19
+Simple Regex - Star,ab*c,512000,DFA,1278,0.091,21.951,22.042,24984.00,4,0.11
+Simple Regex - Star,ab*c,512000,min-DFA,1278,0.133,21.964,22.097,39576.00,3,0.09
+Simple Regex - Star,ab*c,512000,NFA (with prefilter),1278,0.047,173.912,173.959,13576.00,8,0.19
+Simple Regex - Star,ab*c,512000,NFA+DFA-cache (with prefilter),1278,0.058,95.591,95.649,13576.00,8,0.19
+Simple Regex - Star,ab*c,512000,DFA (with prefilter),1278,0.107,21.566,21.673,28576.00,4,0.11
+Simple Regex - Star,ab*c,512000,min-DFA (with prefilter),1278,0.147,21.403,21.550,43168.00,3,0.09
+Complex Regex - Alternation,(cat|dog|bird),512000,Aho-Corasick,91,0.028,20.731,20.760,8480.00,11,0.08
+Complex Regex - Alternation,(cat|dog|bird),512000,NFA,91,0.073,368.356,368.430,30928.00,24,0.53
+Complex Regex - Alternation,(cat|dog|bird),512000,NFA+DFA-cache,91,0.069,408.007,408.076,30928.00,24,0.53
+Complex Regex - Alternation,(cat|dog|bird),512000,DFA,91,0.157,22.067,22.224,66104.00,11,0.21
+Complex Regex - Alternation,(cat|dog|bird),512000,min-DFA,91,0.312,30.570,30.882,127560.00,9,0.18
+Complex Regex - Alternation,(cat|dog|bird),512000,NFA (with prefilter),0,0.118,27.161,27.279,45304.00,35,0.61
+Complex Regex - Alternation,(cat|dog|bird),512000,NFA+DFA-cache (with prefilter),0,0.112,22.899,23.011,45304.00,35,0.61
+Complex Regex - Alternation,(cat|dog|bird),512000,DFA (with prefilter),0,0.249,17.844,18.093,80480.00,22,0.29
+Complex Regex - Alternation,(cat|dog|bird),512000,min-DFA (with prefilter),0,0.358,21.750,22.108,141904.00,20,0.26
+Complex Regex - Multiple Operators,(a|b).*c,512000,NFA,1,0.057,302.902,302.959,13968.00,12,0.28
+Complex Regex - Multiple Operators,(a|b).*c,512000,NFA+DFA-cache,1,0.042,26.621,26.663,13968.00,12,0.28
+Complex Regex - Multiple Operators,(a|b).*c,512000,DFA,1,0.114,17.861,17.975,47056.00,5,0.17
+Complex Regex - Multiple Operators,(a|b).*c,512000,min-DFA,1,0.174,17.705,17.879,64960.00,3,0.12
+Complex Regex - Multiple Operators,(a|b).*c,512000,NFA (with prefilter),1,0.067,313.227,313.294,18968.00,12,0.28
+Complex Regex - Multiple Operators,(a|b).*c,512000,NFA+DFA-cache (with prefilter),1,0.057,27.592,27.650,18968.00,12,0.28
+Complex Regex - Multiple Operators,(a|b).*c,512000,DFA (with prefilter),1,0.157,17.935,18.092,52056.00,5,0.17
+Complex Regex - Multiple Operators,(a|b).*c,512000,min-DFA (with prefilter),1,0.174,17.710,17.884,69936.00,3,0.12
+Complex Regex,(a|b)*c(d|e)*,512000,NFA,10420,0.092,454.719,454.811,20672.00,18,0.43
+Complex Regex,(a|b)*c(d|e)*,512000,NFA+DFA-cache,10420,0.050,469.572,469.622,20672.00,18,0.43
+Complex Regex,(a|b)*c(d|e)*,512000,DFA,10420,0.190,22.294,22.483,75448.00,6,0.19
+Complex Regex,(a|b)*c(d|e)*,512000,min-DFA,10420,0.200,22.330,22.530,88336.00,2,0.10
+Complex Regex,(a|b)*c(d|e)*,512000,NFA (with prefilter),10420,0.069,445.025,445.094,22520.00,18,0.43
+Complex Regex,(a|b)*c(d|e)*,512000,NFA+DFA-cache (with prefilter),10420,0.063,491.761,491.824,22520.00,18,0.43
+Complex Regex,(a|b)*c(d|e)*,512000,DFA (with prefilter),10420,0.171,22.517,22.688,77296.00,6,0.19
+Complex Regex,(a|b)*c(d|e)*,512000,min-DFA (with prefilter),10420,0.200,21.721,21.921,90184.00,2,0.10
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),512000,NFA,37,0.408,1061.038,1061.447,373760.00,184,4.52
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),512000,NFA+DFA-cache,37,0.379,1026.091,1026.471,373760.00,184,4.52
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),512000,DFA,37,0.964,27.117,28.080,774552.00,52,1.28
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),512000,min-DFA,37,4.636,24.763,29.399,1792192.00,21,0.55
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),512000,NFA (with prefilter),37,0.516,1033.678,1034.194,427384.00,184,4.52
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),512000,NFA+DFA-cache (with prefilter),37,0.477,1024.227,1024.704,427384.00,184,4.52
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),512000,DFA (with prefilter),37,1.008,30.377,31.385,828184.00,52,1.28
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),512000,min-DFA (with prefilter),37,4.323,25.881,30.204,1845784.00,21,0.55
+Empty Matches,xyz,512000,KMP,0,0.000,2.617,2.618,976.00,,
+Empty Matches,xyz,512000,Boyer-Moore,0,0.000,4.365,4.366,5152.00,,
+Empty Matches,xyz,512000,NFA,0,0.033,155.054,155.087,8216.00,6,0.14
+Empty Matches,xyz,512000,NFA+DFA-cache,0,0.033,81.916,81.949,8216.00,6,0.14
+Empty Matches,xyz,512000,DFA,0,0.079,19.948,20.028,17704.00,4,0.10
+Empty Matches,xyz,512000,min-DFA,0,0.118,20.062,20.180,33712.00,4,0.10
+Many Matches,a,512000,KMP,27900,0.000,4.298,4.298,2839016.00,,
+Many Matches,a,512000,Boyer-Moore,27900,0.000,13.321,13.321,2613640.00,,
+Many Matches,a,512000,NFA,27900,0.024,159.718,159.743,3536.00,2,0.07
+Many Matches,a,512000,NFA+DFA-cache,27900,0.051,88.840,88.891,3536.00,2,0.07
+Many Matches,a,512000,DFA,27900,0.044,21.121,21.165,7280.00,2,0.07
+Many Matches,a,512000,min-DFA,27900,0.078,21.064,21.142,13368.00,2,0.07
+Wildcards,.*,512000,NFA,1,0.028,238.430,238.458,5248.00,4,0.12
+Wildcards,.*,512000,NFA+DFA-cache,1,0.028,27.643,27.671,5248.00,4,0.12
+Wildcards,.*,512000,DFA,1,0.076,17.916,17.992,14328.00,2,0.09
+Wildcards,.*,512000,min-DFA,1,0.088,17.790,17.878,19288.00,1,0.07
+Wildcards,.*,512000,NFA (with prefilter),1,0.033,237.355,237.388,6440.00,4,0.12
+Wildcards,.*,512000,NFA+DFA-cache (with prefilter),1,0.030,32.021,32.051,6440.00,4,0.12
+Wildcards,.*,512000,DFA (with prefilter),1,0.075,17.742,17.818,15520.00,2,0.09
+Wildcards,.*,512000,min-DFA (with prefilter),1,0.088,17.784,17.872,20480.00,1,0.07
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),512000,NFA,0,0.146,431.862,432.007,105648.00,76,1.75
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),512000,NFA+DFA-cache,0,0.145,451.474,451.619,105448.00,76,1.75
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),512000,DFA,0,87.053,856.708,943.761,4529072.00,4097,133.04
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),512000,min-DFA,0,483.864,857.349,1341.213,18467264.00,4096,132.63
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),512000,NFA (with prefilter),0,0.249,19.671,19.920,130096.00,81,1.83
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),512000,NFA+DFA-cache (with prefilter),0,0.197,12.515,12.712,130096.00,81,1.83
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),512000,DFA (with prefilter),0,85.292,10.145,95.437,8699104.00,4102,133.12
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),512000,min-DFA (with prefilter),0,501.271,10.534,511.806,6799504.00,4101,132.71
+Short Literal - Small Text,abc,51200,KMP,0,0.001,0.307,0.307,880.00,,
+Short Literal - Small Text,abc,51200,Boyer-Moore,0,0.000,0.481,0.481,4736.00,,
+Short Literal - Small Text,abc,51200,NFA,0,0.033,19.327,19.360,8120.00,6,0.14
+Short Literal - Small Text,abc,51200,NFA+DFA-cache,0,0.032,19.869,19.901,8120.00,6,0.14
+Short Literal - Small Text,abc,51200,DFA,0,0.078,2.116,2.194,17608.00,4,0.10
+Short Literal - Small Text,abc,51200,min-DFA,0,0.128,2.105,2.233,33616.00,4,0.10
+Short Literal - Large Text,the,51200,KMP,835,0.000,0.376,0.376,79296.00,,
+Short Literal - Large Text,the,51200,Boyer-Moore,835,0.000,0.573,0.573,83184.00,,
+Short Literal - Large Text,the,51200,NFA,835,0.060,19.850,19.910,8120.00,6,0.14
+Short Literal - Large Text,the,51200,NFA+DFA-cache,835,0.035,19.994,20.028,8120.00,6,0.14
+Short Literal - Large Text,the,51200,DFA,835,0.118,2.161,2.279,17608.00,4,0.10
+Short Literal - Large Text,the,51200,min-DFA,835,0.126,2.149,2.275,33616.00,4,0.10
+Long Literal - Small Text,abcdefghijklmnop,51200,KMP,0,0.000,0.304,0.304,984.00,,
+Long Literal - Small Text,abcdefghijklmnop,51200,Boyer-Moore,0,0.000,0.168,0.169,7344.00,,
+Long Literal - Small Text,abcdefghijklmnop,51200,NFA,0,0.094,19.557,19.650,47368.00,32,0.69
+Long Literal - Small Text,abcdefghijklmnop,51200,NFA+DFA-cache,0,0.070,20.609,20.679,47368.00,32,0.69
+Long Literal - Small Text,abcdefghijklmnop,51200,DFA,0,0.158,2.111,2.269,95488.00,17,0.30
+Long Literal - Small Text,abcdefghijklmnop,51200,min-DFA,0,0.654,2.180,2.833,238616.00,17,0.30
+Long Literal - Large Text,constitution,51200,KMP,0,0.000,0.282,0.282,952.00,,
+Long Literal - Large Text,constitution,51200,Boyer-Moore,0,0.000,0.183,0.183,5616.00,,
+Long Literal - Large Text,constitution,51200,NFA,0,0.054,18.325,18.379,32320.00,24,0.52
+Long Literal - Large Text,constitution,51200,NFA+DFA-cache,0,0.054,20.322,20.375,32320.00,24,0.52
+Long Literal - Large Text,constitution,51200,DFA,0,0.133,2.032,2.166,67968.00,13,0.23
+Long Literal - Large Text,constitution,51200,min-DFA,0,0.422,2.110,2.532,181696.00,13,0.23
+Simple Regex - Dot,a.c,51200,NFA,70,0.044,24.753,24.796,8112.00,6,0.15
+Simple Regex - Dot,a.c,51200,NFA+DFA-cache,70,0.034,19.879,19.913,8112.00,6,0.15
+Simple Regex - Dot,a.c,51200,DFA,70,0.088,2.287,2.375,17440.00,4,0.11
+Simple Regex - Dot,a.c,51200,min-DFA,70,0.135,2.370,2.505,33384.00,4,0.11
+Simple Regex - Dot,a.c,51200,NFA (with prefilter),70,0.046,19.917,19.963,11704.00,6,0.15
+Simple Regex - Dot,a.c,51200,NFA+DFA-cache (with prefilter),70,0.047,20.237,20.284,11704.00,6,0.15
+Simple Regex - Dot,a.c,51200,DFA (with prefilter),70,0.105,2.303,2.408,21032.00,4,0.11
+Simple Regex - Dot,a.c,51200,min-DFA (with prefilter),70,0.150,2.483,2.633,36976.00,4,0.11
+Simple Regex - Star,ab*c,51200,NFA,107,0.035,20.555,20.590,9888.00,8,0.19
+Simple Regex - Star,ab*c,51200,NFA+DFA-cache,107,0.038,20.013,20.051,9888.00,8,0.19
+Simple Regex - Star,ab*c,51200,DFA,107,0.128,2.121,2.248,24888.00,4,0.11
+Simple Regex - Star,ab*c,51200,min-DFA,107,0.127,2.152,2.279,39480.00,3,0.09
+Simple Regex - Star,ab*c,51200,NFA (with prefilter),107,0.047,20.063,20.110,13480.00,8,0.19
+Simple Regex - Star,ab*c,51200,NFA+DFA-cache (with prefilter),107,0.045,19.966,20.011,13480.00,8,0.19
+Simple Regex - Star,ab*c,51200,DFA (with prefilter),107,0.111,2.141,2.252,28480.00,4,0.11
+Simple Regex - Star,ab*c,51200,min-DFA (with prefilter),107,0.156,2.121,2.277,43072.00,3,0.09
+Complex Regex - Alternation,(cat|dog|bird),51200,Aho-Corasick,24,0.031,5.329,5.361,8456.00,11,0.08
+Complex Regex - Alternation,(cat|dog|bird),51200,NFA,24,0.061,38.448,38.509,30832.00,24,0.53
+Complex Regex - Alternation,(cat|dog|bird),51200,NFA+DFA-cache,24,0.060,48.956,49.016,30832.00,24,0.53
+Complex Regex - Alternation,(cat|dog|bird),51200,DFA,24,0.188,2.306,2.494,66008.00,11,0.21
+Complex Regex - Alternation,(cat|dog|bird),51200,min-DFA,24,0.281,2.202,2.483,127464.00,9,0.18
+Complex Regex - Alternation,(cat|dog|bird),51200,NFA (with prefilter),0,0.112,5.619,5.730,45208.00,35,0.61
+Complex Regex - Alternation,(cat|dog|bird),51200,NFA+DFA-cache (with prefilter),0,0.103,1.249,1.352,44816.00,35,0.61
+Complex Regex - Alternation,(cat|dog|bird),51200,DFA (with prefilter),0,0.197,1.073,1.270,79992.00,22,0.29
+Complex Regex - Alternation,(cat|dog|bird),51200,min-DFA (with prefilter),0,0.355,5.889,6.243,141840.00,20,0.26
+Complex Regex - Multiple Operators,(a|b).*c,51200,NFA,1,0.043,34.443,34.486,13872.00,12,0.28
+Complex Regex - Multiple Operators,(a|b).*c,51200,NFA+DFA-cache,1,0.042,5.893,5.935,13872.00,12,0.28
+Complex Regex - Multiple Operators,(a|b).*c,51200,DFA,1,0.197,1.837,2.034,46960.00,5,0.17
+Complex Regex - Multiple Operators,(a|b).*c,51200,min-DFA,1,0.162,1.790,1.952,64840.00,3,0.12
+Complex Regex - Multiple Operators,(a|b).*c,51200,NFA (with prefilter),1,0.057,33.283,33.340,18872.00,12,0.28
+Complex Regex - Multiple Operators,(a|b).*c,51200,NFA+DFA-cache (with prefilter),1,0.070,5.864,5.934,18872.00,12,0.28
+Complex Regex - Multiple Operators,(a|b).*c,51200,DFA (with prefilter),1,0.127,1.816,1.943,51960.00,5,0.17
+Complex Regex - Multiple Operators,(a|b).*c,51200,min-DFA (with prefilter),1,0.226,1.809,2.034,69864.00,3,0.12
+Complex Regex,(a|b)*c(d|e)*,51200,NFA,1003,0.050,44.807,44.856,20576.00,18,0.43
+Complex Regex,(a|b)*c(d|e)*,51200,NFA+DFA-cache,1003,0.053,53.776,53.829,20576.00,18,0.43
+Complex Regex,(a|b)*c(d|e)*,51200,DFA,1003,0.161,2.288,2.449,75352.00,6,0.19
+Complex Regex,(a|b)*c(d|e)*,51200,min-DFA,1003,0.188,2.253,2.441,88240.00,2,0.10
+Complex Regex,(a|b)*c(d|e)*,51200,NFA (with prefilter),1003,0.062,44.732,44.794,22424.00,18,0.43
+Complex Regex,(a|b)*c(d|e)*,51200,NFA+DFA-cache (with prefilter),1003,0.060,53.956,54.016,22424.00,18,0.43
+Complex Regex,(a|b)*c(d|e)*,51200,DFA (with prefilter),1003,0.180,2.275,2.455,77200.00,6,0.19
+Complex Regex,(a|b)*c(d|e)*,51200,min-DFA (with prefilter),1003,0.262,2.245,2.507,90088.00,2,0.10
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),51200,NFA,7,0.394,104.939,105.333,373760.00,184,4.52
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),51200,NFA+DFA-cache,7,0.390,109.985,110.375,373760.00,184,4.52
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),51200,DFA,7,0.971,2.895,3.867,774584.00,52,1.28
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),51200,min-DFA,7,4.192,2.693,6.885,1794512.00,21,0.55
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),51200,NFA (with prefilter),7,0.501,108.600,109.101,425616.00,184,4.52
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),51200,NFA+DFA-cache (with prefilter),7,0.626,116.268,116.893,427344.00,184,4.52
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),51200,DFA (with prefilter),7,1.222,2.955,4.177,828144.00,52,1.28
+Very complex Regex,((t|T)(h|H)(e|E)( )*(m|M)(a|A)(n|N))|((s|S)(h|H)(e|E)( )*(s|S)(a|A)(i|I)(d|D))|((w|W)(a|A)(s|S)( )*(a|A)(l|L)(o|O)(n|N)(e|E))|((t|T)(h|H)(e|E)( )*(e|E)(n|N)(d|D)),51200,min-DFA (with prefilter),7,4.257,2.574,6.832,1845816.00,21,0.55
+Empty Matches,xyz,51200,KMP,0,0.000,0.258,0.258,880.00,,
+Empty Matches,xyz,51200,Boyer-Moore,0,0.000,0.454,0.454,4608.00,,
+Empty Matches,xyz,51200,NFA,0,0.032,18.592,18.624,8120.00,6,0.14
+Empty Matches,xyz,51200,NFA+DFA-cache,0,0.030,19.868,19.897,8120.00,6,0.14
+Empty Matches,xyz,51200,DFA,0,0.078,2.060,2.138,17608.00,4,0.10
+Empty Matches,xyz,51200,min-DFA,0,0.140,2.147,2.287,33616.00,4,0.10
+Many Matches,a,51200,KMP,2540,0.000,0.411,0.412,251560.00,,
+Many Matches,a,51200,Boyer-Moore,2540,0.000,1.461,1.461,255336.00,,
+Many Matches,a,51200,NFA,2540,0.017,18.944,18.962,3440.00,2,0.07
+Many Matches,a,51200,NFA+DFA-cache,2540,0.017,21.356,21.373,3440.00,2,0.07
+Many Matches,a,51200,DFA,2540,0.049,2.129,2.178,7184.00,2,0.07
+Many Matches,a,51200,min-DFA,2540,0.071,2.184,2.255,13272.00,2,0.07
+Wildcards,.*,51200,NFA,1,0.027,28.049,28.075,5152.00,4,0.12
+Wildcards,.*,51200,NFA+DFA-cache,1,0.034,5.740,5.774,5152.00,4,0.12
+Wildcards,.*,51200,DFA,1,0.062,1.848,1.909,14232.00,2,0.09
+Wildcards,.*,51200,min-DFA,1,0.083,1.824,1.907,19192.00,1,0.07
+Wildcards,.*,51200,NFA (with prefilter),1,0.036,28.020,28.056,6344.00,4,0.12
+Wildcards,.*,51200,NFA+DFA-cache (with prefilter),1,0.032,5.733,5.765,6344.00,4,0.12
+Wildcards,.*,51200,DFA (with prefilter),1,0.067,1.844,1.911,15424.00,2,0.09
+Wildcards,.*,51200,min-DFA (with prefilter),1,0.077,1.817,1.894,20384.00,1,0.07
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),51200,NFA,0,0.120,46.678,46.798,105552.00,76,1.75
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),51200,NFA+DFA-cache,0,0.143,53.270,53.413,105552.00,76,1.75
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),51200,DFA,0,87.107,85.189,172.296,4659416.00,4097,133.04
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),51200,min-DFA,0,501.850,87.058,588.908,18205440.00,4096,132.63
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),51200,NFA (with prefilter),0,0.170,5.518,5.689,130096.00,81,1.83
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),51200,NFA+DFA-cache (with prefilter),0,0.204,1.014,1.218,129704.00,81,1.83
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),51200,DFA (with prefilter),0,85.815,0.895,86.710,3130856.00,4102,133.12
+Worst case DFA,(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b),51200,min-DFA (with prefilter),0,489.020,5.651,494.671,18988168.00,4101,132.71

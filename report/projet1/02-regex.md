@@ -12,7 +12,7 @@ export type SyntaxTree =
   | { type: "dot" }                       // Caractère universel '.'
   | { type: "concat"; left: SyntaxTree; right: SyntaxTree }  // Concaténation
   | { type: "alt"; left: SyntaxTree; right: SyntaxTree }     // Alternation
-  | { type: "star"; child: SyntaxTree };                     // Étoile de Kleene
+  | { type: "star"; child: SyntaxTree };                     // Étoile de Kleene *
 ```
 **Exemple** : L'expression régulière `(a|b)*c` est représentée par l'arbre :
 

@@ -25,6 +25,10 @@ On notera que pour chaque NFA, il est toujours possible de construire un DFA éq
 
 La compléxité temporelle et spatiale est au pire des cas $O(2^n)$ avec $n$ le nombre d'états de l'NFA. En pratique, le nombre d'états générés est souvent beaucoup plus faible (souvent $O(n)$ ou $O(n^2)$).
 
+On notera que la méthodes des sous-ensemble ressemble en partie à la simulation de l'NFA, mais au lieu de maintenir un ensemble d'états actifs, on explore de manière systématique tous les ensembles possibles. Il est donc peut-être possible de fusionner les deux algorithmes pour obtenir un algorithme plus efficace ? Nous en parlerons dans la prochaine section.
+
+l'implémentation est dans le fichier `lib/src/DFA.ts` dans la fonction `dfaFromNfa`.
+
 
 ### 2.3.3 Gestion du Caractère Universel (DOT)
 
@@ -34,7 +38,7 @@ Lors du calcul des transitions, si on cherche un symbole `s`, on considère auss
 
 ### 2.3.4 Matching avec DFA
 
-Le matching avec un DFA est beaucoup plus simple et rapide qu'avec un NFA, car il n'y a pas de non-déterminisme.
+Le matching avec un DFA est beaucoup plus simple et rapide qu'avec un NFA, car il n'y a pas de non-déterminisme. Pour chaque caractère de l'entrée, on suit la transition correspondante. Si à la fin de l'entrée, on est dans un état acceptant, alors la chaîne est acceptée.
 
 La complexité est $O(|w|)$ où w est la longueur de l'entrée. Chaque caractère nécessite une transition, et la recherche de la transition est en temps constant.
 
@@ -51,7 +55,5 @@ Pour notre implémentation, nous avons choisi de l'algorithme de partitionnement
 L'algorithme de minimisation repose sur le raffinement itératif de partitions, en effet à chaque itération, on subdivise les partitions en sous-partitions si nécessaire. L'algorithme s'arrête lorsque toutes les partitions sont stables, c'est à dire que toutes les états de la partition ont la même signature (comportement identique pour toutes les entrées).
 
 La complexité temporelle est en $O(n^2 \times |\Sigma|)$ où n est le nombre d'états et $\Sigma$ la taille de l'alphabet. En pratique, la complexité est souvent plus faible car l'algorithme s'arrête généralement avant d'avoir parcouru toutes les itérations.
-
-La complexité spatiale est en $O(n)$ où n est le nombre d'états.
 
 Notez qu'il existe un algorithme plus efficace, celui de Hopcroft, mais nous n'avons pas eu le temps de l'implémenter.

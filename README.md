@@ -12,9 +12,7 @@
 
 Ce projet nécessite Node.js (testé avec v22.18.0 mais devrait fonctionner avec n'importe quelle version récente) pour fonctionner. Pensez à l'installer avant de continuer.
 
-Pour pouvoir build le projet, vous aurez besoin de pnpm. Vous pouvez l'installer avec `npm install -g pnpm`. (Cela devrait fonctionner avec npm mais ce n'est pas recommandé)
-
-### Lancer le projet
+### Lancer et build le projet
 
 Plusieurs manières se portent à vous:
 
@@ -24,6 +22,7 @@ Plusieurs manières se portent à vous:
 
 Sinon :
 
+- Il faut installer pnpm si vous l'avez pas déjà avec `npm install -g pnpm`. (Cela devrait fonctionner avec npm mais ce n'est pas recommandé)
 - Il faut installer les dépendances avec `pnpm install` dans le root du projet.
 - il faut build le dossier lib avec `pnpm build:lib` dans le root du projet ou `pnpm build` depuis le dossier `lib`
 
@@ -35,7 +34,7 @@ Puis toutes ses commandes sont équivalentes:
 - Depuis le dossier `cli` :
   - `pnpm start` pour lancer la CLI.
 
-Pour lancer lui build du cli, il suffit de lancer `pnpm build` dans le root du projet ou `pnpm build` depuis le dossier `cli`. Cela crée un fichier js dans `cli/dist/index.cjs`.
+Pour lancer le build du cli, il suffit de lancer `pnpm build` dans le root du projet ou `pnpm build` depuis le dossier `cli`. Cela crée un fichier js dans `cli/dist/index.cjs`.
 
 Pour lancer les tests, il suffit de lancer `pnpm test` dans le dossier lib.
 

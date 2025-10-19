@@ -63,4 +63,4 @@ Pour savoir comment lancer le projet, voir le fichier `README.md` à la racine d
 
 ## 1.4. Organisation du Rapport
 
-Ce rapport présente d'abord les fondements théoriques des algorithmes implémentés (Section 2), puis détaille les stratégies d'optimisation développées (Section 3). L'implémentation est exposée en Section 4, suivie d'une analyse de performance comparative (Section 5). Nous concluons par une discussion des résultats et des perspectives d'amélioration (Section 6).
+Ce rapport présente d'abord les fondements théoriques des algorithmes implémentés (Section 2), puis détaille les stratégies d'optimisation développées (Section 3). L'analyse de performance est exposé dans la section 4, puis nous concluons par une discussion des résultats et des perspectives d'amélioration (Section 5).

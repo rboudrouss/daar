@@ -153,13 +153,15 @@ export function matchNfa(nfa: NFA, input: string): boolean {
     const nextStatesSet = new Set<state_ID>();
 
     for (let s of states) {
-      // Si on est dans un état acceptant et qu'on a une transition EPSILON ou DOT vers lui-même, on accepte immédiatement
-      if (
-        nfa.accepts.includes(s) &&
-        (nfa.transitions[s]?.[EPSILON].includes(s) ||
-          nfa.transitions[s]?.[DOT].includes(s))
-      ) {
-        return true;
+      // Early return: Si on est dans un état acceptant et qu'on a une transition EPSILON ou DOT vers lui-même (self-loop),
+      // on peut accepter immédiatement car on pourra matcher le reste de l'input indéfiniment
+      if (nfa.accepts.includes(s)) {
+        const epsilonTransitions = nfa.transitions[s]?.[EPSILON] || [];
+        const dotTransitions = nfa.transitions[s]?.[DOT] || [];
+
+        if (epsilonTransitions.includes(s) || dotTransitions.includes(s)) {
+          return true;
+        }
       }
 
       // Transitions pour le caractère exact

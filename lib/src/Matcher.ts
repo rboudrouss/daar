@@ -3,7 +3,7 @@
  *
  */
 
-import { NFA, DOT, epsilonClosure, state_ID } from "./utils";
+import { NFA, DOT, EPSILON, epsilonClosure, state_ID } from "./utils";
 import { DFA } from "./utils";
 import { kmpSearch } from "./index";
 import { boyerMooreSearch } from "./BoyerMoore";
@@ -84,6 +84,22 @@ function findLongestMatchNfa(
     const nextStatesSet = new Set<state_ID>();
 
     for (let s of states) {
+      // Early return: Si on est dans un état acceptant et qu'on a une transition EPSILON ou DOT vers lui-même (self-loop),
+      // on peut retourner immédiatement le match jusqu'à la fin de la ligne car on pourra matcher le reste indéfiniment
+      if (nfa.accepts.includes(s)) {
+        const epsilonTransitions = nfa.transitions[s]?.[EPSILON] || [];
+        const dotTransitions = nfa.transitions[s]?.[DOT] || [];
+
+        if (epsilonTransitions.includes(s) || dotTransitions.includes(s)) {
+          // Match jusqu'à la fin de la ligne
+          return {
+            start: startPos,
+            end: line.length,
+            text: line.substring(startPos, line.length)
+          };
+        }
+      }
+
       // Transitions pour le caractère exact
       const charTransitions = nfa.transitions[s]?.[c] || [];
       charTransitions.forEach((st) => nextStatesSet.add(st));

@@ -12,5 +12,11 @@
   "devDependencies": {
     "typescript": "^5.2.2",
     "prettier": "^3.0.3"
-  }
+  },
+  "workspaces": [
+    "lib",
+    "cli",
+    "Backend",
+    "Frontend"
+  ]
 }

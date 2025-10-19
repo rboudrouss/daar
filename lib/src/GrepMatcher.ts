@@ -11,7 +11,7 @@
  */
 
 import { SyntaxTree } from "./RegexParser";
-import { extractLiterals, canUsePrefilter } from "./LiteralExtractor";
+import { extractLiterals, canUsePrefilter, isAlternationOfLiterals } from "./LiteralExtractor";
 import { boyerMooreContains } from "./BoyerMoore";
 import { kmpContains } from "./index";
 import { AhoCorasick } from "./AhoCorasick";
@@ -55,6 +55,7 @@ export class GrepMatcher {
   private prefilter: null | ((line: string) => boolean) = null;
   private usePrefilter: boolean;
   private prefilterAlgorithm: PrefilterAlgorithm;
+  private isAlternation: boolean;
 
   constructor(
     private syntaxTree: SyntaxTree,
@@ -62,6 +63,10 @@ export class GrepMatcher {
   ) {
     // Extraire les littéraux pour le préfiltrage
     this.literals = extractLiterals(syntaxTree);
+
+    // Déterminer si c'est une alternation de littéraux
+    const alternationCheck = isAlternationOfLiterals(syntaxTree);
+    this.isAlternation = alternationCheck.isAlternation;
 
     // Déterminer l'algorithme de préfiltrage à utiliser
     this.prefilterAlgorithm = options.prefilterAlgorithm || "auto";
@@ -182,9 +187,10 @@ export class GrepMatcher {
     const ac = new AhoCorasick(literals);
     this.prefilter = (line: string) => {
       const text = this.options.ignoreCase ? line.toLowerCase() : line;
-      // Utiliser containsAll pour vérifier que TOUS les littéraux sont présents
-      // (nécessaire pour les patterns de concaténation comme "test.*keyword")
-      return ac.containsAll(text);
+      // Choisir la méthode appropriée selon le type de pattern:
+      // - Pour les alternations (e.g., "cat|dog|bird"), utiliser contains() - N'IMPORTE QUEL littéral doit être présent
+      // - Pour les concaténations (e.g., "test.*keyword"), utiliser containsAll() - TOUS les littéraux doivent être présents
+      return this.isAlternation ? ac.contains(text) : ac.containsAll(text);
     };
   }
 
@@ -268,7 +274,14 @@ export class GrepMatcher {
 
     if (this.usePrefilter) {
       if (this.prefilterAlgorithm === "auto") {
-        algorithm = this.literals.length === 1 ? "Boyer-Moore" : "Aho-Corasick (containsAll)";
+        if (this.literals.length === 1) {
+          algorithm = "Boyer-Moore";
+        } else {
+          // Indiquer quelle méthode Aho-Corasick est utilisée
+          algorithm = this.isAlternation
+            ? "Aho-Corasick (contains)"
+            : "Aho-Corasick (containsAll)";
+        }
       } else {
         switch (this.prefilterAlgorithm) {
           case "boyer-moore":
@@ -278,7 +291,10 @@ export class GrepMatcher {
             algorithm = "KMP";
             break;
           case "aho-corasick":
-            algorithm = "Aho-Corasick (containsAll)";
+            // Indiquer quelle méthode Aho-Corasick est utilisée
+            algorithm = this.isAlternation
+              ? "Aho-Corasick (contains)"
+              : "Aho-Corasick (containsAll)";
             break;
         }
       }

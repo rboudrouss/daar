@@ -7,6 +7,7 @@
 import {
   canUsePrefilter,
   extractLiterals,
+  isAlternationOfLiterals,
   AhoCorasick,
   type SyntaxTree,
   type Match,
@@ -20,6 +21,7 @@ export interface PrefilterStructure<TStructure> {
   syntaxTree: SyntaxTree;
   prefilter?: AhoCorasick;
   literals: string[];
+  isAlternation: boolean; // true if pattern is alternation of literals (use contains), false otherwise (use containsAll)
 }
 
 /**
@@ -35,6 +37,11 @@ export function buildPrefilterStructure<TStructure>(
   let prefilter: AhoCorasick | undefined;
   const literals = extractLiterals(syntaxTree);
 
+  // Check if this is an alternation of literals (e.g., "cat|dog|bird")
+  // vs a concatenation pattern (e.g., "test.*keyword")
+  const alternationCheck = isAlternationOfLiterals(syntaxTree);
+  const isAlternation = alternationCheck.isAlternation;
+
   // Build prefilter if beneficial
   if (canUsePrefilter(syntaxTree) && literals.length > 0) {
     prefilter = new AhoCorasick(literals);
@@ -45,6 +52,7 @@ export function buildPrefilterStructure<TStructure>(
     syntaxTree,
     prefilter,
     literals,
+    isAlternation,
   };
 }
 
@@ -72,9 +80,14 @@ export function matchWithPrefilter<TStructure>(
     for (const line of lines) {
       const lineLength = line.length;
 
-      // Check if this line contains ALL the prefilter literals (using containsAll like GrepMatcher)
-      // This is important for patterns like "test.*keyword" where both literals must be present
-      if (prefilterStructure.prefilter.containsAll(line)) {
+      // Choose the appropriate prefilter method based on pattern type:
+      // - For alternation patterns (e.g., "cat|dog|bird"), use contains() - ANY literal must be present
+      // - For concatenation patterns (e.g., "test.*keyword"), use containsAll() - ALL literals must be present
+      const shouldProcess = prefilterStructure.isAlternation
+        ? prefilterStructure.prefilter.contains(line)
+        : prefilterStructure.prefilter.containsAll(line);
+
+      if (shouldProcess) {
         // Run full matching only on this line
         const matches = matchFn(prefilterStructure.structure, line);
 

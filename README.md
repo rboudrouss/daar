@@ -22,7 +22,13 @@ Plusieurs manières se portent à vous:
 
 (Notez que `./egrep` est juste est symbolique vers `cli/dist/index.cjs`.)
 
-Sinon, il faut build le dossier lib avec `pnpm build:lib` dans le root du projet ou `pnpm build` depuis le dossier `lib`, puis toutes ses commandes sont équivalentes:
+Sinon :
+
+- Il faut installer les dépendances avec `pnpm install` dans le root du projet.
+- il faut build le dossier lib avec `pnpm build:lib` dans le root du projet ou `pnpm build` depuis le dossier `lib`
+
+Puis toutes ses commandes sont équivalentes:
+
 - Dans le root du projet :
   - `pnpm cli` pour lancer la CLI.
   - `pnpm cli:gc` pour lancer la CLI avec le garbage collector activé (améliore les mesures de mémoire mais ralentit un peu l'exécution).
@@ -31,6 +37,7 @@ Sinon, il faut build le dossier lib avec `pnpm build:lib` dans le root du projet
 
 Pour lancer lui build du cli, il suffit de lancer `pnpm build` dans le root du projet ou `pnpm build` depuis le dossier `cli`. Cela crée un fichier js dans `cli/dist/index.cjs`.
 
+Pour lancer les tests, il suffit de lancer `pnpm test` dans le dossier lib.
 
 ### Utilisation
 

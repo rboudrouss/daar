@@ -80,20 +80,20 @@ function main() {
       "Run comprehensive tests on all algorithms with various scenarios"
     )
     .option(
+      "--test-only-automata",
+      "Only test automaton-based algorithms (NFA, DFA, min-DFA) (with --test-all)"
+    )
+    .option(
+      "--test-only-literal",
+      "Only test literal search algorithms (KMP, Boyer-Moore, Aho-Corasick) (with --test-all)"
+    )
+    .option(
       "--test-file <file>",
       "Optional: Use a specific file for testing (with --test-all)"
     )
     .option(
       "--test-folder <folder>",
       "Optional: Test on all files in a folder (with --test-all)"
-    )
-    .option(
-      "--test-only-automata",
-      "Only test automaton-based algorithms (NFA, DFA, min-DFA)"
-    )
-    .option(
-      "--test-only-literal",
-      "Only test literal search algorithms (KMP, Boyer-Moore, Aho-Corasick)"
     )
     .option(
       "--csv [filename]",

@@ -10,6 +10,10 @@
 
 ## Projet 1: egrep
 
+Ce projet nécessite Node.js (testé avec v22.18.0 mais devrait fonctionner avec n'importe quelle version récente) pour fonctionner. Pensez à l'installer avant de continuer.
+
+Pour pouvoir build le projet, vous aurez besoin de pnpm. Vous pouvez l'installer avec `npm install -g pnpm`. (Cela devrait fonctionner avec npm mais ce n'est pas recommandé)
+
 ### Lancer le projet
 
 Plusieurs manières se portent à vous:
@@ -18,36 +22,22 @@ Plusieurs manières se portent à vous:
 
 (Notez que `./egrep` est juste est symbolique vers `cli/dist/index.cjs`.)
 
-Sinon, dans un premier temps penser à installer les dépendances avec `pnpm install`, puis de lancer `pnpm build` pour compiler le projet. Le binaire sera alors disponible à `cli/dist/index.cjs`.
+Sinon, il faut build le dossier lib avec `pnpm build:lib` dans le root du projet ou `pnpm build` depuis le dossier `lib`, puis toutes ses commandes sont équivalentes:
+- Dans le root du projet :
+  - `pnpm cli` pour lancer la CLI.
+  - `pnpm cli:gc` pour lancer la CLI avec le garbage collector activé (améliore les mesures de mémoire mais ralentit un peu l'exécution).
+- Depuis le dossier `cli` :
+  - `pnpm start` pour lancer la CLI.
 
-Vous avez aussi plusieurs autres options mais qui nécessitent d'avoir build le projet `lib`:
+Pour lancer lui build du cli, il suffit de lancer `pnpm build` dans le root du projet ou `pnpm build` depuis le dossier `cli`. Cela crée un fichier js dans `cli/dist/index.cjs`.
 
-- Dans le root du projet, lancer `pnpm cli` pour lancer la CLI.
-- Depuis le dossier `cli`, lancer `pnpm start` pour lancer la CLI.
 
 ### Utilisation
+
+Vous pouvez remplacer `./egrep` par votre méthode de lancement. (Notez juste que si vous utilisez `npm` ajouter `--` avant les arguments.)
 
 - `./egrep --help` pour plus d'informations sur les options.
 - `./egrep "test" file.txt` pour rechercher le motif "test" dans le fichier `file.txt`.
 - `./egrep "test" file.txt --color -n -p -i` pour activer la coloration, le numéro de ligne, les métriques de performance et l'ignorance de la casse.
 - `./egrep "test" file.txt -O nfa` pour forcer l'utilisation d'un NFA (Non-deterministic Finite Automaton). Voir `./egrep --help` pour plus d'options.
-- `./egrep --test-all --test-folder ./data` pour lancer les tests de performance sur plusieurs motifs, fichiers et algorithmes.
-
-
-### Architecture du projet
-
-Le projet est structuré en monorepo. Chaque dossier (`lib`, `cli`) est un package npm quasi-indépendant. Ce choix a été fait pour faciliter le développement et le déploiement des différents composants du projet notamment que la `lib` sera utilisée par la CLI et la future backend.
-
-- `lib` contient les fonctions communes utilisées par la CLI et la future backend. Notamment tout ce qui concernce les algorithmes de recherche de motifs.
-  - `lib/test` contient les tests unitaires de la bibliothèque.
-  - `lib/dist` contient le code compilé de la bibliothèque.
-  - `lib/src` contient le code source de la CLI.
-    - `lib/src/index.ts` est le point d'entrée de la bibliothèque, contient notamment les exports de tous les modules et quelques fonctions utilitaires (dont KMP)
-    - `AhoCorasick.ts` implémente l'algorithme d'Aho-Corasick pour la recherche multi-motifs
-    - `BoyerMoore.ts` implémente l'algorithme de Boyer-Moore pour la recherche de motifs
-    - `AlgorithmSelector.ts` analyse le motif et choisit l'algorithme le plus adapté
-
-- `cli` contient la CLI pour tester le projet. Il s'agit d'un simple wrapper autour des fonctions de `lib` avec une interface utilisateur.
-
-
-
+- `./egrep --test-all --test-file ./data/pg66555-100kb.txt` pour lancer les tests de performance sur plusieurs motifs et algorithmes sur le fichier `./data/pg66555-100kb.txt`.

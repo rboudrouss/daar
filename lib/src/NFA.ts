@@ -29,6 +29,7 @@ export function nfaFromSyntaxTree(tree: SyntaxTree): NFA {
    * @throws {Error} Si le type de noeud n'est pas reconnu
    */
   function build(t: SyntaxTree): { start: state_ID; end: state_ID; nfa: NFA } {
+    // Si c'est un charactère, nous créeons un état initial, un état final et une transition entre eux avec le symbole correspondant
     if (t.type === "char") {
       const s = newState(),
         e = newState();
@@ -43,6 +44,8 @@ export function nfaFromSyntaxTree(tree: SyntaxTree): NFA {
         },
       };
     }
+
+    // Un peu similaire au cas d'un charactère, mais avec le symbole DOT
     if (t.type === "dot") {
       const s = newState(),
         e = newState();
@@ -57,6 +60,11 @@ export function nfaFromSyntaxTree(tree: SyntaxTree): NFA {
         },
       };
     }
+
+    // Pour le cas de l'étoile, nous créons un état initial et un état final
+    // Nous ajoutons donc 4 transitions supplémentaires
+    // - À l'état initial, une transition epsilon vers l'état final et vers l'état initial du fils
+    // - À l'état final du fils, une transition epsilon vers l'état initial du fils et vers l'état final 
     if (t.type === "star") {
       const s = newState(),
         e = newState();
@@ -76,6 +84,8 @@ export function nfaFromSyntaxTree(tree: SyntaxTree): NFA {
         },
       };
     }
+
+    // Pour la concaténation, nous créons une transition epsilon entre l'état final du fils gauche et l'état initial du fils droit
     if (t.type === "concat") {
       const left = build(t.left);
       const right = build(t.right);
@@ -94,6 +104,12 @@ export function nfaFromSyntaxTree(tree: SyntaxTree): NFA {
         },
       };
     }
+
+    // Pour l'alternation, nous créons un état initial et un état final
+    // Nous ajoutons 4 transitions supplémentaires
+    // - À l'état initial, une transition epsilon vers l'état initial du fils gauche et vers l'état initial du fils droit
+    // - À l'état final du fils gauche, une transition epsilon vers l'état final
+    // - À l'état final du fils droit, une transition epsilon vers l'état final
     if (t.type === "alt") {
       const s = newState(),
         e = newState();

@@ -26,11 +26,9 @@ Il est aussi nécessaire de mentionner que pour certain patternes, il peut arriv
 
 ![Impact du préfiltrage \label{prefilter}](imgs/graph3_prefilter_impact.png)
 
-La figure \ref{prefilter} compare le temps de matching avec et sans préfiltrage pour des textes de taille variable pour le NFA et le DFA. 
+La figure \ref{prefilter} compare le temps de matching avec et sans préfiltrage pour des textes de taille variable pour le NFA et le DFA. Pour les tailles de textes inférieurs à 10kb, nous observons que le préfiltrage est inutile voir même contre-productif. Car l'overhead que cela cause (construction d'Aho-Corasick quand il y a plusieurs littéraux, ou le fait d'analyser une ligne dans un premier temps avec le préfiltrage puis par la suite avec le matcher regex) n'est pas amorti par le gain de temps lors du matching.
 
-Pour le NFA, on observe que le préfiltrage améliore les performances dès 10kb de texte, mais que l'impact est plus important pour des textes plus grands.
-
-Pour le DFA, l'impact est moins marqué, mais on observe quand même une amélioration significative pour des textes de plus de 100kb.
+On remarquera aussi que le préfiltrage est moins efficace pour le DFA que pour le NFA. Cela est dû au fait que le DFA est déjà un algorithme très rapide. 
 
 ## 4.5. Choix d'algorithme selon la taille du texte
 
@@ -38,5 +36,9 @@ Pour le DFA, l'impact est moins marqué, mais on observe quand même une amélio
 
 La figure \ref{automata_comparison} compare le temps de matching de différents algorithmes selon la taille du texte.
 
-Nous observons que dans notre implémentation le dfa est souvent plus rapide que le nfa, ce qui est cohérent avec la complexité des algorithmes. 
-Pour des très petit textes (< 1kb), le coût de construction du min-dfa peut ne pas être amorti mais généralement DFA reste toujours la meilleure solution par rapport au NFA.
+Nous remarquons que pour des textes de taille inférieure à 10kb, le NFA est le meilleur algorithme. Cela est cohérent avec notre analyse car le coût de construction du DFA n'est pas amorti pour de petits textes.
+
+La droite du NFA est droite sur un plan log-log, la pente étant normal (proche de 1) alors nous pouvons dire que notre implémentation est linéaire comme prévu par la théorie.
+
+Pour la droite du DFA, au delà de 10kb, nous observons que le temps de matching est linéaire comme prévu par la théorie. Cependant, pour des textes de taille inférieure à 10kb, le temps d'exécution semble constant. Celà est du au fait que le temps de construction du DFA n'est pas amorti pour de petits textes.
+

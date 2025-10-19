@@ -11,6 +11,9 @@ import {
   findAllMatchesLiteralKmp,
   findAllMatchesLiteralBm,
   AhoCorasick,
+  canUsePrefilter,
+  extractLiterals,
+  type Match,
 } from "@monorepo/lib";
 import * as fs from "fs";
 import {
@@ -136,31 +139,101 @@ const TEST_SCENARIOS: TestScenario[] = [
       "Very complex regex with multiple operators (NFA might be better)",
   },
 
+  // Patterns specifically designed to showcase prefiltering benefits
+  // These patterns work well with Gutenberg books and have actual matches
+  // All literals are at least 3 characters long for effective prefiltering
+  {
+    name: "Prefilter - Thematic Words After 'the'",
+    pattern: "the (soul|body|mind|dead|life|world|death)",
+    text: "In the soul of man there lies the body and mind. The dead cannot speak but the life continues. The world turns and the death comes to all.",
+    description: "Common thematic words after 'the' - all literals >= 4 chars for good prefiltering",
+  },
+  {
+    name: "Prefilter - Common Suffixes",
+    pattern: " (.*)(tion|ment|ness)",
+    text: "The nation showed great determination in the development of happiness and contentment. Their commitment to kindness and awareness brought satisfaction.",
+    description: "Words ending in common suffixes - all literals >= 4 chars",
+  },
+  {
+    name: "Prefilter - Subject-Verb Patterns",
+    pattern: "(I|You|He|She|It|We|They) (was|were|had|been|said|made|came|went)",
+    text: "I was there when He said it. She had been waiting while They were coming. We made plans and You came along. It went well.",
+    description: "Subject-verb combinations - literals >= 2-4 chars",
+  },
+  {
+    name: "Prefilter - Common Words Repeated",
+    pattern: "(the|and|that|with|from)(.*)(the|and|that|with|from)",
+    text: "The man walked through the forest and found treasure and gold. That which came from that place was valuable. With care and with patience, all was achieved.",
+    description: "Common words appearing twice - tests concatenation with 3-4 char literals",
+  },
+  {
+    name: "Prefilter - URL-like Patterns",
+    pattern: "(www\\.)*(.*)\\.(com|org|net|edu)",
+    text: "Visit example.com or contact us at info.org. Educational resources at university.edu and networking at social.net are available.",
+    description: "Domain-like suffixes - good for prefiltering with 3 char literals",
+  },
+  {
+    name: "Prefilter - Code Keywords",
+    pattern: "(function|class|const|return|import)",
+    text: "function main() { const value = 42; return value; } class MyClass { import something; }",
+    description: "Programming keywords - literals >= 5 chars for excellent prefiltering",
+  },
+  {
+    name: "Prefilter - Article-Noun Patterns",
+    pattern: "(the|a|an) (cat|dog|bird|fish|tree|house|car)",
+    text: "The cat sat on a mat. A dog chased the bird while an fish swam. The tree stood near a house and the car.",
+    description: "Article followed by common nouns - mixed literal lengths 1-5 chars",
+  },
+
   // Edge cases
   {
-    name: "Empty Matches",
+    name: "Edge Case - No Matches",
     pattern: "xyz",
-    text: "abc def ghi jkl mno pqr",
-    description: "Pattern that doesn't match",
+    text: "abc def ghi jkl mno pqr stu vwx",
+    description: "Pattern that doesn't match anywhere in text",
   },
   {
-    name: "Many Matches",
+    name: "Edge Case - Many Matches",
     pattern: "a",
     text: "a".repeat(100) + "b" + "a".repeat(100),
-    description: "Pattern with many matches",
+    description: "Pattern with many overlapping matches",
   },
   {
-    name: "Wildcards",
+    name: "Edge Case - Universal Wildcard",
     pattern: ".*",
     text: "abc def ghi jkl mno pqr",
-    description: "Pattern with wildcards",
+    description: "Pattern that matches everything",
   },
   {
-    name: "Worst case DFA",
+    name: "Edge Case - DFA Exponential Blowup",
     pattern: "(a|b)*a(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)(a|b)",
     text: "a" + "b".repeat(1000) + "c",
-    description: "Worst case for DFA (exponential blowup)",
-  }
+    description: "Worst case for DFA construction (exponential state blowup)",
+  },
+  {
+    name: "Edge Case - Nested Alternations",
+    pattern: "((red|blue)|(green|yellow))",
+    text: "red blue green yellow red green blue yellow",
+    description: "Nested alternations - good for prefilter with Aho-Corasick",
+  },
+  {
+    name: "Performance - Sparse Matches",
+    pattern: "(rare|uncommon|infrequent)",
+    text: "common words " + "typical usual normal ordinary ".repeat(100) + " rare " + "typical usual normal ordinary ".repeat(100) + " uncommon",
+    description: "Few matches in large text - prefilter should skip most text",
+  },
+  {
+    name: "Performance - Dense Matches",
+    pattern: "(a|e|i|o|u)",
+    text: "The quick brown fox jumps over the lazy dog again and again",
+    description: "Many matches (vowels) - prefilter finds many candidates",
+  },
+  {
+    name: "Performance - Alternation vs Star",
+    pattern: "(abc|abd|abe)*",
+    text: "abc abd abe abc abe abd abc abc abd abe",
+    description: "Alternation with star - tests NFA vs DFA efficiency",
+  },
 ];
 
 /**
@@ -212,12 +285,44 @@ function testBoyerMoore(pattern: string, text: string): AlgorithmResult {
 }
 
 /**
+ * Helper function to match line-by-line (consistent with prefiltering behavior)
+ */
+function matchLineByLine<T>(
+  text: string,
+  matchFn: (structure: T, line: string) => Match[],
+  structure: T
+): Match[] {
+  const lines = text.split('\n');
+  const allMatches: Match[] = [];
+  let currentPos = 0;
+
+  for (const line of lines) {
+    const lineLength = line.length;
+    const matches = matchFn(structure, line);
+
+    // Adjust match positions to be relative to the original text
+    for (const match of matches) {
+      allMatches.push({
+        start: match.start + currentPos,
+        end: match.end + currentPos,
+        text: match.text,
+      });
+    }
+
+    // Move to next line (+1 for newline character)
+    currentPos += lineLength + 1;
+  }
+
+  return allMatches;
+}
+
+/**
  * Test with NFA
  */
 function testNFA(pattern: string, text: string): AlgorithmResult {
   return executeTest(
     () => buildNFA(pattern),
-    ({ nfa }) => findAllMatchesNfa(nfa, text),
+    ({ nfa }) => matchLineByLine(text, findAllMatchesNfa, nfa),
     "NFA",
     ({ nfa }) => getNFAStructureSize(nfa)
   );
@@ -229,7 +334,7 @@ function testNFA(pattern: string, text: string): AlgorithmResult {
 function testNFAWithDFACache(pattern: string, text: string): AlgorithmResult {
   return executeTest(
     () => buildNFA(pattern),
-    ({ nfa }) => findAllMatchesNfaWithDfaCache(nfa, text),
+    ({ nfa }) => matchLineByLine(text, findAllMatchesNfaWithDfaCache, nfa),
     "NFA+DFA-cache",
     ({ nfa }) => getNFAStructureSize(nfa)
   );
@@ -242,7 +347,7 @@ function testDFA(pattern: string, text: string): AlgorithmResult {
   try {
     return executeTest(
       () => buildDFA(pattern),
-      ({ dfa }) => findAllMatchesDfa(dfa, text),
+      ({ dfa }) => matchLineByLine(text, findAllMatchesDfa, dfa),
       "DFA",
       ({ dfa }) => getDFAStructureSize(dfa)
     );
@@ -257,7 +362,7 @@ function testDFA(pattern: string, text: string): AlgorithmResult {
 function testMinDFA(pattern: string, text: string): AlgorithmResult {
   return executeTest(
     () => buildMinDFA(pattern),
-    ({ minDfa }) => findAllMatchesDfa(minDfa, text),
+    ({ minDfa }) => matchLineByLine(text, findAllMatchesDfa, minDfa),
     "min-DFA",
     ({ minDfa }) => getDFAStructureSize(minDfa)
   );
@@ -514,8 +619,16 @@ function runTestScenario(
       console.log();
 
       // Test automaton-based algorithms WITH prefiltering (if applicable)
-      if (!isLiteralPattern(scenario.pattern)) {
-        printSectionHeader("AUTOMATON ALGORITHMS (with prefiltering)");
+      // Only run prefiltering tests if the pattern has useful literals (length >= 2)
+      // This is determined by canUsePrefilter which checks extractLiterals
+      const { syntaxTree } = buildNFA(scenario.pattern);
+      const hasUsefulLiterals = canUsePrefilter(syntaxTree);
+      const literals = extractLiterals(syntaxTree);
+
+      if (hasUsefulLiterals && !isLiteralPattern(scenario.pattern)) {
+        printSectionHeader(
+          `AUTOMATON ALGORITHMS (with prefiltering) - Literals: [${literals.join(", ")}]`
+        );
 
         const nfaPrefilterResult = safeExecute(
           () => testNFAWithPrefilter(scenario.pattern, scenario.text),

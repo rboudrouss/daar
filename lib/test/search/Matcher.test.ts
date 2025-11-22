@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { findAllMatchesLiteralKmp, findAllMatchesLiteralBm, Match, colorizeMatches } from "../../src";
+import {
+  findAllMatchesLiteralKmp,
+  findAllMatchesLiteralBm,
+  Match,
+  colorizeMatches,
+} from "../../src";
 /**
  * Tests for Matcher utilities (KMP, Boyer-Moore, colorization).
  * For NFA/DFA matching tests, see matching-algorithms.test.ts
@@ -102,9 +107,7 @@ describe("Matcher", () => {
   describe("colorizeMatches", () => {
     it("should colorize single match", () => {
       const line = "hello world";
-      const matches: Match[] = [
-        { start: 0, end: 5, text: "hello" },
-      ];
+      const matches: Match[] = [{ start: 0, end: 5, text: "hello" }];
 
       const colored = colorizeMatches(line, matches);
 
@@ -140,9 +143,7 @@ describe("Matcher", () => {
 
     it("should use custom colors", () => {
       const line = "hello world";
-      const matches: Match[] = [
-        { start: 0, end: 5, text: "hello" },
-      ];
+      const matches: Match[] = [{ start: 0, end: 5, text: "hello" }];
       const customStart = "\x1b[32m"; // Green
       const customEnd = "\x1b[0m";
 
@@ -179,9 +180,7 @@ describe("Matcher", () => {
 
     it("should handle match at start of line", () => {
       const line = "hello world";
-      const matches: Match[] = [
-        { start: 0, end: 5, text: "hello" },
-      ];
+      const matches: Match[] = [{ start: 0, end: 5, text: "hello" }];
 
       const colored = colorizeMatches(line, matches);
 
@@ -190,9 +189,7 @@ describe("Matcher", () => {
 
     it("should handle match at end of line", () => {
       const line = "hello world";
-      const matches: Match[] = [
-        { start: 6, end: 11, text: "world" },
-      ];
+      const matches: Match[] = [{ start: 6, end: 11, text: "world" }];
 
       const colored = colorizeMatches(line, matches);
 
@@ -201,9 +198,7 @@ describe("Matcher", () => {
 
     it("should handle empty match", () => {
       const line = "hello world";
-      const matches: Match[] = [
-        { start: 5, end: 5, text: "" },
-      ];
+      const matches: Match[] = [{ start: 5, end: 5, text: "" }];
 
       const colored = colorizeMatches(line, matches);
 
@@ -237,4 +232,3 @@ describe("Matcher", () => {
     });
   });
 });
-

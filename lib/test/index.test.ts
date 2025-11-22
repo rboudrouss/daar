@@ -1,9 +1,13 @@
 import { describe, it, expect } from "vitest";
-import { matchDfa, isSimpleConcat, kmpSearch } from "../src/index";
-import { parseRegex } from "../src/RegexParser";
-import { nfaFromSyntaxTree } from "../src/NFA";
-import { dfaFromNfa, minimizeDfa } from "../src/DFA";
-import { DOT } from "../src/utils";
+import {
+  parseRegex,
+  nfaFromSyntaxTree,
+  dfaFromNfa,
+  matchDfa,
+  minimizeDfa,
+  kmpSearch,
+  DOT,
+} from "../src";
 
 describe("matchDfa - Basic Matching", () => {
   it("should match simple character sequences", () => {
@@ -170,53 +174,6 @@ describe("matchDfa - Edge Cases", () => {
   });
 });
 
-describe("isSimpleConcat - Character Detection", () => {
-  it("should return true for single character", () => {
-    const tree = parseRegex("a");
-    expect(isSimpleConcat(tree)).toBe(true);
-  });
-
-  it("should return true for dot", () => {
-    const tree = parseRegex(".");
-    expect(isSimpleConcat(tree)).toBe(true);
-  });
-
-  it("should return true for simple concatenation", () => {
-    const tree = parseRegex("abc");
-    expect(isSimpleConcat(tree)).toBe(true);
-  });
-
-  it("should return true for concatenation with dots", () => {
-    const tree = parseRegex("a.c");
-    expect(isSimpleConcat(tree)).toBe(true);
-  });
-
-  it("should return false for star operator", () => {
-    const tree = parseRegex("a*");
-    expect(isSimpleConcat(tree)).toBe(false);
-  });
-
-  it("should return false for alternation", () => {
-    const tree = parseRegex("a|b");
-    expect(isSimpleConcat(tree)).toBe(false);
-  });
-
-  it("should return false for concatenation with star", () => {
-    const tree = parseRegex("ab*");
-    expect(isSimpleConcat(tree)).toBe(false);
-  });
-
-  it("should return false for concatenation with alternation", () => {
-    const tree = parseRegex("a(b|c)");
-    expect(isSimpleConcat(tree)).toBe(false);
-  });
-
-  it("should return false for grouped star", () => {
-    const tree = parseRegex("(ab)*");
-    expect(isSimpleConcat(tree)).toBe(false);
-  });
-});
-
 describe("kmpSearch - Basic Search", () => {
   it("should find single occurrence", () => {
     const result = kmpSearch("abc", "xyzabcdef");
@@ -329,7 +286,6 @@ describe("kmpSearch - LPS Array Correctness", () => {
 describe("Exports - Module Integration", () => {
   it("should export all necessary functions", () => {
     expect(matchDfa).toBeDefined();
-    expect(isSimpleConcat).toBeDefined();
     expect(kmpSearch).toBeDefined();
   });
 

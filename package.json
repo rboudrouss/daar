@@ -3,9 +3,10 @@
   "private": true,
   "scripts": {
     "cli": "pnpm --filter @monorepo/cli start",
-    "build": "pnpm --filter @monorepo/lib build && pnpm --filter @monorepo/cli build && pnpm --filter @monorepo/backend build && pnpm --filter @monorepo/frontend build",
+    "build": "pnpm --filter @monorepo/lib build && pnpm --filter @monorepo/cli build && pnpm --filter @monorepo/backend build && pnpm --filter @monorepo/frontend build && pnpm --filter @monorepo/webapp build",
     "build:lib": "pnpm --filter @monorepo/lib build",
     "dev": "pnpm --parallel --filter \"@monorepo/*\" dev",
+    "dev:webapp": "pnpm --filter @monorepo/webapp dev",
     "typecheck": "tsc --noEmit",
     "clean": "pnpm --recursive exec rm -rf dist tsconfig.tsbuildinfo .tsup"
   },
@@ -17,6 +18,7 @@
     "lib",
     "cli",
     "Backend",
-    "Frontend"
+    "Frontend",
+    "Web"
   ]
 }

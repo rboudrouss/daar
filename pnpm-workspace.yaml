@@ -3,3 +3,4 @@ packages:
   - "Frontend"
   - "cli"
   - "lib"
+  - "Web"

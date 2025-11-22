@@ -10,7 +10,10 @@
     "start": "node dist/index.js"
   },
   "dependencies": {
-    "@monorepo/lib": "workspace:*"
+    "@hono/node-server": "^1.19.6",
+    "@monorepo/lib": "workspace:*",
+    "better-sqlite3": "^12.4.6",
+    "hono": "^4.10.6"
   },
   "devDependencies": {
     "@types/node": "^24.7.1",

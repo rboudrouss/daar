@@ -1,6 +1,8 @@
 packages:
-  - "Backend"
-  - "Frontend"
-  - "cli"
-  - "lib"
-  - "Web"
+  - Backend
+  - Frontend
+  - cli
+  - lib
+
+onlyBuiltDependencies:
+  - better-sqlite3

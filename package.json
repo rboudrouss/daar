@@ -18,7 +18,6 @@
     "lib",
     "cli",
     "Backend",
-    "Frontend",
-    "Web"
+    "Frontend"
   ]
 }

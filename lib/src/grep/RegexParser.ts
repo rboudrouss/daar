@@ -1,9 +1,4 @@
-export type SyntaxTree =
-  | { type: "char"; value: string }
-  | { type: "dot" }
-  | { type: "concat"; left: SyntaxTree; right: SyntaxTree }
-  | { type: "alt"; left: SyntaxTree; right: SyntaxTree }
-  | { type: "star"; child: SyntaxTree };
+import { SyntaxTree } from "../search/utils";
 
 export function parseRegex(input: string): SyntaxTree {
   let position = 0;

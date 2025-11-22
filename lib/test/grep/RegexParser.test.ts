@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parseRegex, type SyntaxTree } from "../src/RegexParser";
+import { parseRegex } from "../../src";
 
 describe("RegexParser - Basic Characters", () => {
   it("should parse a single character", () => {

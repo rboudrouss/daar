@@ -69,3 +69,10 @@ export function epsilonClosure(nfa: NFA, states: state_ID[]): state_ID[] {
 
   return Array.from(closure);
 }
+
+export type SyntaxTree =
+  | { type: "char"; value: string }
+  | { type: "dot" }
+  | { type: "concat"; left: SyntaxTree; right: SyntaxTree }
+  | { type: "alt"; left: SyntaxTree; right: SyntaxTree }
+  | { type: "star"; child: SyntaxTree };

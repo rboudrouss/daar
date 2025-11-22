@@ -1,14 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { parseRegex } from "../src/RegexParser";
-import { nfaFromSyntaxTree, matchNfa } from "../src/NFA";
-import { dfaFromNfa, matchDfa } from "../src/DFA";
-import { matchNfaWithDfaCache } from "../src/NFAWithDFACache";
 import {
+  parseRegex,
+  nfaFromSyntaxTree,
+  matchNfa,
   findAllMatchesNfa,
+  dfaFromNfa,
+  matchDfa,
   findAllMatchesDfa,
+  matchNfaWithDfaCache,
   findAllMatchesNfaWithDfaCache,
-} from "../src/Matcher";
-import type { Match } from "../src/Matcher";
+  Match,
+} from "../../src";
 
 /**
  * Wrapper for NFA matching algorithm

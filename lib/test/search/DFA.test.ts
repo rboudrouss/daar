@@ -1,9 +1,13 @@
 import { describe, it, expect } from "vitest";
-import { dfaFromNfa, minimizeDfa } from "../src/DFA";
-import { nfaFromSyntaxTree } from "../src/NFA";
-import { parseRegex } from "../src/RegexParser";
-import { matchDfa } from "../src/index";
-import { DOT, EPSILON } from "../src/utils";
+import {
+  parseRegex,
+  nfaFromSyntaxTree,
+  dfaFromNfa,
+  DOT,
+  minimizeDfa,
+  matchDfa,
+  EPSILON,
+} from "../../src";
 
 /**
  * Tests for DFA construction, minimization, and internal structure.

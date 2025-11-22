@@ -1,4 +1,4 @@
-import { SyntaxTree } from "./RegexParser";
+import { SyntaxTree } from "../search/utils";
 
 /**
  * Extrait les segments littéraux d'une concaténation

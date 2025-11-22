@@ -1,5 +1,11 @@
-import { DOT, EPSILON, epsilonClosure, type NFA, type state_ID } from "./utils";
-import { SyntaxTree } from "./RegexParser";
+import {
+  DOT,
+  EPSILON,
+  epsilonClosure,
+  SyntaxTree,
+  type NFA,
+  type state_ID,
+} from "./utils";
 
 /**
  * Construction d'un NFA à partir d'un arbre syntaxique représentant une expression régulière
@@ -64,7 +70,7 @@ export function nfaFromSyntaxTree(tree: SyntaxTree): NFA {
     // Pour le cas de l'étoile, nous créons un état initial et un état final
     // Nous ajoutons donc 4 transitions supplémentaires
     // - À l'état initial, une transition epsilon vers l'état final et vers l'état initial du fils
-    // - À l'état final du fils, une transition epsilon vers l'état initial du fils et vers l'état final 
+    // - À l'état final du fils, une transition epsilon vers l'état initial du fils et vers l'état final
     if (t.type === "star") {
       const s = newState(),
         e = newState();

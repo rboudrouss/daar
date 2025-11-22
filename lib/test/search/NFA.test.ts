@@ -1,8 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { nfaFromSyntaxTree } from "../src/NFA";
-import { parseRegex } from "../src/RegexParser";
-import { EPSILON, DOT } from "../src/utils";
-
+import { parseRegex, nfaFromSyntaxTree, DOT, EPSILON } from "../../src";
 /**
  * Tests for NFA construction and internal structure.
  * For matching behavior tests, see matching-algorithms.test.ts

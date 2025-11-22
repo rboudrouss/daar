@@ -5,7 +5,7 @@ import {
   minimizeDfa,
   nfaFromSyntaxTree,
   parseRegex,
-} from "./index";
+} from ".";
 
 let result = parseRegex("(.*)(abc)(.*)");
 console.log(JSON.stringify(result, null, 2));

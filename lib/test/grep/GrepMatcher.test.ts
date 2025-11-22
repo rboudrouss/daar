@@ -1,9 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import * as fs from "fs";
 import * as path from "path";
-import { parseRegex } from "../src/RegexParser";
-import { GrepMatcher, createGrepMatcher } from "../src/GrepMatcher";
-import { Match } from "../src/Matcher";
+import { parseRegex, GrepMatcher, Match, createGrepMatcher } from "../../src";
 
 describe("GrepMatcher", () => {
   const testDir = path.join(__dirname, "test-files");
@@ -233,9 +231,7 @@ describe("GrepMatcher", () => {
       const results = Array.from(matcher.searchFile(testFile, mockMatcher));
 
       // Toutes les lignes retournées ne devraient PAS contenir "test" (case-sensitive)
-      expect(results.every((r) => !r.line.includes("test"))).toBe(
-        true
-      );
+      expect(results.every((r) => !r.line.includes("test"))).toBe(true);
     });
 
     it("should return lines that match when invertMatch is false", () => {

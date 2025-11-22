@@ -1,8 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { parseRegex } from "../src/RegexParser";
-import { extractLiterals, canUsePrefilter } from "../src/LiteralExtractor";
-import { boyerMooreSearch, boyerMooreContains } from "../src/BoyerMoore";
-import { AhoCorasick } from "../src/AhoCorasick";
+import {
+  parseRegex,
+  extractLiterals,
+  canUsePrefilter,
+  boyerMooreSearch,
+  boyerMooreContains,
+  AhoCorasick,
+} from "../../src";
 
 describe("LiteralExtractor", () => {
   it("should extract simple literal from char sequence", () => {

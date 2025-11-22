@@ -1,11 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { parseRegex } from "../src/RegexParser";
 import {
+  parseRegex,
   analyzePattern,
   shouldMinimizeDfa,
-  getAlgorithmDescription,
   AlgorithmType,
-} from "../src/AlgorithmSelector";
+  getAlgorithmDescription,
+} from "../../src";
 
 describe("AlgorithmSelector", () => {
   describe("analyzePattern", () => {
@@ -242,7 +242,10 @@ describe("AlgorithmSelector", () => {
       const tree = parseRegex("a");
       const analysis = analyzePattern(tree);
       // Forcer le type à NFA pour le test
-      const nfaAnalysis = { ...analysis, recommendedAlgorithm: "nfa" as AlgorithmType };
+      const nfaAnalysis = {
+        ...analysis,
+        recommendedAlgorithm: "nfa" as AlgorithmType,
+      };
 
       const shouldMinimize = shouldMinimizeDfa(nfaAnalysis);
       expect(shouldMinimize).toBe(false);
@@ -253,8 +256,16 @@ describe("AlgorithmSelector", () => {
       const analysis = analyzePattern(tree);
 
       // Modifier la complexité pour tester le seuil
-      const highComplexity = { ...analysis, complexity: 20, recommendedAlgorithm: "dfa" as AlgorithmType };
-      const lowComplexity = { ...analysis, complexity: 10, recommendedAlgorithm: "dfa" as AlgorithmType };
+      const highComplexity = {
+        ...analysis,
+        complexity: 20,
+        recommendedAlgorithm: "dfa" as AlgorithmType,
+      };
+      const lowComplexity = {
+        ...analysis,
+        complexity: 10,
+        recommendedAlgorithm: "dfa" as AlgorithmType,
+      };
 
       expect(shouldMinimizeDfa(highComplexity)).toBe(true);
       expect(shouldMinimizeDfa(lowComplexity)).toBe(false);
@@ -341,4 +352,3 @@ describe("AlgorithmSelector", () => {
     });
   });
 });
-

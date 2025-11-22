@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import * as fs from "fs";
 import * as path from "path";
-import { ChunkedLineReader } from "../src/ChunkedLineReader";
+import { ChunkedLineReader } from "../../src";
 
 describe("ChunkedLineReader", () => {
   const testDir = path.join(__dirname, "test-files");
@@ -228,7 +228,11 @@ describe("ChunkedLineReader", () => {
       reader.close();
 
       expect(lines.length).toBe(3);
-      expect(lines.map((l) => l.line)).toEqual(["banana", "cherry", "eggplant"]);
+      expect(lines.map((l) => l.line)).toEqual([
+        "banana",
+        "cherry",
+        "eggplant",
+      ]);
     });
   });
 
@@ -263,7 +267,7 @@ describe("ChunkedLineReader", () => {
 
       const reader = new ChunkedLineReader(testFile);
       const lines1 = Array.from(reader.lines());
-      
+
       reader.reset();
       const lines2 = Array.from(reader.lines());
       reader.close();
@@ -277,7 +281,7 @@ describe("ChunkedLineReader", () => {
 
       const reader = new ChunkedLineReader(testFile);
       Array.from(reader.lines());
-      
+
       reader.reset();
       const lines = Array.from(reader.lines());
       reader.close();
@@ -292,7 +296,7 @@ describe("ChunkedLineReader", () => {
 
       const reader = new ChunkedLineReader(testFile);
       Array.from(reader.lines());
-      
+
       reader.reset();
       const lines = Array.from(reader.lines());
       reader.close();
@@ -354,7 +358,7 @@ describe("ChunkedLineReader", () => {
     });
 
     it("should handle special characters", () => {
-      const content = "tab\there\nquote\"here\nslash\\here";
+      const content = 'tab\there\nquote"here\nslash\\here';
       fs.writeFileSync(testFile, content, "utf-8");
 
       const reader = new ChunkedLineReader(testFile);
@@ -392,4 +396,3 @@ describe("ChunkedLineReader", () => {
     });
   });
 });
-

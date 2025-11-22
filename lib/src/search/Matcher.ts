@@ -5,8 +5,8 @@
 
 import { NFA, DOT, EPSILON, epsilonClosure, state_ID } from "./utils";
 import { DFA } from "./utils";
-import { kmpSearch } from "./index";
 import { boyerMooreSearch } from "./BoyerMoore";
+import { kmpSearch } from "./KMP";
 
 // Re-export from NFAWithDFACache
 export {
@@ -95,7 +95,7 @@ function findLongestMatchNfa(
           return {
             start: startPos,
             end: line.length,
-            text: line.substring(startPos, line.length)
+            text: line.substring(startPos, line.length),
           };
         }
       }

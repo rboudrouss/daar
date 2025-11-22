@@ -5,7 +5,7 @@
  * en fonction de la complexité du pattern et des caractéristiques du matching.
  */
 
-import { SyntaxTree } from "./RegexParser";
+import { SyntaxTree } from "../search/utils";
 import { extractLiterals, isAlternationOfLiterals } from "./LiteralExtractor";
 
 /**
@@ -216,7 +216,6 @@ function analyzeRegexPattern(
   hasStars: boolean,
   textSizeBytes?: number
 ): PatternAnalysis {
-
   // Seuils de taille de texte (en octets)
   const SMALL_TEXT = 500; // < 500 bytes : petit texte
   const MEDIUM_TEXT = 10 * 1024; // < 10KB : texte moyen

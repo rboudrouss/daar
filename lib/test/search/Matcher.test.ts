@@ -1,11 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-  findAllMatchesLiteralKmp,
-  findAllMatchesLiteralBm,
-  colorizeMatches,
-  Match,
-} from "../src/Matcher";
-
+import { findAllMatchesLiteralKmp, findAllMatchesLiteralBm, Match, colorizeMatches } from "../../src";
 /**
  * Tests for Matcher utilities (KMP, Boyer-Moore, colorization).
  * For NFA/DFA matching tests, see matching-algorithms.test.ts

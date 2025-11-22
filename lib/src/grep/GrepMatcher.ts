@@ -10,19 +10,28 @@
  * Inspiré de grep qui utilise une approche similaire pour optimiser la recherche.
  */
 
-import { SyntaxTree } from "./RegexParser";
-import { extractLiterals, canUsePrefilter, hasAlternation } from "./LiteralExtractor";
-import { boyerMooreContains } from "./BoyerMoore";
-import { kmpContains } from "./index";
-import { AhoCorasick } from "./AhoCorasick";
+import {
+  extractLiterals,
+  canUsePrefilter,
+  hasAlternation,
+} from "./LiteralExtractor";
+import { boyerMooreContains } from "../search/BoyerMoore";
 import { ChunkedLineReader } from "./ChunkedLineReader";
-import { Match } from "./Matcher";
 import type { AlgorithmType } from "./AlgorithmSelector";
+import { kmpContains } from "../search/KMP";
+import { AhoCorasick } from "../search/AhoCorasick";
+import { Match } from "../search/Matcher";
+import { SyntaxTree } from "../search/utils";
 
 /**
  * Type d'algorithme de préfiltrage
  */
-export type PrefilterAlgorithm = "auto" | "boyer-moore" | "kmp" | "aho-corasick" | "off";
+export type PrefilterAlgorithm =
+  | "auto"
+  | "boyer-moore"
+  | "kmp"
+  | "aho-corasick"
+  | "off";
 
 export interface GrepMatcherOptions {
   /** Taille du chunk pour la lecture (défaut: 64KB) */
@@ -136,7 +145,10 @@ export class GrepMatcher {
       algorithm = literals.length === 1 ? "boyer-moore" : "aho-corasick";
     } else {
       // Mode manuel
-      algorithm = this.prefilterAlgorithm as "boyer-moore" | "kmp" | "aho-corasick";
+      algorithm = this.prefilterAlgorithm as
+        | "boyer-moore"
+        | "kmp"
+        | "aho-corasick";
     }
 
     // Construire le préfiltre selon l'algorithme choisi

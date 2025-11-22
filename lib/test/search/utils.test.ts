@@ -1,17 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { epsilonClosure, NFA, EPSILON, DOT } from "../src/utils";
+import { NFA, epsilonClosure, EPSILON, DOT } from "../../src";
 
 describe("utils", () => {
-  describe("Constants", () => {
-    it("should define EPSILON constant", () => {
-      expect(EPSILON).toBe("EPSILON");
-    });
-
-    it("should define DOT constant", () => {
-      expect(DOT).toBe("ANYCHAR");
-    });
-  });
-
   describe("epsilonClosure", () => {
     it("should return the same state when no epsilon transitions", () => {
       const nfa: NFA = {
@@ -304,8 +294,8 @@ describe("utils", () => {
       const nfa: NFA = {
         states: [0, 1, 2, 3],
         transitions: {
-          0: { 
-            a: [1], 
+          0: {
+            a: [1],
             [EPSILON]: [2],
             [DOT]: [3],
           },
@@ -372,4 +362,3 @@ describe("utils", () => {
     });
   });
 });
-

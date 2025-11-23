@@ -5,8 +5,15 @@
 import { Hono } from "hono";
 import { getDatabase } from "../db/connection";
 import type { Book, LibraryStats } from "../utils/types";
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from "fs";
+import {
+  readFileSync,
+  writeFileSync,
+  existsSync,
+  mkdirSync,
+  createReadStream,
+} from "fs";
 import { join, extname } from "path";
+import { stream } from "hono/streaming";
 
 const app = new Hono();
 
@@ -47,8 +54,10 @@ app.get("/", async (c) => {
     id: r.id,
     title: r.title,
     author: r.author,
-    filePath: r.file_path,
-    coverImagePath: r.cover_image_path,
+    filePath: `/api/books/${r.id}/text`,
+    coverImagePath: r.cover_image_path
+      ? `/api/books/${r.id}/cover`
+      : undefined,
     wordCount: r.word_count,
     createdAt: r.created_at,
   }));
@@ -118,8 +127,10 @@ app.get("/:id", async (c) => {
     id: book.id,
     title: book.title,
     author: book.author,
-    filePath: book.file_path,
-    coverImagePath: book.cover_image_path,
+    filePath: `/api/books/${book.id}/text`,
+    coverImagePath: book.cover_image_path
+      ? `/api/books/${book.id}/cover`
+      : undefined,
     wordCount: book.word_count,
     createdAt: book.created_at,
     pageRankScore: book.pagerank_score,
@@ -246,6 +257,48 @@ app.get("/:id/cover", async (c) => {
   } catch (error) {
     console.error("Error reading cover image:", error);
     return c.json({ error: "Failed to read cover image" }, 500);
+  }
+});
+
+/**
+ * GET /api/books/:id/text
+ * Stream le contenu d'un livre
+ */
+app.get("/:id/text", async (c) => {
+  const id = parseInt(c.req.param("id"));
+  const db = getDatabase();
+
+  const book = db
+    .prepare("SELECT file_path FROM books WHERE id = ?")
+    .get(id) as { file_path: string | null } | undefined;
+
+  if (!book) {
+    return c.json({ error: "Book not found" }, 404);
+  }
+
+  if (!book.file_path || !existsSync(book.file_path)) {
+    return c.json({ error: "Book text not found" }, 404);
+  }
+
+  try {
+    return stream(c, async (stream) => {
+      const fileStream = createReadStream(book.file_path!, {
+        encoding: "utf-8",
+        highWaterMark: 64 * 1024, // 64KB chunks
+      });
+
+      // Set headers
+      c.header("Content-Type", "text/plain; charset=utf-8");
+      c.header("Cache-Control", "public, max-age=3600");
+
+      // Stream the file
+      for await (const chunk of fileStream) {
+        await stream.write(chunk);
+      }
+    });
+  } catch (error) {
+    console.error("Error streaming book text:", error);
+    return c.json({ error: "Failed to stream book text" }, 500);
   }
 });
 

@@ -4,9 +4,50 @@
 
 import { Hono } from "hono";
 import { SearchEngine } from "../search/search-engine.js";
-import { SearchParams, SearchResponse } from "../utils/types.js";
+import {
+  SearchParams,
+  SearchResponse,
+  SearchResult,
+  Book,
+  BookSuggestion,
+} from "../utils/types.js";
 
 const app = new Hono();
+
+/**
+ * Transforme les chemins de fichiers en URLs
+ */
+function transformBookToUrls(book: Book): Book {
+  return {
+    ...book,
+    filePath: `/api/books/${book.id}/text`,
+    coverImagePath: book.coverImagePath
+      ? `/api/books/${book.id}/cover`
+      : undefined,
+  };
+}
+
+/**
+ * Transforme les résultats de recherche pour utiliser des URLs
+ */
+function transformSearchResults(results: SearchResult[]): SearchResult[] {
+  return results.map((result) => ({
+    ...result,
+    book: transformBookToUrls(result.book),
+  }));
+}
+
+/**
+ * Transforme les suggestions pour utiliser des URLs
+ */
+function transformSuggestions(
+  suggestions: BookSuggestion[]
+): BookSuggestion[] {
+  return suggestions.map((suggestion) => ({
+    ...suggestion,
+    book: transformBookToUrls(suggestion.book),
+  }));
+}
 
 // Lazy initialization du SearchEngine
 let searchEngine: SearchEngine | null = null;
@@ -83,7 +124,7 @@ app.get("/", async (c) => {
   const executionTimeMs = Date.now() - startTime;
 
   const response: SearchResponse = {
-    results,
+    results: transformSearchResults(results),
     total: results.length,
     query,
     executionTimeMs,
@@ -128,7 +169,7 @@ app.get("/advanced", async (c) => {
     const executionTimeMs = Date.now() - startTime;
 
     const response: SearchResponse = {
-      results,
+      results: transformSearchResults(results),
       total: results.length,
       query: regex,
       executionTimeMs,
@@ -191,7 +232,7 @@ app.get("/suggestions", async (c) => {
 
   return c.json({
     bookId,
-    suggestions,
+    suggestions: transformSuggestions(suggestions),
     total: suggestions.length,
   });
 });

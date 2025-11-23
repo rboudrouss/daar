@@ -42,7 +42,7 @@ app.post("/import-gutenberg", async (c) => {
     let lastGutenbergId = parseInt(lastIdResult?.value || "0");
 
     console.log(
-      `\n📚 Starting Gutenberg import from ID ${lastGutenbergId + 1}...`
+      `\nStarting Gutenberg import from ID ${lastGutenbergId + 1}...`
     );
 
     const importedBooks: BookMetadata[] = [];
@@ -76,7 +76,7 @@ app.post("/import-gutenberg", async (c) => {
 
     // Indexer les livres téléchargés
     if (importedBooks.length > 0) {
-      console.log(`\n📖 Indexing ${importedBooks.length} books...`);
+      console.log(`\nIndexing ${importedBooks.length} books...`);
 
       const indexer = new BookIndexer();
       const indexedBooks = indexer.indexBooks(importedBooks);
@@ -120,14 +120,14 @@ app.post("/rebuild-jaccard", async (c) => {
     const body = await c.req.json().catch(() => ({}));
     const threshold = parseFloat(body.threshold || "0.1");
 
-    console.log(`\n🔗 Rebuilding Jaccard graph with threshold ${threshold}...`);
+    console.log(`\nRebuilding Jaccard graph with threshold ${threshold}...`);
 
     const calculator = new JaccardCalculator({
       similarityThreshold: threshold,
     });
     const edgeCount = calculator.buildJaccardGraph();
 
-    console.log(`✓ Successfully built Jaccard graph with ${edgeCount} edges`);
+    console.log(`Successfully built Jaccard graph with ${edgeCount} edges`);
 
     return c.json({
       success: true,
@@ -159,7 +159,7 @@ app.post("/calculate-pagerank", async (c) => {
     const dampingFactor = parseFloat(body.dampingFactor || "0.85");
 
     console.log(
-      `\n📊 Calculating PageRank (max iterations: ${iterations}, damping: ${dampingFactor})...`
+      `\nCalculating PageRank (max iterations: ${iterations}, damping: ${dampingFactor})...`
     );
 
     const calculator = new PageRankCalculator({
@@ -169,7 +169,7 @@ app.post("/calculate-pagerank", async (c) => {
     const scores = calculator.calculatePageRank();
 
     console.log(
-      `✓ Successfully calculated PageRank scores for ${scores.length} books`
+      `Successfully calculated PageRank scores for ${scores.length} books`
     );
 
     return c.json({

@@ -43,6 +43,7 @@ app.get("/", (c) => {
       stats: "/api/books/stats",
       uploadCover: "POST /api/books/:id/cover",
       getCover: "GET /api/books/:id/cover",
+      getBookText: "GET /api/books/:id/text (streaming)",
     },
     adminEndpoints: {
       importGutenberg: "POST /api/admin/import-gutenberg (requires auth)",

@@ -1,59 +1,251 @@
-import Filters from "@/components/Filters";
-import SearchBar from "@/components/SearchBar";
-import { filterBooks, type Book } from "@/utils";
+import SearchBar, { type SearchMode } from "@/components/SearchBar";
+import { SearchResultCard } from "@/components/BookCard";
+import type { Book, SearchResult, BookStats } from "@/utils";
+import { searchBooks, advancedSearch, getAllBooks, getStats } from "@/utils/api";
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useTransition, useEffect, useMemo } from "react";
-
-import DB from "../utils/db.json";
-import BookCard from "@/components/BookCard";
+import { useState, useEffect } from "react";
 
 export const Route = createFileRoute("/")({
   component: App,
 });
 
-let db: Book[] = DB;
-
 function App() {
-  const [isInteracted, setIsInteracted] = useState(false);
-  const [showFilters, setShowFilters] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [, startTransition] = useTransition();
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [allBooks, setAllBooks] = useState<Book[]>([]);
+  const [stats, setStats] = useState<BookStats | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [hasSearched, setHasSearched] = useState(false);
+  const [executionTime, setExecutionTime] = useState<number>(0);
 
-  let books = useMemo(() => filterBooks(db, searchQuery), [db, searchQuery]);
+  // Load initial data
+  useEffect(() => {
+    loadInitialData();
+  }, []);
 
-  useEffect(() => {}, []);
-
-  function handleChange(value: string) {
-    if (!isInteracted) setIsInteracted(true);
-    startTransition(() => {
-      setSearchQuery(value);
-    });
+  async function loadInitialData() {
+    try {
+      setIsLoading(true);
+      const [booksData, statsData] = await Promise.all([
+        getAllBooks(),
+        getStats(),
+      ]);
+      setAllBooks(booksData);
+      setStats(statsData);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load data");
+    } finally {
+      setIsLoading(false);
+    }
   }
 
+  async function handleSearch(query: string, mode: SearchMode) {
+    if (!query.trim()) {
+      setSearchResults([]);
+      setHasSearched(false);
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      setError(null);
+      setHasSearched(true);
+
+      let response;
+      if (mode === "bm25") {
+        response = await searchBooks(query, 50);
+      } else {
+        response = await advancedSearch(query, 50);
+      }
+
+      setSearchResults(response.results);
+      setExecutionTime(response.executionTime);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Search failed");
+      setSearchResults([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  const displayBooks = hasSearched ? searchResults : allBooks;
+
   return (
-    <div>
-      <SearchBar
-        onChange={handleChange}
-        toggleFilters={() => setShowFilters((prev) => !prev)}
-      />
-      <div>
-        {showFilters && <Filters />}
+    <div style={{ minHeight: "100vh", backgroundColor: "#fafafa" }}>
+      {/* Header */}
+      <header
+        style={{
+          backgroundColor: "#1976D2",
+          color: "white",
+          padding: "24px",
+          boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+        }}
+      >
+        <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
+          <h1 style={{ margin: "0 0 8px 0", fontSize: "32px" }}>
+            📚 Library Search Engine
+          </h1>
+          <p style={{ margin: 0, opacity: 0.9 }}>
+            Powered by BM25, PageRank, and Jaccard Similarity
+          </p>
+        </div>
+      </header>
+
+      {/* Stats Bar */}
+      {stats && (
         <div
           style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
-            gap: "16px",
-            padding: "16px",
-            justifyItems: "center",
+            backgroundColor: "white",
+            padding: "16px 24px",
+            borderBottom: "1px solid #e0e0e0",
           }}
         >
-          {books.length !== 0 ? (
-            books.map((book, index) => <BookCard key={index} book={book} />)
+          <div
+            style={{
+              maxWidth: "1200px",
+              margin: "0 auto",
+              display: "flex",
+              gap: "24px",
+              flexWrap: "wrap",
+              fontSize: "14px",
+            }}
+          >
+            <div>
+              <strong>📖 Books:</strong> {stats.totalBooks.toLocaleString()}
+            </div>
+            <div>
+              <strong>📝 Total Words:</strong> {stats.totalWords.toLocaleString()}
+            </div>
+            <div>
+              <strong>🔗 Jaccard Edges:</strong> {stats.jaccardEdges.toLocaleString()}
+            </div>
+            <div>
+              <strong>⭐ PageRank:</strong>{" "}
+              {stats.pageRankCalculated ? "✓ Calculated" : "✗ Not calculated"}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Search Bar */}
+      <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
+        <SearchBar onSearch={handleSearch} />
+      </div>
+
+      {/* Results Info */}
+      {hasSearched && (
+        <div
+          style={{
+            maxWidth: "1200px",
+            margin: "0 auto",
+            padding: "0 24px 16px 24px",
+          }}
+        >
+          <p style={{ color: "#666", fontSize: "14px" }}>
+            Found {searchResults.length} result{searchResults.length !== 1 ? "s" : ""}{" "}
+            in {executionTime.toFixed(2)}ms
+          </p>
+        </div>
+      )}
+
+      {/* Error Message */}
+      {error && (
+        <div
+          style={{
+            maxWidth: "1200px",
+            margin: "0 auto 16px auto",
+            padding: "0 24px",
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: "#ffebee",
+              color: "#c62828",
+              padding: "12px 16px",
+              borderRadius: "4px",
+              border: "1px solid #ef9a9a",
+            }}
+          >
+            ⚠️ {error}
+          </div>
+        </div>
+      )}
+
+      {/* Loading State */}
+      {isLoading && (
+        <div
+          style={{
+            maxWidth: "1200px",
+            margin: "0 auto",
+            padding: "48px 24px",
+            textAlign: "center",
+          }}
+        >
+          <div
+            style={{
+              display: "inline-block",
+              width: "48px",
+              height: "48px",
+              border: "4px solid #e0e0e0",
+              borderTop: "4px solid #2196F3",
+              borderRadius: "50%",
+              animation: "spin 1s linear infinite",
+            }}
+          />
+          <p style={{ marginTop: "16px", color: "#666" }}>Loading...</p>
+        </div>
+      )}
+
+      {/* Books Grid */}
+      {!isLoading && (
+        <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px 24px 24px" }}>
+          {displayBooks.length > 0 ? (
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fill, minmax(350px, 1fr))",
+                gap: "16px",
+              }}
+            >
+              {hasSearched
+                ? searchResults.map((result) => (
+                    <SearchResultCard key={result.book.id} result={result} />
+                  ))
+                : allBooks.map((book) => (
+                    <SearchResultCard
+                      key={book.id}
+                      result={{ book, score: 0, matchedTerms: [] }}
+                    />
+                  ))}
+            </div>
           ) : (
-            <p>No books found</p>
+            <div
+              style={{
+                textAlign: "center",
+                padding: "48px 24px",
+                color: "#666",
+              }}
+            >
+              <p style={{ fontSize: "18px", margin: 0 }}>
+                {hasSearched ? "No books found" : "No books in library"}
+              </p>
+              {hasSearched && (
+                <p style={{ fontSize: "14px", marginTop: "8px" }}>
+                  Try a different search query
+                </p>
+              )}
+            </div>
           )}
         </div>
-      </div>
+      )}
+
+      {/* CSS Animation */}
+      <style>{`
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   );
 }

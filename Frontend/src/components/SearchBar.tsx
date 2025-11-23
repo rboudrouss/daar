@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 
 export type SearchMode = "bm25" | "regex";
 
@@ -40,6 +40,7 @@ export default function SearchBar({
   const [searchMode, setSearchMode] = useState<SearchMode>("bm25");
   const [inputValue, setInputValue] = useState(defaultValue);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [isDebouncing, setIsDebouncing] = useState(false);
 
   // Options avancées
   const [options, setOptions] = useState<AdvancedSearchOptions>({
@@ -48,14 +49,45 @@ export default function SearchBar({
     highlight: true, // Activer le highlighting par défaut
   });
 
+  // Debounce timer ref
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+
   const handleInputChange = (value: string) => {
     setInputValue(value);
     onChange?.(value, searchMode, options);
+
+    // Clear existing timer
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    // Show debouncing indicator
+    setIsDebouncing(true);
+
+    // Set new timer to trigger search after 300ms of inactivity
+    debounceTimerRef.current = setTimeout(() => {
+      setIsDebouncing(false);
+      onSearch?.(value, searchMode, options);
+    }, 300);
   };
 
   const handleSearch = () => {
+    // Clear debounce timer if user manually triggers search
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    setIsDebouncing(false);
     onSearch?.(inputValue, searchMode, options);
   };
+
+  // Cleanup debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, []);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
@@ -70,6 +102,21 @@ export default function SearchBar({
     const newOptions = { ...options, [key]: value };
     setOptions(newOptions);
     onChange?.(inputValue, searchMode, newOptions);
+
+    // Trigger search automatically when options change (if there's a query)
+    if (inputValue.trim()) {
+      // Clear existing timer
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+      // Show debouncing indicator
+      setIsDebouncing(true);
+      // Trigger search with new options after short delay
+      debounceTimerRef.current = setTimeout(() => {
+        setIsDebouncing(false);
+        onSearch?.(inputValue, searchMode, newOptions);
+      }, 300);
+    }
   };
 
   const toggleSearchField = (field: "title" | "author" | "content") => {
@@ -92,7 +139,7 @@ export default function SearchBar({
     >
       {/* Barre de recherche principale */}
       <div style={{ display: "flex", gap: "8px", marginBottom: "12px" }}>
-        <div style={{ flex: 1, display: "flex", gap: "8px" }}>
+        <div style={{ flex: 1, display: "flex", gap: "8px", position: "relative" }}>
           <input
             type="text"
             placeholder={
@@ -106,12 +153,29 @@ export default function SearchBar({
             style={{
               flex: 1,
               padding: "12px",
+              paddingRight: isDebouncing ? "40px" : "12px",
               fontSize: "16px",
               border: "1px solid #ddd",
               borderRadius: "4px",
               outline: "none",
             }}
           />
+          {isDebouncing && (
+            <div
+              style={{
+                position: "absolute",
+                right: "120px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                width: "20px",
+                height: "20px",
+                border: "2px solid #e0e0e0",
+                borderTop: "2px solid #2196F3",
+                borderRadius: "50%",
+                animation: "spin 0.8s linear infinite",
+              }}
+            />
+          )}
           <button
             onClick={handleSearch}
             style={{
@@ -135,6 +199,8 @@ export default function SearchBar({
             Search
           </button>
         </div>
+      </div>
+      <div style={{ display: "flex", gap: "8px", marginBottom: "12px" }}>
         <div
           style={{
             display: "flex",

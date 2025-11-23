@@ -25,3 +25,13 @@ mark {
   border-radius: 2px;
   font-weight: 600;
 }
+
+/* Animation de spin pour les indicateurs de chargement */
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}

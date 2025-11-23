@@ -7,10 +7,16 @@ import { Hono } from "hono";
 import { serve } from "@hono/node-server";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
+import { serveStatic } from "@hono/node-server/serve-static";
 import { initDatabase, closeDatabase } from "./db/connection.js";
 import booksRoutes from "./routes/books.js";
 import adminRoutes from "./routes/admin.js";
 import searchRoutes from "./routes/search.js";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Initialiser la base de données
 const dbPath = process.env.DB_PATH || "./data/library.db";
@@ -55,9 +61,19 @@ app.get("/", (c) => {
   });
 });
 
+// API Routes
 app.route("/api/books", booksRoutes);
 app.route("/api/admin", adminRoutes);
 app.route("/api/search", searchRoutes);
+
+// Servir le frontend (fichiers statiques)
+// En production, le frontend buildé sera dans ../frontend/dist
+const frontendPath = process.env.FRONTEND_PATH || path.join(__dirname, "../../frontend/dist");
+
+app.use("/*", serveStatic({ root: frontendPath }));
+
+// Fallback pour le routing côté client (SPA)
+app.get("*", serveStatic({ path: path.join(frontendPath, "index.html") }));
 
 // Gestion des erreurs
 app.onError((err, c) => {

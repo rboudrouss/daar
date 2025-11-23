@@ -13,6 +13,7 @@ export interface Book {
   coverImagePath?: string;
   wordCount: number;
   createdAt?: string;
+  clickCount?: number;
 }
 
 /**

@@ -1,5 +1,5 @@
 import type { Book, SearchResult, TextSnippet } from "@/utils";
-import { getCoverImageUrl } from "@/utils/api";
+import { getCoverImageUrl, trackBookClick } from "@/utils/api";
 
 interface BookCardProps {
   book: Book;
@@ -20,6 +20,11 @@ export default function BookCard({
     ? getCoverImageUrl(book.id)
     : "/book.png";
 
+  const handleClick = () => {
+    // Track the click for recommendations
+    trackBookClick(book.id);
+  };
+
   return (
     <a
       style={{
@@ -38,6 +43,7 @@ export default function BookCard({
         color: "inherit",
       }}
       href={`/book/${book.id}`}
+      onClick={handleClick}
       onMouseEnter={(e) => {
         e.currentTarget.style.transform = "translateY(-4px)";
         e.currentTarget.style.boxShadow = "0 8px 16px rgba(0, 0, 0, 0.2)";
@@ -96,6 +102,18 @@ export default function BookCard({
           >
             {book.wordCount.toLocaleString()} words
           </p>
+          {book.clickCount !== undefined && book.clickCount > 0 && (
+            <p
+              style={{
+                margin: "0 0 4px 0",
+                color: "#FF9800",
+                fontSize: "12px",
+                fontWeight: "500",
+              }}
+            >
+              👆 {book.clickCount.toLocaleString()} click{book.clickCount !== 1 ? 's' : ''}
+            </p>
+          )}
           {showPageRank && book.pageRank !== undefined && (
             <p
               style={{

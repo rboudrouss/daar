@@ -30,8 +30,10 @@ app.get("/", async (c) => {
   const db = getDatabase();
 
   let query = `
-    SELECT b.id, b.title, b.author, b.file_path, b.cover_image_path, b.word_count, b.created_at
+    SELECT b.id, b.title, b.author, b.file_path, b.cover_image_path, b.word_count, b.created_at,
+           COALESCE(bc.click_count, 0) as click_count
     FROM books b
+    LEFT JOIN book_clicks bc ON b.id = bc.book_id
   `;
 
   // Ajouter le tri par PageRank si demandé
@@ -60,6 +62,7 @@ app.get("/", async (c) => {
       : undefined,
     wordCount: r.word_count,
     createdAt: r.created_at,
+    clickCount: r.click_count,
   }));
 
   // Compter le total
@@ -111,9 +114,11 @@ app.get("/:id", async (c) => {
     .prepare(
       `
     SELECT b.id, b.title, b.author, b.file_path, b.cover_image_path, b.word_count, b.created_at,
-           p.score as pagerank_score
+           p.score as pagerank_score,
+           COALESCE(bc.click_count, 0) as click_count
     FROM books b
     LEFT JOIN pagerank p ON b.id = p.book_id
+    LEFT JOIN book_clicks bc ON b.id = bc.book_id
     WHERE b.id = ?
   `
     )
@@ -134,6 +139,7 @@ app.get("/:id", async (c) => {
     wordCount: book.word_count,
     createdAt: book.created_at,
     pageRankScore: book.pagerank_score,
+    clickCount: book.click_count,
   });
 });
 

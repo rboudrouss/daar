@@ -13,6 +13,7 @@ export interface Book {
   wordCount: number;
   createdAt: string;
   pageRank?: number;
+  clickCount?: number;
 }
 
 export interface TextSnippet {
@@ -159,4 +160,39 @@ export function getCoverImageUrl(bookId: number): string {
  */
 export function getBookTextUrl(bookId: number): string {
   return `${API_BASE_URL}/api/books/${bookId}/text`;
+}
+
+/**
+ * Track a click on a book (for recommendations)
+ */
+export async function trackBookClick(bookId: number): Promise<void> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/books/${bookId}/click`, {
+      method: "POST",
+    });
+
+    if (!response.ok) {
+      console.error(`Failed to track click for book ${bookId}`);
+    }
+  } catch (error) {
+    console.error(`Error tracking click for book ${bookId}:`, error);
+  }
+}
+
+/**
+ * Get recommendations based on popular books
+ */
+export async function getRecommendations(
+  limit: number = 50
+): Promise<SuggestionResult[]> {
+  const response = await fetch(
+    `${API_BASE_URL}/api/search/recommendations?limit=${limit}`
+  );
+
+  if (!response.ok) {
+    throw new Error(`Failed to get recommendations: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  return data.recommendations;
 }

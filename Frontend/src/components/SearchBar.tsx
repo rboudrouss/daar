@@ -20,8 +20,16 @@ export interface AdvancedSearchOptions {
 
 interface SearchBarProps {
   defaultValue?: string;
-  onChange?: (value: string, mode: SearchMode, options: AdvancedSearchOptions) => void;
-  onSearch?: (value: string, mode: SearchMode, options: AdvancedSearchOptions) => void;
+  onChange?: (
+    value: string,
+    mode: SearchMode,
+    options: AdvancedSearchOptions
+  ) => void;
+  onSearch?: (
+    value: string,
+    mode: SearchMode,
+    options: AdvancedSearchOptions
+  ) => void;
 }
 
 export default function SearchBar({
@@ -186,18 +194,30 @@ export default function SearchBar({
             Advanced Options
           </h3>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: "16px",
+            }}
+          >
             {/* Filtres */}
             <div>
-              <h4 style={{ margin: "0 0 8px 0", fontSize: "14px", color: "#666" }}>
+              <h4
+                style={{ margin: "0 0 8px 0", fontSize: "14px", color: "#666" }}
+              >
                 Filters
               </h4>
-              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              <div
+                style={{ display: "flex", flexDirection: "column", gap: "8px" }}
+              >
                 <input
                   type="text"
                   placeholder="Author filter"
                   value={options.author || ""}
-                  onChange={(e) => updateOption("author", e.target.value || undefined)}
+                  onChange={(e) =>
+                    updateOption("author", e.target.value || undefined)
+                  }
                   style={{
                     padding: "8px",
                     fontSize: "14px",
@@ -245,11 +265,29 @@ export default function SearchBar({
             {/* Options BM25 */}
             {searchMode === "bm25" && (
               <div>
-                <h4 style={{ margin: "0 0 8px 0", fontSize: "14px", color: "#666" }}>
+                <h4
+                  style={{
+                    margin: "0 0 8px 0",
+                    fontSize: "14px",
+                    color: "#666",
+                  }}
+                >
                   BM25 Options
                 </h4>
-                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                  <label style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "8px",
+                  }}
+                >
+                  <label
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                    }}
+                  >
                     <input
                       type="checkbox"
                       checked={options.fuzzy || false}
@@ -275,11 +313,19 @@ export default function SearchBar({
                       }}
                     />
                   )}
-                  <label style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <label
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                    }}
+                  >
                     <input
                       type="checkbox"
                       checked={options.highlight || false}
-                      onChange={(e) => updateOption("highlight", e.target.checked)}
+                      onChange={(e) =>
+                        updateOption("highlight", e.target.checked)
+                      }
                     />
                     <span style={{ fontSize: "14px" }}>Highlight matches</span>
                   </label>
@@ -290,14 +336,24 @@ export default function SearchBar({
             {/* Options Regex */}
             {searchMode === "regex" && (
               <div>
-                <h4 style={{ margin: "0 0 8px 0", fontSize: "14px", color: "#666" }}>
+                <h4
+                  style={{
+                    margin: "0 0 8px 0",
+                    fontSize: "14px",
+                    color: "#666",
+                  }}
+                >
                   Regex Options
                 </h4>
-                <label style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <label
+                  style={{ display: "flex", alignItems: "center", gap: "8px" }}
+                >
                   <input
                     type="checkbox"
                     checked={options.caseSensitive || false}
-                    onChange={(e) => updateOption("caseSensitive", e.target.checked)}
+                    onChange={(e) =>
+                      updateOption("caseSensitive", e.target.checked)
+                    }
                   />
                   <span style={{ fontSize: "14px" }}>Case sensitive</span>
                 </label>
@@ -308,21 +364,29 @@ export default function SearchBar({
           {/* Champs de recherche */}
           {searchMode === "bm25" && (
             <div style={{ marginTop: "16px" }}>
-              <h4 style={{ margin: "0 0 8px 0", fontSize: "14px", color: "#666" }}>
+              <h4
+                style={{ margin: "0 0 8px 0", fontSize: "14px", color: "#666" }}
+              >
                 Search Fields
               </h4>
               <div style={{ display: "flex", gap: "16px" }}>
                 {(["title", "author", "content"] as const).map((field) => (
                   <label
                     key={field}
-                    style={{ display: "flex", alignItems: "center", gap: "8px" }}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                    }}
                   >
                     <input
                       type="checkbox"
                       checked={options.searchFields?.includes(field) || false}
                       onChange={() => toggleSearchField(field)}
                     />
-                    <span style={{ fontSize: "14px", textTransform: "capitalize" }}>
+                    <span
+                      style={{ fontSize: "14px", textTransform: "capitalize" }}
+                    >
                       {field}
                     </span>
                   </label>

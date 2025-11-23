@@ -3,7 +3,13 @@
  * Transforme le texte brut en termes indexables
  */
 
-import { TOKENIZER_IGNORE_STOP_WORDS, TOKENIZER_MIN_WORD_LENGTH, TOKENIZER_CASE_SENSITIVE, TOKENIZER_KEEP_POSITIONS, STOP_WORDS } from "../utils/const";
+import {
+  TOKENIZER_IGNORE_STOP_WORDS,
+  TOKENIZER_MIN_WORD_LENGTH,
+  TOKENIZER_CASE_SENSITIVE,
+  TOKENIZER_KEEP_POSITIONS,
+  STOP_WORDS,
+} from "../utils/const";
 
 /**
  * Configuration du tokenizer
@@ -73,7 +79,11 @@ export class Tokenizer {
       }
 
       // Filtrer les stop words
-      if (TOKENIZER_IGNORE_STOP_WORDS && this.config.removeStopWords && STOP_WORDS.has(word)) {
+      if (
+        TOKENIZER_IGNORE_STOP_WORDS &&
+        this.config.removeStopWords &&
+        STOP_WORDS.has(word)
+      ) {
         continue;
       }
 

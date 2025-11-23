@@ -1,7 +1,15 @@
-import SearchBar, { type SearchMode, type AdvancedSearchOptions } from "@/components/SearchBar";
+import SearchBar, {
+  type SearchMode,
+  type AdvancedSearchOptions,
+} from "@/components/SearchBar";
 import { SearchResultCard } from "@/components/BookCard";
 import type { Book, SearchResult, BookStats, SuggestionResult } from "@/utils";
-import { getAllBooks, getStats, getPopularBooks, getRecommendations } from "@/utils/api";
+import {
+  getAllBooks,
+  getStats,
+  getPopularBooks,
+  getRecommendations,
+} from "@/utils/api";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect, useRef } from "react";
 
@@ -12,7 +20,9 @@ export const Route = createFileRoute("/")({
 function App() {
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [popularBooks, setPopularBooks] = useState<Book[]>([]);
-  const [recommendations, setRecommendations] = useState<SuggestionResult[]>([]);
+  const [recommendations, setRecommendations] = useState<SuggestionResult[]>(
+    []
+  );
   const [allBooks, setAllBooks] = useState<Book[]>([]);
   const [stats, setStats] = useState<BookStats | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -57,11 +67,12 @@ function App() {
   async function loadInitialData() {
     try {
       setIsLoading(true);
-      const [popularBooksData, recommendationsData, statsData] = await Promise.all([
-        getPopularBooks(10),
-        getRecommendations(20),
-        getStats(),
-      ]);
+      const [popularBooksData, recommendationsData, statsData] =
+        await Promise.all([
+          getPopularBooks(10),
+          getRecommendations(20),
+          getStats(),
+        ]);
       setPopularBooks(popularBooksData);
       setRecommendations(recommendationsData);
       setStats(statsData);
@@ -71,10 +82,10 @@ function App() {
 
       // Filter out popular books and recommendations to avoid duplicates
       const excludedIds = new Set([
-        ...popularBooksData.map(b => b.id),
-        ...recommendationsData.map(r => r.book.id)
+        ...popularBooksData.map((b) => b.id),
+        ...recommendationsData.map((r) => r.book.id),
       ]);
-      const filteredBooks = books.filter(b => !excludedIds.has(b.id));
+      const filteredBooks = books.filter((b) => !excludedIds.has(b.id));
 
       setAllBooks(filteredBooks);
       setCurrentOffset(50);
@@ -95,10 +106,10 @@ function App() {
 
       // Filter out popular books and recommendations to avoid duplicates
       const excludedIds = new Set([
-        ...popularBooks.map(b => b.id),
-        ...recommendations.map(r => r.book.id)
+        ...popularBooks.map((b) => b.id),
+        ...recommendations.map((r) => r.book.id),
       ]);
-      const filteredBooks = books.filter(b => !excludedIds.has(b.id));
+      const filteredBooks = books.filter((b) => !excludedIds.has(b.id));
 
       setAllBooks((prev) => [...prev, ...filteredBooks]);
       setCurrentOffset((prev) => prev + 50);
@@ -169,7 +180,9 @@ function App() {
 
         const API_BASE_URL =
           import.meta.env.VITE_API_URL || "http://localhost:3000";
-        const res = await fetch(`${API_BASE_URL}/api/search/advanced?${params}`);
+        const res = await fetch(
+          `${API_BASE_URL}/api/search/advanced?${params}`
+        );
         if (!res.ok) throw new Error("Search failed");
         response = await res.json();
         console.log(response);
@@ -201,7 +214,7 @@ function App() {
       >
         <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
           <h1 style={{ margin: "0 0 8px 0", fontSize: "32px" }}>
-            📚 Library Search Engine
+            Library Search Engine
           </h1>
           <p style={{ margin: 0, opacity: 0.9 }}>
             Powered by BM25, PageRank, and Jaccard Similarity
@@ -229,16 +242,18 @@ function App() {
             }}
           >
             <div>
-              <strong>📖 Books:</strong> {stats.totalBooks.toLocaleString()}
+              <strong>Books:</strong> {stats.totalBooks.toLocaleString()}
             </div>
             <div>
-              <strong>📝 Total Words:</strong> {stats.totalWords.toLocaleString()}
+              <strong>Total Words:</strong>{" "}
+              {stats.totalWords.toLocaleString()}
             </div>
             <div>
-              <strong>🔗 Jaccard Edges:</strong> {stats.jaccardEdges.toLocaleString()}
+              <strong>Jaccard Edges:</strong>{" "}
+              {stats.jaccardEdges.toLocaleString()}
             </div>
             <div>
-              <strong>⭐ PageRank:</strong>{" "}
+              <strong>PageRank:</strong>{" "}
               {stats.pageRankCalculated ? "✓ Calculated" : "✗ Not calculated"}
             </div>
           </div>
@@ -260,8 +275,9 @@ function App() {
           }}
         >
           <p style={{ color: "#666", fontSize: "14px" }}>
-            Found {searchResults.length} result{searchResults.length !== 1 ? "s" : ""}{" "}
-            in {executionTime?.toFixed(2)}ms
+            Found {searchResults.length} result
+            {searchResults.length !== 1 ? "s" : ""} in{" "}
+            {executionTime?.toFixed(2)}ms
           </p>
         </div>
       )}
@@ -284,7 +300,7 @@ function App() {
               border: "1px solid #ef9a9a",
             }}
           >
-            ⚠️ {error}
+            {error}
           </div>
         </div>
       )}
@@ -316,7 +332,13 @@ function App() {
 
       {/* Books Grid */}
       {!isLoading && (
-        <div style={{ maxWidth: "1400px", margin: "0 auto", padding: "0 24px 24px 24px" }}>
+        <div
+          style={{
+            maxWidth: "1400px",
+            margin: "0 auto",
+            padding: "0 24px 24px 24px",
+          }}
+        >
           {hasSearched ? (
             /* Search Results */
             displayBooks.length > 0 ? (
@@ -328,7 +350,10 @@ function App() {
                 }}
               >
                 {displayBooks.map((result, index) => (
-                  <SearchResultCard key={`${result.book.id}-${index}`} result={result} />
+                  <SearchResultCard
+                    key={`${result.book.id}-${index}`}
+                    result={result}
+                  />
                 ))}
               </div>
             ) : (
@@ -351,21 +376,43 @@ function App() {
               {/* Section 1: Most Popular Books */}
               {popularBooks.length > 0 && (
                 <section style={{ marginBottom: "48px" }}>
-                  <div style={{ marginBottom: "16px", padding: "12px 16px", backgroundColor: "#fff3e0", borderRadius: "8px", border: "2px solid #FF9800", display: "flex", alignItems: "center", gap: "8px" }}>
-                    <span style={{ fontSize: "24px" }}>🔥</span>
-                    <h2 style={{ margin: 0, color: "#E65100", fontWeight: "600", fontSize: "20px" }}>
+                  <div
+                    style={{
+                      marginBottom: "16px",
+                      padding: "12px 16px",
+                      backgroundColor: "#fff3e0",
+                      borderRadius: "8px",
+                      border: "2px solid #FF9800",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                    }}
+                  >
+
+                    <h2
+                      style={{
+                        margin: 0,
+                        color: "#E65100",
+                        fontWeight: "600",
+                        fontSize: "20px",
+                      }}
+                    >
                       Most Popular Books
                     </h2>
                   </div>
                   <div
                     style={{
                       display: "grid",
-                      gridTemplateColumns: "repeat(auto-fill, minmax(350px, 1fr))",
+                      gridTemplateColumns:
+                        "repeat(auto-fill, minmax(350px, 1fr))",
                       gap: "16px",
                     }}
                   >
                     {popularBooks.map((book) => (
-                      <SearchResultCard key={book.id} result={{ book, score: 0, matchedTerms: [] }} />
+                      <SearchResultCard
+                        key={book.id}
+                        result={{ book, score: 0, matchedTerms: [] }}
+                      />
                     ))}
                   </div>
                 </section>
@@ -374,21 +421,47 @@ function App() {
               {/* Section 2: Recommendations */}
               {recommendations.length > 0 && (
                 <section style={{ marginBottom: "48px" }}>
-                  <div style={{ marginBottom: "16px", padding: "12px 16px", backgroundColor: "#e8f5e9", borderRadius: "8px", border: "2px solid #4CAF50", display: "flex", alignItems: "center", gap: "8px" }}>
-                    <span style={{ fontSize: "24px" }}>✨</span>
-                    <h2 style={{ margin: 0, color: "#2e7d32", fontWeight: "600", fontSize: "20px" }}>
+                  <div
+                    style={{
+                      marginBottom: "16px",
+                      padding: "12px 16px",
+                      backgroundColor: "#e8f5e9",
+                      borderRadius: "8px",
+                      border: "2px solid #4CAF50",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                    }}
+                  >
+
+                    <h2
+                      style={{
+                        margin: 0,
+                        color: "#2e7d32",
+                        fontWeight: "600",
+                        fontSize: "20px",
+                      }}
+                    >
                       Recommended For You
                     </h2>
                   </div>
                   <div
                     style={{
                       display: "grid",
-                      gridTemplateColumns: "repeat(auto-fill, minmax(350px, 1fr))",
+                      gridTemplateColumns:
+                        "repeat(auto-fill, minmax(350px, 1fr))",
                       gap: "16px",
                     }}
                   >
                     {recommendations.map((rec) => (
-                      <SearchResultCard key={rec.book.id} result={{ book: rec.book, score: rec.similarity, matchedTerms: [] }} />
+                      <SearchResultCard
+                        key={rec.book.id}
+                        result={{
+                          book: rec.book,
+                          score: rec.similarity,
+                          matchedTerms: [],
+                        }}
+                      />
                     ))}
                   </div>
                 </section>
@@ -397,21 +470,43 @@ function App() {
               {/* Section 3: All Books (Infinite Scroll) */}
               {allBooks.length > 0 && (
                 <section>
-                  <div style={{ marginBottom: "16px", padding: "12px 16px", backgroundColor: "#e3f2fd", borderRadius: "8px", border: "2px solid #2196F3", display: "flex", alignItems: "center", gap: "8px" }}>
-                    <span style={{ fontSize: "24px" }}>📚</span>
-                    <h2 style={{ margin: 0, color: "#1565C0", fontWeight: "600", fontSize: "20px" }}>
+                  <div
+                    style={{
+                      marginBottom: "16px",
+                      padding: "12px 16px",
+                      backgroundColor: "#e3f2fd",
+                      borderRadius: "8px",
+                      border: "2px solid #2196F3",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                    }}
+                  >
+
+                    <h2
+                      style={{
+                        margin: 0,
+                        color: "#1565C0",
+                        fontWeight: "600",
+                        fontSize: "20px",
+                      }}
+                    >
                       Browse All Books
                     </h2>
                   </div>
                   <div
                     style={{
                       display: "grid",
-                      gridTemplateColumns: "repeat(auto-fill, minmax(350px, 1fr))",
+                      gridTemplateColumns:
+                        "repeat(auto-fill, minmax(350px, 1fr))",
                       gap: "16px",
                     }}
                   >
                     {allBooks.map((book) => (
-                      <SearchResultCard key={book.id} result={{ book, score: 0, matchedTerms: [] }} />
+                      <SearchResultCard
+                        key={book.id}
+                        result={{ book, score: 0, matchedTerms: [] }}
+                      />
                     ))}
                   </div>
 
@@ -443,17 +538,21 @@ function App() {
               )}
 
               {/* Empty state */}
-              {popularBooks.length === 0 && recommendations.length === 0 && allBooks.length === 0 && (
-                <div
-                  style={{
-                    textAlign: "center",
-                    padding: "48px 24px",
-                    color: "#666",
-                  }}
-                >
-                  <p style={{ fontSize: "18px", margin: 0 }}>No books in library</p>
-                </div>
-              )}
+              {popularBooks.length === 0 &&
+                recommendations.length === 0 &&
+                allBooks.length === 0 && (
+                  <div
+                    style={{
+                      textAlign: "center",
+                      padding: "48px 24px",
+                      color: "#666",
+                    }}
+                  >
+                    <p style={{ fontSize: "18px", margin: 0 }}>
+                      No books in library
+                    </p>
+                  </div>
+                )}
             </>
           )}
         </div>

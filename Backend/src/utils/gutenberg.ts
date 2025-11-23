@@ -125,12 +125,17 @@ export async function downloadGutenbergText(
         return cleanedText;
       }
     } catch (error) {
-      console.error(`[Text Download] Error downloading from ${url}:`, error instanceof Error ? error.message : error);
+      console.error(
+        `[Text Download] Error downloading from ${url}:`,
+        error instanceof Error ? error.message : error
+      );
       continue;
     }
   }
 
-  console.error(`[Text Download] Could not download book ${bookId} from any of the ${urls.length} URL(s)`);
+  console.error(
+    `[Text Download] Could not download book ${bookId} from any of the ${urls.length} URL(s)`
+  );
   return null;
 }
 
@@ -172,7 +177,10 @@ export async function downloadGutenbergCover(
 
     return filepath;
   } catch (error) {
-    console.error(`[Cover Download] Failed to download cover for book ${bookId}:`, error instanceof Error ? error.message : error);
+    console.error(
+      `[Cover Download] Failed to download cover for book ${bookId}:`,
+      error instanceof Error ? error.message : error
+    );
     return null;
   }
 }
@@ -181,7 +189,7 @@ export async function downloadGutenbergCover(
  * Sleep helper function
  */
 function sleep(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 /**
@@ -190,7 +198,7 @@ function sleep(ms: number): Promise<void> {
 export async function fetchGutendexMetadataBatch(
   bookIds: number[]
 ): Promise<Map<number, GutendexMetadata>> {
-  const url = `https://gutendex.com/books?ids=${bookIds.join(',')}`;
+  const url = `https://gutendex.com/books?ids=${bookIds.join(",")}`;
   const metadataMap = new Map<number, GutendexMetadata>();
 
   try {
@@ -198,13 +206,21 @@ export async function fetchGutendexMetadataBatch(
 
     if (!response.ok) {
       // Retry en cas d'erreur
-      if (response.status === 408 || response.status === 429 || response.status >= 500) {
-        console.warn(`[Gutendex Batch] Failed with HTTP ${response.status}, retrying in 2s...`);
+      if (
+        response.status === 408 ||
+        response.status === 429 ||
+        response.status >= 500
+      ) {
+        console.warn(
+          `[Gutendex Batch] Failed with HTTP ${response.status}, retrying in 2s...`
+        );
         await sleep(2000);
 
         const retryResponse = await fetch(url);
         if (!retryResponse.ok) {
-          console.error(`[Gutendex Batch] Retry failed with HTTP ${retryResponse.status}`);
+          console.error(
+            `[Gutendex Batch] Retry failed with HTTP ${retryResponse.status}`
+          );
           return metadataMap;
         }
 
@@ -249,7 +265,9 @@ export async function fetchGutendexMetadataBatch(
     try {
       const retryResponse = await fetch(url);
       if (!retryResponse.ok) {
-        console.error(`[Gutendex Batch] Retry failed with HTTP ${retryResponse.status}`);
+        console.error(
+          `[Gutendex Batch] Retry failed with HTTP ${retryResponse.status}`
+        );
         return metadataMap;
       }
 
@@ -288,8 +306,14 @@ export async function fetchGutendexMetadata(
 
     if (!response.ok) {
       // Si timeout ou erreur serveur, retry après 2 secondes
-      if (response.status === 408 || response.status === 429 || response.status >= 500) {
-        console.warn(`[Gutendex] Book ${bookId} failed with HTTP ${response.status}, retrying in 2s...`);
+      if (
+        response.status === 408 ||
+        response.status === 429 ||
+        response.status >= 500
+      ) {
+        console.warn(
+          `[Gutendex] Book ${bookId} failed with HTTP ${response.status}, retrying in 2s...`
+        );
         await sleep(2000);
 
         // Deuxième essai
@@ -310,7 +334,10 @@ export async function fetchGutendexMetadata(
 
           return data;
         } catch (retryError) {
-          console.error(`[Gutendex] Retry failed for book ${bookId}:`, retryError);
+          console.error(
+            `[Gutendex] Retry failed for book ${bookId}:`,
+            retryError
+          );
           return null;
         }
       }
@@ -330,7 +357,9 @@ export async function fetchGutendexMetadata(
     return data;
   } catch (error) {
     // En cas d'erreur réseau, retry après 2 secondes
-    console.warn(`[Gutendex] Network error for book ${bookId}, retrying in 2s...`);
+    console.warn(
+      `[Gutendex] Network error for book ${bookId}, retrying in 2s...`
+    );
     await sleep(2000);
 
     try {
@@ -350,7 +379,10 @@ export async function fetchGutendexMetadata(
 
       return data;
     } catch (retryError) {
-      console.error(`[Gutendex] Failed to fetch metadata for book ${bookId} after retry:`, retryError);
+      console.error(
+        `[Gutendex] Failed to fetch metadata for book ${bookId} after retry:`,
+        retryError
+      );
       return null;
     }
   }
@@ -395,10 +427,14 @@ export function extractGutenbergMetadata(
   }
 
   if (!foundTitle) {
-    console.warn(`[Metadata Extraction] Could not find title in text for book ${bookId}, using default`);
+    console.warn(
+      `[Metadata Extraction] Could not find title in text for book ${bookId}, using default`
+    );
   }
   if (!foundAuthor) {
-    console.warn(`[Metadata Extraction] Could not find author in text for book ${bookId}, using default`);
+    console.warn(
+      `[Metadata Extraction] Could not find author in text for book ${bookId}, using default`
+    );
   }
 
   // Nettoyer le titre
@@ -426,7 +462,10 @@ export async function downloadGutenbergBook(
   providedMetadata?: GutendexMetadata | null
 ): Promise<GutenbergBook | null> {
   // Utiliser les métadonnées fournies ou les récupérer depuis l'API
-  const metadata = providedMetadata !== undefined ? providedMetadata : await fetchGutendexMetadata(bookId);
+  const metadata =
+    providedMetadata !== undefined
+      ? providedMetadata
+      : await fetchGutendexMetadata(bookId);
 
   let title: string;
   let author: string;
@@ -440,13 +479,17 @@ export async function downloadGutenbergBook(
       author = metadata.authors.map((a) => a.name).join(", ");
     } else {
       author = "Unknown Author";
-      console.warn(`[Book ${bookId}] No authors in Gutendex metadata, using "Unknown Author"`);
+      console.warn(
+        `[Book ${bookId}] No authors in Gutendex metadata, using "Unknown Author"`
+      );
     }
   } else {
     // Fallback: utiliser des valeurs par défaut
     title = `Gutenberg Book ${bookId}`;
     author = "Unknown Author";
-    console.warn(`[Book ${bookId}] No Gutendex metadata available, using fallback values`);
+    console.warn(
+      `[Book ${bookId}] No Gutendex metadata available, using fallback values`
+    );
   }
 
   // Télécharger le texte en utilisant les URLs de Gutendex

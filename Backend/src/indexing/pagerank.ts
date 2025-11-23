@@ -5,7 +5,11 @@
 import { computePageRank, type Graph } from "@monorepo/lib";
 import { getDatabase, withTransaction } from "../db/connection.js";
 import { IndexingProgress, PageRankScore } from "../utils/types.js";
-import { PAGERANK_DEFAULT_DAMPING, PAGERANK_DEFAULT_MAX_ITERATIONS, PAGERANK_DEFAULT_TOLERANCE } from "../utils/const.js";
+import {
+  PAGERANK_DEFAULT_DAMPING,
+  PAGERANK_DEFAULT_MAX_ITERATIONS,
+  PAGERANK_DEFAULT_TOLERANCE,
+} from "../utils/const.js";
 
 /**
  * Configuration pour le calcul de PageRank

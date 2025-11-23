@@ -21,7 +21,9 @@ export class RecommendationEngine {
    * @param limit Nombre de recommandations
    * @returns Liste de suggestions
    */
-  getRecommendationsFromHistory(limit: number = RECOMMENDATION_DEFAULT_LIMIT): BookSuggestion[] {
+  getRecommendationsFromHistory(
+    limit: number = RECOMMENDATION_DEFAULT_LIMIT
+  ): BookSuggestion[] {
     // Récupérer les livres les plus cliqués globalement
     const clickedBooks = this.db
       .prepare(
@@ -150,7 +152,9 @@ export class RecommendationEngine {
       LIMIT ?
     `
       )
-      .all(limit) as Array<Book & { pagerank_score: number; click_count: number }>;
+      .all(limit) as Array<
+      Book & { pagerank_score: number; click_count: number }
+    >;
 
     return books.map((book) => ({
       book: {

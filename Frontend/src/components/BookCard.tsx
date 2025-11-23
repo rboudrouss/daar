@@ -111,7 +111,8 @@ export default function BookCard({
                 fontWeight: "500",
               }}
             >
-              👆 {book.clickCount.toLocaleString()} click{book.clickCount !== 1 ? 's' : ''}
+              👆 {book.clickCount.toLocaleString()} click
+              {book.clickCount !== 1 ? "s" : ""}
             </p>
           )}
           {showPageRank && book.pageRank !== undefined && (
@@ -123,7 +124,7 @@ export default function BookCard({
                 fontWeight: "500",
               }}
             >
-              ⭐ PageRank: {book.pageRank.toFixed(6)}
+              PageRank: {book.pageRank.toFixed(6)}
             </p>
           )}
         </div>
@@ -141,8 +142,7 @@ export default function BookCard({
           <strong>BM25 Score:</strong> {score.toFixed(4)}
           {matchedTerms && matchedTerms.length > 0 && (
             <div style={{ marginTop: "4px" }}>
-              <strong>Matched:</strong>{" "}
-              {matchedTerms.slice(0, 5).join(", ")}
+              <strong>Matched:</strong> {matchedTerms.slice(0, 5).join(", ")}
               {matchedTerms.length > 5 && ` +${matchedTerms.length - 5} more`}
             </div>
           )}
@@ -160,8 +160,15 @@ export default function BookCard({
             borderLeft: "3px solid #ff9800",
           }}
         >
-          <div style={{ fontSize: "12px", fontWeight: "600", marginBottom: "8px", color: "#e65100" }}>
-            📝 Highlights:
+          <div
+            style={{
+              fontSize: "12px",
+              fontWeight: "600",
+              marginBottom: "8px",
+              color: "#e65100",
+            }}
+          >
+            Highlights:
           </div>
           {snippets.map((snippet, index) => (
             <div
@@ -182,7 +189,9 @@ export default function BookCard({
                 }}
               />
               {snippet.matchedTerms.length > 0 && (
-                <div style={{ marginTop: "4px", fontSize: "11px", color: "#666" }}>
+                <div
+                  style={{ marginTop: "4px", fontSize: "11px", color: "#666" }}
+                >
                   <em>Matched: {snippet.matchedTerms.join(", ")}</em>
                 </div>
               )}

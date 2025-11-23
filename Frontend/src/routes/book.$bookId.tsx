@@ -1,7 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import type { Book, SuggestionResult } from "@/utils";
-import { getBookById, getBookSuggestions, getCoverImageUrl, trackBookClick } from "@/utils/api";
+import {
+  getBookById,
+  getBookSuggestions,
+  getCoverImageUrl,
+  trackBookClick,
+} from "@/utils/api";
 import BookCard from "@/components/BookCard";
 
 export const Route = createFileRoute("/book/$bookId")({
@@ -48,8 +53,11 @@ function BookDetailPage() {
 
     try {
       setIsLoadingText(true);
-      const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
-      console.log(`Loading book text from ${API_BASE_URL}/api/books/${book.id}/text`);
+      const API_BASE_URL =
+        import.meta.env.VITE_API_URL || "http://localhost:3000";
+      console.log(
+        `Loading book text from ${API_BASE_URL}/api/books/${book.id}/text`
+      );
       const response = await fetch(`${API_BASE_URL}/api/books/${book.id}/text`);
 
       if (!response.ok) {
@@ -133,7 +141,7 @@ function BookDetailPage() {
             border: "1px solid #ef9a9a",
           }}
         >
-          ⚠️ {error || "Book not found"}
+          {error || "Book not found"}
         </div>
         <div style={{ maxWidth: "800px", margin: "16px auto" }}>
           <Link
@@ -252,7 +260,8 @@ function BookDetailPage() {
                       fontWeight: "500",
                     }}
                   >
-                    <strong>⭐ PageRank Score:</strong> {book.pageRank.toFixed(6)}
+                    <strong>PageRank Score:</strong>{" "}
+                    {book.pageRank.toFixed(6)}
                   </p>
                 )}
                 {book.clickCount !== undefined && book.clickCount > 0 && (
@@ -264,7 +273,8 @@ function BookDetailPage() {
                       fontWeight: "500",
                     }}
                   >
-                    <strong>👆 Click Count:</strong> {book.clickCount.toLocaleString()}
+                    <strong>👆 Click Count:</strong>{" "}
+                    {book.clickCount.toLocaleString()}
                   </p>
                 )}
                 <p
@@ -328,8 +338,8 @@ function BookDetailPage() {
                 {isLoadingText
                   ? "Loading text..."
                   : showText
-                  ? "📖 Hide Book Text"
-                  : "📖 Read Book"}
+                    ? "Hide Book Text"
+                    : "Read Book"}
               </button>
             </div>
           </div>
@@ -354,7 +364,7 @@ function BookDetailPage() {
                 color: "#333",
               }}
             >
-              📄 Book Text
+              Book Text
             </h2>
             {isLoadingText ? (
               <div style={{ textAlign: "center", padding: "40px" }}>
@@ -406,7 +416,7 @@ function BookDetailPage() {
                 color: "#333",
               }}
             >
-              📚 Similar Books (Jaccard Similarity)
+              Similar Books (Jaccard Similarity)
             </h2>
             <div
               style={{
@@ -428,7 +438,8 @@ function BookDetailPage() {
                       textAlign: "center",
                     }}
                   >
-                    <strong>Similarity:</strong> {(suggestion.similarity * 100).toFixed(2)}%
+                    <strong>Similarity:</strong>{" "}
+                    {(suggestion.similarity * 100).toFixed(2)}%
                     {suggestion.reason && (
                       <span style={{ marginLeft: "8px", color: "#666" }}>
                         ({suggestion.reason})

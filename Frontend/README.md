@@ -4,12 +4,12 @@ A modern React frontend for the Library Search Engine, featuring BM25 search, Pa
 
 ## Features
 
-- 🔍 **Smart Search**: BM25 algorithm for intelligent full-text search
-- 🎯 **Advanced Search**: Regex pattern matching for precise queries
-- ⭐ **PageRank Scoring**: Books ranked by importance and connections
-- 📚 **Book Recommendations**: Jaccard similarity-based suggestions
-- ��️ **Cover Images**: Beautiful book covers from Project Gutenberg
-- 🔐 **Admin Panel**: Import books and manage the search engine
+- **Smart Search**: BM25 algorithm for intelligent full-text search
+- **Advanced Search**: Regex pattern matching for precise queries
+- **PageRank Scoring**: Books ranked by importance and connections
+- **Book Recommendations**: Jaccard similarity-based suggestions
+- **Cover Images**: Beautiful book covers from Project Gutenberg
+- **Admin Panel**: Import books and manage the search engine
 
 ## Getting Started
 

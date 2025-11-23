@@ -4,7 +4,14 @@
  */
 
 import { getDatabase } from "../db/connection.js";
-import { SEARCH_SCORING_BM25_WEIGHT, SEARCH_SCORING_PAGERANK_WEIGHT, SEARCH_SCORING_OCCURRENCE_WEIGHT, SEARCH_SCORING_K1, SEARCH_SCORING_B, SEARCH_SCORING_ENABLE_PROXIMITY_BONUS } from "../utils/const.js";
+import {
+  SEARCH_SCORING_BM25_WEIGHT,
+  SEARCH_SCORING_PAGERANK_WEIGHT,
+  SEARCH_SCORING_OCCURRENCE_WEIGHT,
+  SEARCH_SCORING_K1,
+  SEARCH_SCORING_B,
+  SEARCH_SCORING_ENABLE_PROXIMITY_BONUS,
+} from "../utils/const.js";
 import { ScoringConfig } from "../utils/types.js";
 
 /**
@@ -21,10 +28,12 @@ export class ScoringEngine {
     this.config = {
       bm25Weight: config.bm25Weight ?? SEARCH_SCORING_BM25_WEIGHT,
       pageRankWeight: config.pageRankWeight ?? SEARCH_SCORING_PAGERANK_WEIGHT,
-      occurrenceWeight: config.occurrenceWeight ?? SEARCH_SCORING_OCCURRENCE_WEIGHT,
+      occurrenceWeight:
+        config.occurrenceWeight ?? SEARCH_SCORING_OCCURRENCE_WEIGHT,
       k1: config.k1 ?? SEARCH_SCORING_K1,
       b: config.b ?? SEARCH_SCORING_B,
-      enableProximityBonus: config.enableProximityBonus ?? SEARCH_SCORING_ENABLE_PROXIMITY_BONUS,
+      enableProximityBonus:
+        config.enableProximityBonus ?? SEARCH_SCORING_ENABLE_PROXIMITY_BONUS,
     };
 
     // Charger les statistiques de la bibliothèque

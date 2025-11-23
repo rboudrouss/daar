@@ -3,7 +3,10 @@
  */
 
 import type Database from "better-sqlite3";
-import { RECOMMENDATION_DEFAULT_LIMIT, RECOMMENDATION_JACCARD_THRESHOLD } from "../utils/const";
+import {
+  RECOMMENDATION_DEFAULT_LIMIT,
+  RECOMMENDATION_JACCARD_THRESHOLD,
+} from "../utils/const";
 
 /**
  * Vecteur TF-IDF d'un document

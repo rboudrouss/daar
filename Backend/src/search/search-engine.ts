@@ -15,7 +15,12 @@ import {
   BookSuggestion,
   Book,
 } from "../utils/types.js";
-import { RECOMMENDATION_DEFAULT_LIMIT, SEARCH_FUZZY_DEFAULT_MAX_DISTANCE, STOP_WORDS, TOKENIZER_IGNORE_STOP_WORDS } from "../utils/const.js";
+import {
+  RECOMMENDATION_DEFAULT_LIMIT,
+  SEARCH_FUZZY_DEFAULT_MAX_DISTANCE,
+  STOP_WORDS,
+  TOKENIZER_IGNORE_STOP_WORDS,
+} from "../utils/const.js";
 
 /**
  * Moteur de recherche
@@ -109,13 +114,17 @@ export class SearchEngine {
     // Ajouter le highlighting APRÈS le tri et le limit (pour ne générer que pour les résultats retournés)
     if (params.highlight) {
       for (const result of paginatedResults) {
-        result.snippets = this.generateHighlights(result.book, queryTerms, params);
+        result.snippets = this.generateHighlights(
+          result.book,
+          queryTerms,
+          params
+        );
       }
     }
 
     const executionTime = Date.now() - startTime;
     console.log(
-      `🔍 Search for "${params.query}" found ${results.length} results in ${executionTime}ms`
+      `Search for "${params.query}" found ${results.length} results in ${executionTime}ms`
     );
 
     return paginatedResults;
@@ -149,7 +158,7 @@ export class SearchEngine {
     }
 
     console.log(
-      `📝 Regex "${params.query}" matched ${matchingTerms.length} terms`
+      `Regex "${params.query}" matched ${matchingTerms.length} terms`
     );
 
     // Utiliser la recherche normale avec les termes matchés
@@ -348,8 +357,6 @@ export class SearchEngine {
     }));
   }
 
-
-
   /**
    * Étend la requête avec des termes similaires (fuzzy)
    */
@@ -472,7 +479,8 @@ export class SearchEngine {
     const positions = new Map<string, number[]>();
 
     for (const term of new Set(queryTerms)) {
-      if (TOKENIZER_IGNORE_STOP_WORDS && STOP_WORDS.has(term.toLowerCase())) continue;
+      if (TOKENIZER_IGNORE_STOP_WORDS && STOP_WORDS.has(term.toLowerCase()))
+        continue;
       const result = this.db
         .prepare(
           `
@@ -500,14 +508,19 @@ export class SearchEngine {
   /**
    * Obtient des recommandations basées sur l'historique de clics globaux
    */
-  getRecommendations(limit: number = RECOMMENDATION_DEFAULT_LIMIT): BookSuggestion[] {
+  getRecommendations(
+    limit: number = RECOMMENDATION_DEFAULT_LIMIT
+  ): BookSuggestion[] {
     return this.recommendationEngine.getRecommendationsFromHistory(limit);
   }
 
   /**
    * Trouve des livres similaires par sémantique
    */
-  findSimilarBooks(bookId: number, limit: number = RECOMMENDATION_DEFAULT_LIMIT): SearchResult[] {
+  findSimilarBooks(
+    bookId: number,
+    limit: number = RECOMMENDATION_DEFAULT_LIMIT
+  ): SearchResult[] {
     const similar = this.semanticSearch.findSimilarBooks(bookId, limit);
 
     return similar

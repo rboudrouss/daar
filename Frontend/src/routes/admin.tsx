@@ -12,7 +12,10 @@ function AdminPanel() {
   const [importCount, setImportCount] = useState("10");
   const [jaccardThreshold, setJaccardThreshold] = useState("0.1");
   const [isLoading, setIsLoading] = useState(false);
-  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [message, setMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
 
   async function callAdminAPI(endpoint: string, body: any = {}) {
     if (!password) {
@@ -24,7 +27,10 @@ function AdminPanel() {
       setIsLoading(true);
       setMessage(null);
 
-      console.log("Calling admin API: ", `${API_BASE_URL}/api/admin/${endpoint}`);
+      console.log(
+        "Calling admin API: ",
+        `${API_BASE_URL}/api/admin/${endpoint}`
+      );
       const response = await fetch(`${API_BASE_URL}/api/admin/${endpoint}`, {
         method: "POST",
         headers: {
@@ -91,7 +97,7 @@ function AdminPanel() {
       >
         <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
           <h1 style={{ margin: "0 0 8px 0", fontSize: "28px" }}>
-            🔐 Admin Panel
+            Admin Panel
           </h1>
           <Link
             to="/"
@@ -154,12 +160,13 @@ function AdminPanel() {
               padding: "12px 16px",
               borderRadius: "4px",
               marginBottom: "24px",
-              backgroundColor: message.type === "success" ? "#e8f5e9" : "#ffebee",
+              backgroundColor:
+                message.type === "success" ? "#e8f5e9" : "#ffebee",
               color: message.type === "success" ? "#2e7d32" : "#c62828",
               border: `1px solid ${message.type === "success" ? "#a5d6a7" : "#ef9a9a"}`,
             }}
           >
-            {message.type === "success" ? "✓" : "⚠️"} {message.text}
+            {message.type === "success" ? "✓" : ""} {message.text}
           </div>
         )}
 
@@ -173,7 +180,13 @@ function AdminPanel() {
             marginBottom: "24px",
           }}
         >
-          <h2 style={{ margin: "0 0 16px 0", fontSize: "20px", fontWeight: "600" }}>
+          <h2
+            style={{
+              margin: "0 0 16px 0",
+              fontSize: "20px",
+              fontWeight: "600",
+            }}
+          >
             📥 Import Books from Gutenberg
           </h2>
           <p style={{ margin: "0 0 16px 0", color: "#666", fontSize: "14px" }}>
@@ -237,7 +250,13 @@ function AdminPanel() {
             marginBottom: "24px",
           }}
         >
-          <h2 style={{ margin: "0 0 16px 0", fontSize: "20px", fontWeight: "600" }}>
+          <h2
+            style={{
+              margin: "0 0 16px 0",
+              fontSize: "20px",
+              fontWeight: "600",
+            }}
+          >
             🔗 Rebuild Jaccard Graph
           </h2>
           <p style={{ margin: "0 0 16px 0", color: "#666", fontSize: "14px" }}>
@@ -302,8 +321,14 @@ function AdminPanel() {
             marginBottom: "24px",
           }}
         >
-          <h2 style={{ margin: "0 0 16px 0", fontSize: "20px", fontWeight: "600" }}>
-            ⭐ Calculate PageRank
+          <h2
+            style={{
+              margin: "0 0 16px 0",
+              fontSize: "20px",
+              fontWeight: "600",
+            }}
+          >
+            Calculate PageRank
           </h2>
           <p style={{ margin: "0 0 16px 0", color: "#666", fontSize: "14px" }}>
             Calculate PageRank scores for all books based on the Jaccard graph.
@@ -336,13 +361,19 @@ function AdminPanel() {
             boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
           }}
         >
-          <h2 style={{ margin: "0 0 16px 0", fontSize: "20px", fontWeight: "600" }}>
-            🔄 Reindex All Books
+          <h2
+            style={{
+              margin: "0 0 16px 0",
+              fontSize: "20px",
+              fontWeight: "600",
+            }}
+          >
+            Reindex All Books
           </h2>
           <p style={{ margin: "0 0 16px 0", color: "#666", fontSize: "14px" }}>
-            Rebuild the search index for all books. This updates character positions
-            and term frequencies. Use this if the index becomes corrupted or after
-            database changes.
+            Rebuild the search index for all books. This updates character
+            positions and term frequencies. Use this if the index becomes
+            corrupted or after database changes.
           </p>
           <button
             onClick={handleReindex}
@@ -365,4 +396,3 @@ function AdminPanel() {
     </div>
   );
 }
-

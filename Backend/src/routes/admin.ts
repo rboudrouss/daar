@@ -5,7 +5,10 @@
 import { Hono } from "hono";
 import { getDatabase } from "../db/connection";
 import { adminAuth } from "../middleware/auth";
-import { downloadGutenbergBook, fetchGutendexMetadataBatch } from "../utils/gutenberg";
+import {
+  downloadGutenbergBook,
+  fetchGutendexMetadataBatch,
+} from "../utils/gutenberg";
 import { BookIndexer } from "../indexing/indexer";
 import { JaccardCalculator } from "../indexing/jaccard";
 import { PageRankCalculator } from "../indexing/pagerank";
@@ -61,22 +64,30 @@ app.post("/import-gutenberg", async (c) => {
       batches.push(bookIds.slice(i, i + GUTENBERG_BATCH_SIZE));
     }
 
-    console.log(`Processing ${bookIds.length} books in ${batches.length} batches of ${GUTENBERG_BATCH_SIZE}`);
+    console.log(
+      `Processing ${bookIds.length} books in ${batches.length} batches of ${GUTENBERG_BATCH_SIZE}`
+    );
 
     let processedCount = 0;
 
     for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
       const batch = batches[batchIndex];
-      console.log(`\n[Batch ${batchIndex + 1}/${batches.length}] Fetching metadata for ${batch.length} books (IDs: ${batch[0]}-${batch[batch.length - 1]})...`);
+      console.log(
+        `\n[Batch ${batchIndex + 1}/${batches.length}] Fetching metadata for ${batch.length} books (IDs: ${batch[0]}-${batch[batch.length - 1]})...`
+      );
 
       // Récupérer les métadonnées du batch
       const metadataMap = await fetchGutendexMetadataBatch(batch);
-      console.log(`Received metadata for ${metadataMap.size}/${batch.length} books`);
+      console.log(
+        `Received metadata for ${metadataMap.size}/${batch.length} books`
+      );
 
       // Télécharger et indexer chaque livre du batch
       for (const bookId of batch) {
         processedCount++;
-        console.log(`\n[${processedCount}/${count}] Processing book ${bookId}...`);
+        console.log(
+          `\n[${processedCount}/${count}] Processing book ${bookId}...`
+        );
 
         const metadata = metadataMap.get(bookId) || null;
         const book = await downloadGutenbergBook(bookId, metadata);
@@ -107,8 +118,10 @@ app.post("/import-gutenberg", async (c) => {
 
       // Pause entre les batches (sauf pour le dernier)
       if (batchIndex < batches.length - 1) {
-        console.log(`\nBatch ${batchIndex + 1} complete. Waiting 1s before next batch...`);
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        console.log(
+          `\nBatch ${batchIndex + 1} complete. Waiting 1s before next batch...`
+        );
+        await new Promise((resolve) => setTimeout(resolve, 1000));
       }
     }
 
@@ -263,10 +276,15 @@ app.post("/reindex", async (c) => {
         reindexedCount++;
 
         if (reindexedCount % 10 === 0) {
-          console.log(`Progress: ${reindexedCount}/${books.length} books reindexed`);
+          console.log(
+            `Progress: ${reindexedCount}/${books.length} books reindexed`
+          );
         }
       } catch (error) {
-        console.error(`Failed to reindex book ${book.id} (${book.title}):`, error);
+        console.error(
+          `Failed to reindex book ${book.id} (${book.title}):`,
+          error
+        );
       }
     }
 

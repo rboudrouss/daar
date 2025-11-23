@@ -59,9 +59,7 @@ app.get("/", async (c) => {
     title: r.title,
     author: r.author,
     filePath: `/api/books/${r.id}/text`,
-    coverImagePath: r.cover_image_path
-      ? `/api/books/${r.id}/cover`
-      : undefined,
+    coverImagePath: r.cover_image_path ? `/api/books/${r.id}/cover` : undefined,
     wordCount: r.word_count,
     createdAt: r.created_at,
     clickCount: r.click_count,

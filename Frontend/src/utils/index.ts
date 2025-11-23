@@ -1,5 +1,12 @@
 // Re-export types from API
-export type { Book, SearchResult, SearchResponse, BookStats, SuggestionResult, TextSnippet } from './api';
+export type {
+  Book,
+  SearchResult,
+  SearchResponse,
+  BookStats,
+  SuggestionResult,
+  TextSnippet,
+} from "./api";
 
 // Legacy Book interface for backward compatibility
 export interface LegacyBook {

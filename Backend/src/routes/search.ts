@@ -40,9 +40,7 @@ function transformSearchResults(results: SearchResult[]): SearchResult[] {
 /**
  * Transforme les suggestions pour utiliser des URLs
  */
-function transformSuggestions(
-  suggestions: BookSuggestion[]
-): BookSuggestion[] {
+function transformSuggestions(suggestions: BookSuggestion[]): BookSuggestion[] {
   return suggestions.map((suggestion) => ({
     ...suggestion,
     book: transformBookToUrls(suggestion.book),

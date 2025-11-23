@@ -56,7 +56,9 @@ export class BookIndexer {
       }
     });
 
-    console.log(`Reindexed book ${bookId} (${totalTokens} words, ${termCounts.size} unique terms)`);
+    console.log(
+      `Reindexed book ${bookId} (${totalTokens} words, ${termCounts.size} unique terms)`
+    );
   }
 
   /**

@@ -88,13 +88,23 @@ export class Highlighter {
     const snippets: TextSnippet[] = [];
     const snippetRanges: Array<{ start: number; end: number }> = [];
 
-    console.log(`[HIGHLIGHTER] Starting snippet generation, target count=${opts.snippetCount}, max length=${opts.snippetLength}`);
+    console.log(
+      `[HIGHLIGHTER] Starting snippet generation, target count=${opts.snippetCount}, max length=${opts.snippetLength}`
+    );
     let matchIndex = 0;
-    while (snippetRanges.length < opts.snippetCount && matchIndex < allMatches.length) {
-      console.log(`[HIGHLIGHTER] Loop iteration: snippets.length=${snippets.length}, snippetRanges.length=${snippetRanges.length}, matchIndex=${matchIndex}`);
+    while (
+      snippetRanges.length < opts.snippetCount &&
+      matchIndex < allMatches.length
+    ) {
+      console.log(
+        `[HIGHLIGHTER] Loop iteration: snippets.length=${snippets.length}, snippetRanges.length=${snippetRanges.length}, matchIndex=${matchIndex}`
+      );
       const match = allMatches[matchIndex];
       const start = Math.max(0, match.position - opts.contextBefore);
-      const end = Math.min(fileSize, match.position + match.length + opts.contextAfter);
+      const end = Math.min(
+        fileSize,
+        match.position + match.length + opts.contextAfter
+      );
 
       // Chercher un overlap avec un snippet existant
       let overlappingIndex = -1;
@@ -108,9 +118,13 @@ export class Highlighter {
 
           if (mergedLength <= opts.snippetLength) {
             overlappingIndex = i;
-            console.log(`[HIGHLIGHTER] Found overlap at index ${i}, merged length would be ${mergedLength}`);
+            console.log(
+              `[HIGHLIGHTER] Found overlap at index ${i}, merged length would be ${mergedLength}`
+            );
           } else {
-            console.log(`[HIGHLIGHTER] Overlap found but merge would exceed max length (${mergedLength} > ${opts.snippetLength}), treating as separate snippet`);
+            console.log(
+              `[HIGHLIGHTER] Overlap found but merge would exceed max length (${mergedLength} > ${opts.snippetLength}), treating as separate snippet`
+            );
           }
           break;
         }
@@ -118,7 +132,9 @@ export class Highlighter {
 
       if (overlappingIndex !== -1) {
         // Merge avec le snippet existant
-        console.log(`[HIGHLIGHTER] Merging with existing snippet at index ${overlappingIndex}`);
+        console.log(
+          `[HIGHLIGHTER] Merging with existing snippet at index ${overlappingIndex}`
+        );
         const existingRange = snippetRanges[overlappingIndex];
         existingRange.start = Math.min(existingRange.start, start);
         existingRange.end = Math.max(existingRange.end, end);
@@ -131,12 +147,16 @@ export class Highlighter {
       matchIndex++;
     }
 
-    console.log(`[HIGHLIGHTER] After loop: snippetRanges.length=${snippetRanges.length}, snippets.length=${snippets.length}`);
+    console.log(
+      `[HIGHLIGHTER] After loop: snippetRanges.length=${snippetRanges.length}, snippets.length=${snippets.length}`
+    );
 
     // Créer un Aho-Corasick pour rechercher tous les termes
     const ac = new AhoCorasick(terms);
 
-    console.log(`[HIGHLIGHTER] Generating snippets from ${snippetRanges.length} ranges`);
+    console.log(
+      `[HIGHLIGHTER] Generating snippets from ${snippetRanges.length} ranges`
+    );
     // Générer les snippets à partir des ranges
     for (const range of snippetRanges) {
       // Extraire le snippet du contenu
@@ -168,7 +188,10 @@ export class Highlighter {
       snippetMatches.sort((a, b) => b.position - a.position);
       for (const sm of snippetMatches) {
         const before = snippetText.substring(0, sm.position);
-        const matched = snippetText.substring(sm.position, sm.position + sm.length);
+        const matched = snippetText.substring(
+          sm.position,
+          sm.position + sm.length
+        );
         const after = snippetText.substring(sm.position + sm.length);
         snippetText = before + "<mark>" + matched + "</mark>" + after;
       }
@@ -186,10 +209,14 @@ export class Highlighter {
         position: firstMatchPosition,
         matchedTerms: Array.from(matchedTermsSet),
       });
-      console.log(`[HIGHLIGHTER] Snippet added, total snippets now: ${snippets.length}`);
+      console.log(
+        `[HIGHLIGHTER] Snippet added, total snippets now: ${snippets.length}`
+      );
     }
 
-    console.log(`[HIGHLIGHTER] Returning ${snippets.length} snippets (expected ${opts.snippetCount})`);
+    console.log(
+      `[HIGHLIGHTER] Returning ${snippets.length} snippets (expected ${opts.snippetCount})`
+    );
     return snippets;
   }
 }

@@ -67,10 +67,10 @@ app.post("/import-gutenberg", async (c) => {
           coverImagePath: book.coverImagePath,
         });
         successCount++;
-        console.log(`✓ Successfully downloaded: ${book.title}`);
+        console.log(`Successfully downloaded: ${book.title}`);
       } else {
         failedIds.push(bookId);
-        console.log(`✗ Failed to download book ${bookId}`);
+        console.log(`Failed to download book ${bookId}`);
       }
     }
 

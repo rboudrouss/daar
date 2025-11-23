@@ -125,7 +125,11 @@ app.post("/rebuild-jaccard", async (c) => {
     const calculator = new JaccardCalculator({
       similarityThreshold: threshold,
     });
-    const edgeCount = calculator.buildJaccardGraph();
+    const edgeCount = calculator.buildJaccardGraph((progress) => {
+      console.log(
+        `   ${progress.currentBook}/${progress.totalBooks} - ${progress.currentPhase} - ${progress.message} (${progress.percentage.toFixed(1)}%)`
+      );
+    });
 
     console.log(`Successfully built Jaccard graph with ${edgeCount} edges`);
 
@@ -166,7 +170,11 @@ app.post("/calculate-pagerank", async (c) => {
       maxIterations: iterations,
       damping: dampingFactor,
     });
-    const scores = calculator.calculatePageRank();
+    const scores = calculator.calculatePageRank((progress) => {
+      console.log(
+        `   ${progress.currentBook}/${progress.totalBooks} - ${progress.currentPhase} - ${progress.message} (${progress.percentage.toFixed(1)}%)`
+      );
+    });
 
     console.log(
       `Successfully calculated PageRank scores for ${scores.length} books`

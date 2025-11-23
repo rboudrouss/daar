@@ -105,7 +105,7 @@ function App() {
       }
 
       setSearchResults(response.results);
-      setExecutionTime(response.executionTime);
+      setExecutionTime(response.executionTimeMs);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Search failed");
       setSearchResults([]);

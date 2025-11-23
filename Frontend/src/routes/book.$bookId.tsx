@@ -14,6 +14,9 @@ function BookDetailPage() {
   const [suggestions, setSuggestions] = useState<SuggestionResult[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [bookText, setBookText] = useState<string>("");
+  const [isLoadingText, setIsLoadingText] = useState(false);
+  const [showText, setShowText] = useState(false);
 
   useEffect(() => {
     loadBookData();
@@ -35,6 +38,49 @@ function BookDetailPage() {
     } finally {
       setIsLoading(false);
     }
+  }
+
+  async function loadBookText() {
+    if (!book || isLoadingText || bookText) return;
+
+    try {
+      setIsLoadingText(true);
+      const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+      const response = await fetch(`${API_BASE_URL}/api/books/${book.id}/text`);
+
+      if (!response.ok) {
+        throw new Error("Failed to load book text");
+      }
+
+      const reader = response.body?.getReader();
+      if (!reader) {
+        throw new Error("No reader available");
+      }
+
+      const decoder = new TextDecoder();
+      let text = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        text += chunk;
+        setBookText(text);
+      }
+    } catch (err) {
+      console.error("Error loading book text:", err);
+      setError(err instanceof Error ? err.message : "Failed to load book text");
+    } finally {
+      setIsLoadingText(false);
+    }
+  }
+
+  function toggleText() {
+    if (!showText && !bookText) {
+      loadBookText();
+    }
+    setShowText(!showText);
   }
 
   if (isLoading) {
@@ -235,9 +281,103 @@ function BookDetailPage() {
                   connections with other books in the library.
                 </p>
               </div>
+
+              {/* Read Book Button */}
+              <button
+                onClick={toggleText}
+                style={{
+                  marginTop: "16px",
+                  padding: "12px 24px",
+                  backgroundColor: showText ? "#f44336" : "#2196F3",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "4px",
+                  fontSize: "16px",
+                  fontWeight: "600",
+                  cursor: "pointer",
+                  width: "100%",
+                  transition: "background-color 0.2s",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = showText
+                    ? "#d32f2f"
+                    : "#1976D2";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = showText
+                    ? "#f44336"
+                    : "#2196F3";
+                }}
+              >
+                {isLoadingText
+                  ? "Loading text..."
+                  : showText
+                  ? "📖 Hide Book Text"
+                  : "📖 Read Book"}
+              </button>
             </div>
           </div>
         </div>
+
+        {/* Book Text */}
+        {showText && (
+          <div
+            style={{
+              backgroundColor: "white",
+              borderRadius: "8px",
+              padding: "32px",
+              boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+              marginBottom: "32px",
+            }}
+          >
+            <h2
+              style={{
+                fontSize: "24px",
+                fontWeight: "600",
+                marginBottom: "16px",
+                color: "#333",
+              }}
+            >
+              📄 Book Text
+            </h2>
+            {isLoadingText ? (
+              <div style={{ textAlign: "center", padding: "40px" }}>
+                <div
+                  style={{
+                    display: "inline-block",
+                    width: "32px",
+                    height: "32px",
+                    border: "3px solid #e0e0e0",
+                    borderTop: "3px solid #2196F3",
+                    borderRadius: "50%",
+                    animation: "spin 1s linear infinite",
+                  }}
+                />
+                <p style={{ marginTop: "16px", color: "#666" }}>
+                  Streaming book text...
+                </p>
+              </div>
+            ) : (
+              <div
+                style={{
+                  whiteSpace: "pre-wrap",
+                  fontFamily: "Georgia, serif",
+                  fontSize: "16px",
+                  lineHeight: "1.8",
+                  color: "#333",
+                  maxHeight: "600px",
+                  overflowY: "auto",
+                  padding: "16px",
+                  backgroundColor: "#fafafa",
+                  borderRadius: "4px",
+                  border: "1px solid #e0e0e0",
+                }}
+              >
+                {bookText || "No text available"}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Recommendations */}
         {suggestions.length > 0 && (

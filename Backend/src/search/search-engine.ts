@@ -15,7 +15,7 @@ import {
   BookSuggestion,
   Book,
 } from "../utils/types.js";
-import { RECOMMENDATION_DEFAULT_LIMIT, SEARCH_FUZZY_DEFAULT_MAX_DISTANCE } from "../utils/const.js";
+import { RECOMMENDATION_DEFAULT_LIMIT, SEARCH_FUZZY_DEFAULT_MAX_DISTANCE, STOP_WORDS, TOKENIZER_IGNORE_STOP_WORDS } from "../utils/const.js";
 
 /**
  * Moteur de recherche
@@ -95,11 +95,6 @@ export class SearchEngine {
         termFrequency,
       };
 
-      // Ajouter le highlighting si demandé
-      if (params.highlight) {
-        result.snippets = this.generateHighlights(book, queryTerms, params);
-      }
-
       results.push(result);
     }
 
@@ -109,13 +104,21 @@ export class SearchEngine {
     // Appliquer limit et offset
     const limit = params.limit ?? 20;
     const offset = params.offset ?? 0;
+    const paginatedResults = results.slice(offset, offset + limit);
+
+    // Ajouter le highlighting APRÈS le tri et le limit (pour ne générer que pour les résultats retournés)
+    if (params.highlight) {
+      for (const result of paginatedResults) {
+        result.snippets = this.generateHighlights(result.book, queryTerms, params);
+      }
+    }
 
     const executionTime = Date.now() - startTime;
     console.log(
       `🔍 Search for "${params.query}" found ${results.length} results in ${executionTime}ms`
     );
 
-    return results.slice(offset, offset + limit);
+    return paginatedResults;
   }
 
   /**
@@ -461,9 +464,28 @@ export class SearchEngine {
     queryTerms: string[],
     params: SearchParams
   ) {
+    // Récupérer les positions des termes
+    const positions = new Map<string, number[]>();
+
+    for (const term of new Set(queryTerms)) {
+      if (TOKENIZER_IGNORE_STOP_WORDS && STOP_WORDS.has(term.toLowerCase())) continue;
+      const result = this.db
+        .prepare(
+          `
+        SELECT positions FROM inverted_index WHERE term = ? AND book_id = ?
+      `
+        )
+        .get(term, book.id) as { positions: string } | undefined;
+
+      if (result) {
+        positions.set(term, JSON.parse(result.positions));
+      }
+    }
+
     return this.highlighter.generateSnippets(
       book.filePath,
       queryTerms,
+      positions,
       {
         snippetCount: params.snippetCount,
         snippetLength: params.snippetLength,

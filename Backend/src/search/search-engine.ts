@@ -489,13 +489,10 @@ export class SearchEngine {
   }
 
   /**
-   * Obtient des recommandations basées sur l'historique
+   * Obtient des recommandations basées sur l'historique de clics globaux
    */
-  getRecommendations(userId?: string, limit: number = 10): BookSuggestion[] {
-    return this.recommendationEngine.getRecommendationsFromHistory(
-      userId,
-      limit
-    );
+  getRecommendations(limit: number = 10): BookSuggestion[] {
+    return this.recommendationEngine.getRecommendationsFromHistory(limit);
   }
 
   /**

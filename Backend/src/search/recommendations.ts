@@ -16,28 +16,23 @@ export class RecommendationEngine {
   }
 
   /**
-   * Génère des recommandations basées sur l'historique de clics
-   * @param userId ID de l'utilisateur (optionnel, sinon utilise les clics globaux)
+   * Génère des recommandations basées sur l'historique de clics globaux
    * @param limit Nombre de recommandations
    * @returns Liste de suggestions
    */
-  getRecommendationsFromHistory(
-    userId?: string,
-    limit: number = 10
-  ): BookSuggestion[] {
-    // Récupérer les livres les plus cliqués par l'utilisateur (ou globalement)
+  getRecommendationsFromHistory(limit: number = 10): BookSuggestion[] {
+    // Récupérer les livres les plus cliqués globalement
     const clickedBooks = this.db
       .prepare(
         `
       SELECT book_id, COUNT(*) as click_count
       FROM book_clicks
-      ${userId ? "WHERE user_id = ?" : ""}
       GROUP BY book_id
       ORDER BY click_count DESC
       LIMIT 5
     `
       )
-      .all(userId ? [userId] : []) as Array<{
+      .all() as Array<{
       book_id: number;
       click_count: number;
     }>;

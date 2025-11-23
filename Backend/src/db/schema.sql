@@ -82,5 +82,6 @@ INSERT OR IGNORE INTO library_metadata (key, value) VALUES
   ('total_words', '0'),
   ('jaccard_edges', '0'),
   ('pagerank_calculated', 'false'),
-  ('last_indexed', '');
+  ('last_indexed', ''),
+  ('last_gutenberg_id', '0');
 

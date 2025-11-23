@@ -2,12 +2,14 @@
  * Backend - Moteur de recherche de bibliothèque
  */
 
+import "dotenv/config";
 import { Hono } from "hono";
 import { serve } from "@hono/node-server";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import { initDatabase, closeDatabase } from "./db/connection.js";
 import booksRoutes from "./routes/books.js";
+import adminRoutes from "./routes/admin.js";
 
 // Initialiser la base de données
 const dbPath = process.env.DB_PATH || "./data/library.db";
@@ -42,10 +44,17 @@ app.get("/", (c) => {
       uploadCover: "POST /api/books/:id/cover",
       getCover: "GET /api/books/:id/cover",
     },
+    adminEndpoints: {
+      importGutenberg: "POST /api/admin/import-gutenberg (requires auth)",
+      rebuildJaccard: "POST /api/admin/rebuild-jaccard (requires auth)",
+      calculatePageRank: "POST /api/admin/calculate-pagerank (requires auth)",
+      note: "Admin endpoints require Authorization: Bearer <password> header",
+    },
   });
 });
 
 app.route("/api/books", booksRoutes);
+app.route("/api/admin", adminRoutes);
 
 // Gestion des erreurs
 app.onError((err, c) => {

@@ -26,6 +26,29 @@ export function buildSqlQuery(
   termColumn: string = "term"
 ): SqlQuery {
   switch (analysis.type) {
+    case "match_all":
+      // OPTIMISATION #3: Pattern qui matche tout - pas besoin de NFA
+      {
+        const conditions: string[] = [];
+        const params: any[] = [];
+
+        // Ajouter contraintes de longueur si disponibles
+        if (analysis.minLength !== undefined && analysis.minLength > 0) {
+          conditions.push(`LENGTH(${termColumn}) >= ?`);
+          params.push(analysis.minLength);
+        }
+        if (analysis.maxLength !== undefined && analysis.maxLength !== Infinity) {
+          conditions.push(`LENGTH(${termColumn}) <= ?`);
+          params.push(analysis.maxLength);
+        }
+
+        return {
+          whereClause: conditions.length > 0 ? conditions.join(" AND ") : "1=1",
+          parameters: params,
+          needsNfaFiltering: false, // Pas besoin de NFA pour match-all
+        };
+      }
+
     case "exact":
       // Correspondance exacte - pas besoin de NFA
       return {
@@ -46,16 +69,54 @@ export function buildSqlQuery(
       }
       break;
 
+    case "sql_pattern":
+      // OPTIMISATION #6: Pattern exprimable en SQL LIKE - pas besoin de NFA
+      if (analysis.sqlLikePattern) {
+        const conditions: string[] = [`${termColumn} LIKE ?`];
+        const params: any[] = [analysis.sqlLikePattern];
+
+        // Ajouter contraintes de longueur si disponibles
+        if (analysis.exactLength !== undefined) {
+          conditions.push(`LENGTH(${termColumn}) = ?`);
+          params.push(analysis.exactLength);
+        } else {
+          if (analysis.minLength !== undefined) {
+            conditions.push(`LENGTH(${termColumn}) >= ?`);
+            params.push(analysis.minLength);
+          }
+          if (analysis.maxLength !== undefined && analysis.maxLength !== Infinity) {
+            conditions.push(`LENGTH(${termColumn}) <= ?`);
+            params.push(analysis.maxLength);
+          }
+        }
+
+        return {
+          whereClause: conditions.join(" AND "),
+          parameters: params,
+          needsNfaFiltering: false, // SQL LIKE suffit
+        };
+      }
+      break;
+
     case "prefix":
       // Préfixe littéral - NFA nécessaire pour valider le reste
       if (analysis.prefix) {
         const conditions: string[] = [`${termColumn} LIKE ?`];
         const params: any[] = [`${escapeSqlLike(analysis.prefix)}%`];
 
-        // Ajouter contrainte de longueur minimale si disponible
-        if (analysis.minLength !== undefined) {
-          conditions.push(`LENGTH(${termColumn}) >= ?`);
-          params.push(analysis.minLength);
+        // OPTIMISATION #5: Ajouter contraintes de longueur min/max si disponibles
+        if (analysis.exactLength !== undefined) {
+          conditions.push(`LENGTH(${termColumn}) = ?`);
+          params.push(analysis.exactLength);
+        } else {
+          if (analysis.minLength !== undefined) {
+            conditions.push(`LENGTH(${termColumn}) >= ?`);
+            params.push(analysis.minLength);
+          }
+          if (analysis.maxLength !== undefined && analysis.maxLength !== Infinity) {
+            conditions.push(`LENGTH(${termColumn}) <= ?`);
+            params.push(analysis.maxLength);
+          }
         }
 
         return {
@@ -72,10 +133,19 @@ export function buildSqlQuery(
         const conditions: string[] = [`${termColumn} LIKE ?`];
         const params: any[] = [`%${escapeSqlLike(analysis.suffix)}`];
 
-        // Ajouter contrainte de longueur minimale si disponible
-        if (analysis.minLength !== undefined) {
-          conditions.push(`LENGTH(${termColumn}) >= ?`);
-          params.push(analysis.minLength);
+        // OPTIMISATION #5: Ajouter contraintes de longueur min/max si disponibles
+        if (analysis.exactLength !== undefined) {
+          conditions.push(`LENGTH(${termColumn}) = ?`);
+          params.push(analysis.exactLength);
+        } else {
+          if (analysis.minLength !== undefined) {
+            conditions.push(`LENGTH(${termColumn}) >= ?`);
+            params.push(analysis.minLength);
+          }
+          if (analysis.maxLength !== undefined && analysis.maxLength !== Infinity) {
+            conditions.push(`LENGTH(${termColumn}) <= ?`);
+            params.push(analysis.maxLength);
+          }
         }
 
         return {
@@ -97,7 +167,7 @@ export function buildSqlQuery(
         conditions.push(`${termColumn} LIKE ?`);
         params.push(`%${escapeSqlLike(longestLiteral)}%`);
 
-        // Ajouter contraintes de longueur si disponibles
+        // OPTIMISATION #5: Ajouter contraintes de longueur si disponibles
         if (analysis.exactLength !== undefined) {
           conditions.push(`LENGTH(${termColumn}) = ?`);
           params.push(analysis.exactLength);
@@ -106,7 +176,7 @@ export function buildSqlQuery(
             conditions.push(`LENGTH(${termColumn}) >= ?`);
             params.push(analysis.minLength);
           }
-          if (analysis.maxLength !== undefined) {
+          if (analysis.maxLength !== undefined && analysis.maxLength !== Infinity) {
             conditions.push(`LENGTH(${termColumn}) <= ?`);
             params.push(analysis.maxLength);
           }
@@ -121,9 +191,32 @@ export function buildSqlQuery(
       break;
 
     case "complex":
-      // Pattern complexe sans littéraux - pas d'optimisation possible
-      // Retourner tous les termes
-      break;
+      // Pattern complexe sans littéraux
+      // OPTIMISATION #5: Utiliser les contraintes de longueur si disponibles
+      {
+        const conditions: string[] = [];
+        const params: any[] = [];
+
+        if (analysis.exactLength !== undefined) {
+          conditions.push(`LENGTH(${termColumn}) = ?`);
+          params.push(analysis.exactLength);
+        } else {
+          if (analysis.minLength !== undefined && analysis.minLength > 0) {
+            conditions.push(`LENGTH(${termColumn}) >= ?`);
+            params.push(analysis.minLength);
+          }
+          if (analysis.maxLength !== undefined && analysis.maxLength !== Infinity) {
+            conditions.push(`LENGTH(${termColumn}) <= ?`);
+            params.push(analysis.maxLength);
+          }
+        }
+
+        return {
+          whereClause: conditions.length > 0 ? conditions.join(" AND ") : "1=1",
+          parameters: params,
+          needsNfaFiltering: true,
+        };
+      }
   }
 
   // Fallback: pas de filtrage SQL, retourner tous les termes

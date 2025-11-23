@@ -12,6 +12,8 @@ export interface SqlPatternAnalysis {
     | "suffix" // Termine par un littéral (ex: ".*cat")
     | "contains" // Contient des littéraux (ex: ".*cat.*dog.*")
     | "alternation" // Alternation de littéraux (ex: "cat|dog|bird")
+    | "match_all" // Match tous les termes (ex: ".*", ".+")
+    | "sql_pattern" // Pattern qui peut être exprimé en SQL LIKE (ex: "a.c" -> "a_c")
     | "complex"; // Pattern complexe nécessitant NFA complet
 
   /** Littéral exact (pour type "exact") */
@@ -28,6 +30,9 @@ export interface SqlPatternAnalysis {
 
   /** Littéraux alternatifs (pour type "alternation") */
   alternationLiterals?: string[];
+
+  /** Pattern SQL LIKE (pour type "sql_pattern") */
+  sqlLikePattern?: string;
 
   /** Longueur minimale possible */
   minLength?: number;
@@ -46,6 +51,16 @@ export interface SqlPatternAnalysis {
  * @returns L'analyse du pattern
  */
 export function analyzeSqlPattern(tree: SyntaxTree): SqlPatternAnalysis {
+  // OPTIMISATION #3: Détection de patterns "match-all"
+  const matchAllCheck = isMatchAllPattern(tree);
+  if (matchAllCheck.isMatchAll) {
+    return {
+      type: "match_all",
+      minLength: matchAllCheck.minLength,
+      maxLength: matchAllCheck.maxLength,
+    };
+  }
+
   // Vérifier si c'est une alternation pure de littéraux
   const alternationCheck = isAlternationOfLiterals(tree);
   if (alternationCheck.isAlternation && alternationCheck.literals) {
@@ -67,24 +82,37 @@ export function analyzeSqlPattern(tree: SyntaxTree): SqlPatternAnalysis {
     };
   }
 
+  // OPTIMISATION #6: Vérifier si le pattern peut être exprimé en SQL LIKE
+  const sqlLikePattern = tryConvertToSqlLike(tree);
+  if (sqlLikePattern !== null) {
+    const lengthInfo = analyzeLengthConstraints(tree);
+    return {
+      type: "sql_pattern",
+      sqlLikePattern,
+      ...lengthInfo,
+    };
+  }
+
   // Extraire le préfixe et le suffixe
   const prefix = extractPrefix(tree);
   const suffix = extractSuffix(tree);
 
   // Déterminer le type de pattern
   if (prefix && !suffix && hasWildcardAfter(tree)) {
+    const lengthInfo = analyzeLengthConstraints(tree);
     return {
       type: "prefix",
       prefix,
-      minLength: prefix.length,
+      ...lengthInfo,
     };
   }
 
   if (suffix && !prefix && hasWildcardBefore(tree)) {
+    const lengthInfo = analyzeLengthConstraints(tree);
     return {
       type: "suffix",
       suffix,
-      minLength: suffix.length,
+      ...lengthInfo,
     };
   }
 
@@ -100,8 +128,10 @@ export function analyzeSqlPattern(tree: SyntaxTree): SqlPatternAnalysis {
   }
 
   // Pattern complexe sans littéraux
+  const lengthInfo = analyzeLengthConstraints(tree);
   return {
     type: "complex",
+    ...lengthInfo,
   };
 }
 
@@ -264,5 +294,105 @@ function computeLengthBounds(tree: SyntaxTree): { min: number; max: number } {
     };
   }
   return { min: 0, max: Infinity };
+}
+
+/**
+ * OPTIMISATION #3: Détecte si le pattern matche tous les termes (ou presque)
+ *
+ * Exemples:
+ * - ".*" → match tout
+ * - ".*.*" → match tout
+ * - ".+" → match tout sauf chaîne vide
+ * - "..*" → match tout sauf chaîne vide
+ */
+function isMatchAllPattern(tree: SyntaxTree): {
+  isMatchAll: boolean;
+  minLength?: number;
+  maxLength?: number;
+} {
+  // Pattern ".*" ou équivalent
+  if (tree.type === "star") {
+    return { isMatchAll: true, minLength: 0 };
+  }
+
+  // Pattern ".+" (au moins 1 caractère)
+  if (tree.type === "concat") {
+    const left = tree.left;
+    const right = tree.right;
+
+    // "..*" ou "...*" etc.
+    if (left.type === "dot" && right.type === "star") {
+      return { isMatchAll: true, minLength: 1 };
+    }
+
+    // Récursif: ".*.*" etc.
+    const leftCheck = isMatchAllPattern(left);
+    const rightCheck = isMatchAllPattern(right);
+    if (leftCheck.isMatchAll && rightCheck.isMatchAll) {
+      const minLeft = leftCheck.minLength ?? 0;
+      const minRight = rightCheck.minLength ?? 0;
+      return { isMatchAll: true, minLength: minLeft + minRight };
+    }
+  }
+
+  return { isMatchAll: false };
+}
+
+/**
+ * OPTIMISATION #6: Essaie de convertir le pattern en SQL LIKE
+ *
+ * SQL LIKE supporte:
+ * - '_' pour exactement 1 caractère (équivalent à '.')
+ * - '%' pour 0 ou plusieurs caractères (équivalent à '.*')
+ *
+ * Exemples:
+ * - "a.c" → "a_c"
+ * - "a..c" → "a__c"
+ * - "test." → "test_"
+ * - "a.c.*" → "a_c%" (mais déjà géré comme prefix)
+ */
+function tryConvertToSqlLike(tree: SyntaxTree): string | null {
+  let pattern = "";
+  let hasWildcard = false;
+
+  function traverse(node: SyntaxTree): boolean {
+    if (node.type === "char") {
+      // Échapper les caractères spéciaux SQL LIKE
+      const char = node.value;
+      if (char === "_" || char === "%") {
+        pattern += "\\" + char;
+      } else {
+        pattern += char;
+      }
+      return true;
+    } else if (node.type === "dot") {
+      // '.' devient '_' en SQL LIKE
+      pattern += "_";
+      hasWildcard = true;
+      return true;
+    } else if (node.type === "star") {
+      // '.*' devient '%' en SQL LIKE
+      // Mais on ne gère que si c'est à la fin (sinon c'est un prefix/suffix)
+      return false;
+    } else if (node.type === "concat") {
+      return traverse(node.left) && traverse(node.right);
+    } else if (node.type === "alt") {
+      // Les alternations ne sont pas supportées en SQL LIKE simple
+      return false;
+    }
+    return false;
+  }
+
+  const success = traverse(tree);
+
+  // On retourne le pattern seulement si:
+  // 1. La conversion a réussi
+  // 2. Il y a au moins un wildcard (sinon c'est un exact literal)
+  // 3. Le pattern n'est pas vide
+  if (success && hasWildcard && pattern.length > 0) {
+    return pattern;
+  }
+
+  return null;
 }
 

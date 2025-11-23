@@ -16,12 +16,12 @@ export default defineConfig({
   onSuccess: async () => {
     // Copier schema.sql dans dist/db/
     const srcPath = join(__dirname, 'src/db/schema.sql')
-    const destDir = join(__dirname, 'dist/db')
+    const destDir = join(__dirname, 'dist/')
     const destPath = join(destDir, 'schema.sql')
     
     mkdirSync(destDir, { recursive: true })
     copyFileSync(srcPath, destPath)
-    console.log('✓ Copied schema.sql to dist/db/')
+    console.log('- Copied schema.sql to dist/db/')
   },
 })
 

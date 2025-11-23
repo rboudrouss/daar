@@ -37,7 +37,7 @@ app.use(
 );
 
 // Routes
-app.get("/", (c) => {
+app.get("/api/", (c) => {
   return c.json({
     name: "Library Search Engine API",
     version: "1.0.0",
@@ -68,7 +68,7 @@ app.route("/api/search", searchRoutes);
 
 // Servir le frontend (fichiers statiques)
 // En production, le frontend buildé sera dans ../frontend/dist
-const frontendPath = process.env.FRONTEND_PATH || path.join(__dirname, "../../frontend/dist");
+const frontendPath = process.env.FRONTEND_PATH || path.join(__dirname, "../../Frontend/dist");
 
 app.use("/*", serveStatic({ root: frontendPath }));
 

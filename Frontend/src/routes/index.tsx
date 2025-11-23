@@ -143,7 +143,7 @@ function App() {
         >
           <p style={{ color: "#666", fontSize: "14px" }}>
             Found {searchResults.length} result{searchResults.length !== 1 ? "s" : ""}{" "}
-            in {executionTime.toFixed(2)}ms
+            in {executionTime?.toFixed(2)}ms
           </p>
         </div>
       )}

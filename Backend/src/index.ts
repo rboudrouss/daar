@@ -10,6 +10,7 @@ import { logger } from "hono/logger";
 import { initDatabase, closeDatabase } from "./db/connection.js";
 import booksRoutes from "./routes/books.js";
 import adminRoutes from "./routes/admin.js";
+import searchRoutes from "./routes/search.js";
 
 // Initialiser la base de données
 const dbPath = process.env.DB_PATH || "./data/library.db";
@@ -56,6 +57,7 @@ app.get("/", (c) => {
 
 app.route("/api/books", booksRoutes);
 app.route("/api/admin", adminRoutes);
+app.route("/api/search", searchRoutes);
 
 // Gestion des erreurs
 app.onError((err, c) => {

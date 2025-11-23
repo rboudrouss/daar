@@ -25,6 +25,8 @@ import {
   parseRegex,
   nfaFromSyntaxTree,
   NfaMatcher,
+  analyzeSqlPattern,
+  buildSqlQuery,
 } from "@monorepo/lib";
 
 /**
@@ -143,29 +145,44 @@ export class SearchEngine {
   }
 
   /**
-   * Recherche avancée par RegEx avec stratégie adaptative DFA/NFA+cache
+   * Recherche avancée par RegEx avec optimisation SQL et NFA
    */
   searchRegex(params: SearchParams): SearchResult[] {
-    try {
-      // Parser la regex
-      const syntaxTree = parseRegex(params.query);
-      const nfa = nfaFromSyntaxTree(syntaxTree);
+    const startTime = Date.now();
 
-      // Récupérer tous les termes de l'index
-      const allTerms = this.db
-        .prepare(
-          `
+    // Parser la regex
+    const syntaxTree = parseRegex(params.query);
+    const nfa = nfaFromSyntaxTree(syntaxTree);
+
+    // Analyser le pattern pour déterminer les optimisations SQL possibles
+    const analysis = analyzeSqlPattern(syntaxTree);
+    const sqlQuery = buildSqlQuery(analysis, "term");
+
+    console.log(
+      `Pattern analysis: type=${analysis.type}, needsNfa=${sqlQuery.needsNfaFiltering}`
+    );
+
+    // Récupérer les termes candidats avec filtrage SQL optimisé
+    const candidateTerms = this.db
+      .prepare(
+        `
         SELECT DISTINCT term FROM term_stats
+        WHERE ${sqlQuery.whereClause}
       `
-        )
-        .all() as Array<{ term: string }>;
+      )
+      .all(...sqlQuery.parameters) as Array<{ term: string }>;
 
-      // Filtrer les termes qui matchent la regex
-      let matchingTerms: string[];
+    console.log(
+      `SQL filtering: ${candidateTerms.length} candidates (from pattern "${params.query}")`
+    );
 
+    // Filtrer avec NFA si nécessaire
+    let matchingTerms: string[];
+
+    if (sqlQuery.needsNfaFiltering) {
       // Utiliser NfaMatcher avec cache persistant pour réutiliser les états DFA construits
       const matcher = new NfaMatcher(nfa);
-      matchingTerms = allTerms
+      matchingTerms = candidateTerms
         .map((t) => t.term)
         .filter((term) => matcher.match(term));
 
@@ -174,57 +191,24 @@ export class SearchEngine {
       console.log(
         `NFA matcher cache stats: ${stats.statesCreated} states, ${stats.totalTransitions} transitions`
       );
-
-      if (matchingTerms.length === 0) {
-        console.log(`Regex "${params.query}" matched 0 terms`);
-        return [];
-      }
-
-      console.log(
-        `Regex "${params.query}" matched ${matchingTerms.length} terms`
-      );
-
-      return this.search({
-        ...params,
-        query: matchingTerms.join(" "),
-      });
-    } catch (error) {
-      console.error(`Error in regex search:`, error);
-      // Fallback vers l'ancienne implémentation en cas d'erreur
-      return this.searchRegexFallback(params);
+    } else {
+      // Pas besoin de NFA, les résultats SQL sont exacts
+      matchingTerms = candidateTerms.map((t) => t.term);
     }
-  }
 
-  /**
-   * Recherche RegEx fallback (ancienne implémentation avec RegExp natif)
-   */
-  private searchRegexFallback(params: SearchParams): SearchResult[] {
-    // Créer une regex à partir de la requête
-    const flags = params.caseSensitive ? "" : "i";
-    const regex = new RegExp(params.query, flags);
-
-    // Chercher tous les termes qui matchent la regex dans l'index
-    const allTerms = this.db
-      .prepare(
-        `
-      SELECT DISTINCT term FROM term_stats
-    `
-      )
-      .all() as Array<{ term: string }>;
-
-    const matchingTerms = allTerms
-      .map((t) => t.term)
-      .filter((term) => regex.test(term));
+    const filterTime = Date.now() - startTime;
 
     if (matchingTerms.length === 0) {
+      console.log(
+        `Regex "${params.query}" matched 0 terms (filtered in ${filterTime}ms)`
+      );
       return [];
     }
 
     console.log(
-      `Regex "${params.query}" matched ${matchingTerms.length} terms (fallback)`
+      `Regex "${params.query}" matched ${matchingTerms.length} terms (filtered in ${filterTime}ms)`
     );
 
-    // Utiliser la recherche normale avec les termes matchés
     return this.search({
       ...params,
       query: matchingTerms.join(" "),

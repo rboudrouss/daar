@@ -37,6 +37,7 @@ export default function SearchBar({
   const [options, setOptions] = useState<AdvancedSearchOptions>({
     fuzzyDistance: 2,
     searchFields: ["title", "author", "content"],
+    highlight: true, // Activer le highlighting par défaut
   });
 
   const handleInputChange = (value: string) => {

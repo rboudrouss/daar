@@ -15,10 +15,17 @@ export interface Book {
   pageRank?: number;
 }
 
+export interface TextSnippet {
+  text: string; // Texte avec <mark>...</mark> autour des termes
+  position: number; // Position dans le document
+  matchedTerms: string[]; // Termes matchés dans ce snippet
+}
+
 export interface SearchResult {
   book: Book;
   score: number;
-  matchedTerms: string[];
+  matchedTerms?: string[];
+  snippets?: TextSnippet[]; // Extraits de texte avec highlighting
 }
 
 export interface SearchResponse {

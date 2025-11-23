@@ -1,10 +1,11 @@
-import type { Book, SearchResult } from "@/utils";
+import type { Book, SearchResult, TextSnippet } from "@/utils";
 import { getCoverImageUrl } from "@/utils/api";
 
 interface BookCardProps {
   book: Book;
   score?: number;
   matchedTerms?: string[];
+  snippets?: TextSnippet[];
   showPageRank?: boolean;
 }
 
@@ -12,6 +13,7 @@ export default function BookCard({
   book,
   score,
   matchedTerms,
+  snippets,
   showPageRank = true,
 }: BookCardProps) {
   const coverUrl = book.coverImagePath
@@ -28,7 +30,7 @@ export default function BookCard({
         boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
         transition: "transform 0.2s, box-shadow 0.2s",
         cursor: "pointer",
-        maxWidth: "350px",
+        maxWidth: snippets && snippets.length > 0 ? "600px" : "350px", // Élargir si snippets
         backgroundColor: "#f9f9f9",
         display: "flex",
         flexDirection: "column",
@@ -128,6 +130,48 @@ export default function BookCard({
           )}
         </div>
       )}
+
+      {/* Afficher les snippets avec highlighting */}
+      {snippets && snippets.length > 0 && (
+        <div
+          style={{
+            marginTop: "12px",
+            padding: "12px",
+            backgroundColor: "#fff3e0",
+            borderRadius: "4px",
+            borderLeft: "3px solid #ff9800",
+          }}
+        >
+          <div style={{ fontSize: "12px", fontWeight: "600", marginBottom: "8px", color: "#e65100" }}>
+            📝 Highlights:
+          </div>
+          {snippets.map((snippet, index) => (
+            <div
+              key={index}
+              style={{
+                marginBottom: index < snippets.length - 1 ? "8px" : "0",
+                padding: "8px",
+                backgroundColor: "white",
+                borderRadius: "3px",
+                fontSize: "13px",
+                lineHeight: "1.5",
+              }}
+            >
+              <div
+                dangerouslySetInnerHTML={{ __html: snippet.text }}
+                style={{
+                  color: "#333",
+                }}
+              />
+              {snippet.matchedTerms.length > 0 && (
+                <div style={{ marginTop: "4px", fontSize: "11px", color: "#666" }}>
+                  <em>Matched: {snippet.matchedTerms.join(", ")}</em>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
     </a>
   );
 }
@@ -139,6 +183,7 @@ export function SearchResultCard({ result }: { result: SearchResult }) {
       book={result.book}
       score={result.score}
       matchedTerms={result.matchedTerms}
+      snippets={result.snippets}
     />
   );
 }

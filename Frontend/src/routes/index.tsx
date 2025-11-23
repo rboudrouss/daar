@@ -83,6 +83,7 @@ function App() {
         const res = await fetch(`${API_BASE_URL}/api/search?${params}`);
         if (!res.ok) throw new Error("Search failed");
         response = await res.json();
+        console.log(response);
       } else {
         // Regex search
         const params = new URLSearchParams();
@@ -100,6 +101,7 @@ function App() {
         const res = await fetch(`${API_BASE_URL}/api/search/advanced?${params}`);
         if (!res.ok) throw new Error("Search failed");
         response = await res.json();
+        console.log(response);
       }
 
       setSearchResults(response.results);
@@ -242,12 +244,14 @@ function App() {
 
       {/* Books Grid */}
       {!isLoading && (
-        <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px 24px 24px" }}>
+        <div style={{ maxWidth: "1400px", margin: "0 auto", padding: "0 24px 24px 24px" }}>
           {displayBooks.length > 0 ? (
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(350px, 1fr))",
+                gridTemplateColumns: hasSearched
+                  ? "repeat(auto-fill, minmax(550px, 1fr))"
+                  : "repeat(auto-fill, minmax(350px, 1fr))",
                 gap: "16px",
               }}
             >

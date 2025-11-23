@@ -64,11 +64,11 @@ export default function SearchBar({
     // Show debouncing indicator
     setIsDebouncing(true);
 
-    // Set new timer to trigger search after 300ms of inactivity
+    // Set new timer to trigger search after short inactivity
     debounceTimerRef.current = setTimeout(() => {
       setIsDebouncing(false);
       onSearch?.(value, searchMode, options);
-    }, 300);
+    }, 50);
   };
 
   const handleSearch = () => {

@@ -145,7 +145,7 @@ export default function SearchBar({
             placeholder={
               searchMode === "bm25"
                 ? "Search books by title, author, or content..."
-                : "Enter regex pattern (e.g., cat|dog, .*test.*, a+)"
+                : "Enter regex pattern (e.g., cat|dog, .*test.*)"
             }
             value={inputValue}
             onChange={(e) => handleInputChange(e.target.value)}

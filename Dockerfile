@@ -18,8 +18,13 @@ COPY Frontend ./Frontend
 # Installer pnpm
 RUN npm install -g pnpm
 
-# Installer les dépendances et builder le frontend
+# Installer les dépendances
 RUN pnpm install --frozen-lockfile
+
+# Builder la lib (dépendance du frontend)
+RUN cd lib && pnpm run build
+
+# Builder le frontend
 RUN cd Frontend && pnpm run build
 
 # ===================================
@@ -45,6 +50,9 @@ RUN npm install -g pnpm
 # Installer les dépendances (incluant better-sqlite3 qui nécessite une compilation native)
 RUN pnpm install --frozen-lockfile
 
+# Builder la lib (dépendance du backend)
+RUN cd lib && pnpm run build
+
 # Builder le backend
 RUN cd Backend && pnpm run build
 
@@ -62,14 +70,17 @@ RUN npm install -g pnpm
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY tsconfig.base.json tsconfig.json ./
 
-# Copier la lib
-COPY lib ./lib
+# Copier la lib (sources pour package.json)
+COPY lib/package.json ./lib/package.json
 
 # Copier le backend
 COPY Backend/package.json ./Backend/package.json
 
 # Installer uniquement les dépendances de production
 RUN pnpm install --frozen-lockfile --prod
+
+# Copier la lib buildée depuis le stage builder
+COPY --from=backend-builder /app/lib/dist ./lib/dist
 
 # Copier le backend buildé depuis le stage builder
 COPY --from=backend-builder /app/Backend/dist ./Backend/dist

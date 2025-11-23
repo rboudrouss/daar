@@ -289,25 +289,6 @@ function BookDetailPage() {
                 </p>
               </div>
 
-              <div
-                style={{
-                  padding: "16px",
-                  backgroundColor: "#f5f5f5",
-                  borderRadius: "4px",
-                  borderLeft: "4px solid #2196F3",
-                }}
-              >
-                <p style={{ margin: "0 0 8px 0", fontWeight: "600" }}>
-                  About this book
-                </p>
-                <p style={{ margin: 0, fontSize: "14px", color: "#666" }}>
-                  This book is part of our library collection and has been
-                  indexed for full-text search using BM25 algorithm. The
-                  PageRank score indicates its importance based on similarity
-                  connections with other books in the library.
-                </p>
-              </div>
-
               {/* Read Book Button */}
               <button
                 onClick={toggleText}

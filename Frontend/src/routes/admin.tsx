@@ -53,8 +53,8 @@ function AdminPanel() {
 
   async function handleImportBooks() {
     const count = parseInt(importCount);
-    if (isNaN(count) || count < 1 || count > 100) {
-      setMessage({ type: "error", text: "Count must be between 1 and 100" });
+    if (isNaN(count) || count < 1 || count > 1000) {
+      setMessage({ type: "error", text: "Count must be between 1 and 1000" });
       return;
     }
     await callAdminAPI("import-gutenberg", { count });
@@ -185,12 +185,12 @@ function AdminPanel() {
                   fontSize: "14px",
                 }}
               >
-                Number of books (1-100)
+                Number of books (1-1000)
               </label>
               <input
                 type="number"
                 min="1"
-                max="100"
+                max="1000"
                 value={importCount}
                 onChange={(e) => setImportCount(e.target.value)}
                 style={{

@@ -21,6 +21,11 @@ import {
   STOP_WORDS,
   TOKENIZER_IGNORE_STOP_WORDS,
 } from "../utils/const.js";
+import {
+  parseRegex,
+  nfaFromSyntaxTree,
+  NfaMatcher,
+} from "@monorepo/lib";
 
 /**
  * Moteur de recherche
@@ -73,7 +78,10 @@ export class SearchEngine {
     const bookIdsArray = Array.from(bookIds);
     const booksData = this.getBooksDataBatch(bookIdsArray);
     const pageRankScores = this.getPageRankScores();
-    const termFrequencies = this.getTermFrequenciesBatch(bookIdsArray, queryTerms);
+    const termFrequencies = this.getTermFrequenciesBatch(
+      bookIdsArray,
+      queryTerms
+    );
 
     // Calculer les scores pour chaque livre
     let results: SearchResult[] = [];
@@ -135,11 +143,62 @@ export class SearchEngine {
   }
 
   /**
-   * Recherche avancée par RegEx
+   * Recherche avancée par RegEx avec stratégie adaptative DFA/NFA+cache
    */
   searchRegex(params: SearchParams): SearchResult[] {
-    const startTime = Date.now();
+    try {
+      // Parser la regex
+      const syntaxTree = parseRegex(params.query);
+      const nfa = nfaFromSyntaxTree(syntaxTree);
 
+      // Récupérer tous les termes de l'index
+      const allTerms = this.db
+        .prepare(
+          `
+        SELECT DISTINCT term FROM term_stats
+      `
+        )
+        .all() as Array<{ term: string }>;
+
+      // Filtrer les termes qui matchent la regex
+      let matchingTerms: string[];
+
+      // Utiliser NfaMatcher avec cache persistant pour réutiliser les états DFA construits
+      const matcher = new NfaMatcher(nfa);
+      matchingTerms = allTerms
+        .map((t) => t.term)
+        .filter((term) => matcher.match(term));
+
+      // Log des statistiques du cache pour monitoring
+      const stats = matcher.getStats();
+      console.log(
+        `NFA matcher cache stats: ${stats.statesCreated} states, ${stats.totalTransitions} transitions`
+      );
+
+      if (matchingTerms.length === 0) {
+        console.log(`Regex "${params.query}" matched 0 terms`);
+        return [];
+      }
+
+      console.log(
+        `Regex "${params.query}" matched ${matchingTerms.length} terms`
+      );
+
+      return this.search({
+        ...params,
+        query: matchingTerms.join(" "),
+      });
+    } catch (error) {
+      console.error(`Error in regex search:`, error);
+      // Fallback vers l'ancienne implémentation en cas d'erreur
+      return this.searchRegexFallback(params);
+    }
+  }
+
+  /**
+   * Recherche RegEx fallback (ancienne implémentation avec RegExp natif)
+   */
+  private searchRegexFallback(params: SearchParams): SearchResult[] {
     // Créer une regex à partir de la requête
     const flags = params.caseSensitive ? "" : "i";
     const regex = new RegExp(params.query, flags);
@@ -162,7 +221,7 @@ export class SearchEngine {
     }
 
     console.log(
-      `Regex "${params.query}" matched ${matchingTerms.length} terms`
+      `Regex "${params.query}" matched ${matchingTerms.length} terms (fallback)`
     );
 
     // Utiliser la recherche normale avec les termes matchés
@@ -321,7 +380,10 @@ export class SearchEngine {
   private getTermFrequenciesBatch(
     bookIds: number[],
     terms: string[]
-  ): Map<number, { termFrequencies: Map<string, number>; totalFrequency: number }> {
+  ): Map<
+    number,
+    { termFrequencies: Map<string, number>; totalFrequency: number }
+  > {
     if (bookIds.length === 0 || terms.length === 0) return new Map();
 
     const bookPlaceholders = bookIds.map(() => "?").join(",");

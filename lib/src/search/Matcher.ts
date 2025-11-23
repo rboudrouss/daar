@@ -12,6 +12,7 @@ import { kmpSearch } from "./KMP";
 export {
   findAllMatchesNfaWithDfaCache,
   matchNfaWithDfaCache,
+  NfaMatcher,
 } from "./NFAWithDFACache";
 
 /**

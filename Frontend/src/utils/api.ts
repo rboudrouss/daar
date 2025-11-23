@@ -124,7 +124,7 @@ export async function getBookById(id: number): Promise<Book> {
   }
 
   const data = await response.json();
-  return data.book;
+  return data;
 }
 
 /**
@@ -145,4 +145,11 @@ export async function getStats(): Promise<BookStats> {
  */
 export function getCoverImageUrl(bookId: number): string {
   return `${API_BASE_URL}/api/books/${bookId}/cover`;
+}
+
+/**
+ * Get the book text URL for a book
+ */
+export function getBookTextUrl(bookId: number): string {
+  return `${API_BASE_URL}/api/books/${bookId}/text`;
 }

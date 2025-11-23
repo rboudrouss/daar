@@ -86,7 +86,10 @@ export async function downloadGutenbergCover(
 /**
  * Extrait les métadonnées d'un texte Gutenberg
  */
-export function extractGutenbergMetadata(text: string, bookId: number): {
+export function extractGutenbergMetadata(
+  text: string,
+  bookId: number
+): {
   title: string;
   author: string;
 } {
@@ -165,4 +168,3 @@ export async function downloadGutenbergBook(
     coverImagePath: coverImagePath || undefined,
   };
 }
-

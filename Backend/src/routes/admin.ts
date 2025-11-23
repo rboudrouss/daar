@@ -27,22 +27,23 @@ app.post("/import-gutenberg", async (c) => {
     const count = parseInt(body.count || "10");
 
     if (count <= 0 || count > 100) {
-      return c.json(
-        { error: "Count must be between 1 and 100" },
-        400
-      );
+      return c.json({ error: "Count must be between 1 and 100" }, 400);
     }
 
     const db = getDatabase();
 
     // Récupérer le dernier ID Gutenberg
     const lastIdResult = db
-      .prepare("SELECT value FROM library_metadata WHERE key = 'last_gutenberg_id'")
+      .prepare(
+        "SELECT value FROM library_metadata WHERE key = 'last_gutenberg_id'"
+      )
       .get() as { value: string } | undefined;
 
     let lastGutenbergId = parseInt(lastIdResult?.value || "0");
 
-    console.log(`\n📚 Starting Gutenberg import from ID ${lastGutenbergId + 1}...`);
+    console.log(
+      `\n📚 Starting Gutenberg import from ID ${lastGutenbergId + 1}...`
+    );
 
     const importedBooks: BookMetadata[] = [];
     const failedIds: number[] = [];
@@ -52,7 +53,9 @@ app.post("/import-gutenberg", async (c) => {
     for (let i = 0; i < count; i++) {
       const bookId = lastGutenbergId + 1 + i;
 
-      console.log(`\n[${i + 1}/${count}] Downloading Gutenberg book ${bookId}...`);
+      console.log(
+        `\n[${i + 1}/${count}] Downloading Gutenberg book ${bookId}...`
+      );
 
       const book = await downloadGutenbergBook(bookId);
 
@@ -165,7 +168,9 @@ app.post("/calculate-pagerank", async (c) => {
     });
     const scores = calculator.calculatePageRank();
 
-    console.log(`✓ Successfully calculated PageRank scores for ${scores.length} books`);
+    console.log(
+      `✓ Successfully calculated PageRank scores for ${scores.length} books`
+    );
 
     return c.json({
       success: true,
@@ -187,4 +192,3 @@ app.post("/calculate-pagerank", async (c) => {
 });
 
 export default app;
-

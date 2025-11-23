@@ -11,20 +11,14 @@ export const adminAuth = async (c: Context, next: Next) => {
   const adminPassword = process.env.ADMIN_PASSWORD;
 
   if (!adminPassword) {
-    return c.json(
-      { error: "Admin password not configured on server" },
-      500
-    );
+    return c.json({ error: "Admin password not configured on server" }, 500);
   }
 
   // Récupérer le mot de passe depuis le header Authorization
   const authHeader = c.req.header("Authorization");
 
   if (!authHeader) {
-    return c.json(
-      { error: "Authorization header required" },
-      401
-    );
+    return c.json({ error: "Authorization header required" }, 401);
   }
 
   // Format attendu: "Bearer <password>"
@@ -38,13 +32,9 @@ export const adminAuth = async (c: Context, next: Next) => {
   }
 
   if (password !== adminPassword) {
-    return c.json(
-      { error: "Invalid admin password" },
-      403
-    );
+    return c.json({ error: "Invalid admin password" }, 403);
   }
 
   // Authentification réussie, continuer
   await next();
 };
-

@@ -24,6 +24,7 @@ function AdminPanel() {
       setIsLoading(true);
       setMessage(null);
 
+      console.log("Calling admin API: ", `${API_BASE_URL}/api/admin/${endpoint}`);
       const response = await fetch(`${API_BASE_URL}/api/admin/${endpoint}`, {
         method: "POST",
         headers: {

@@ -46,6 +46,7 @@ function BookDetailPage() {
     try {
       setIsLoadingText(true);
       const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+      console.log(`Loading book text from ${API_BASE_URL}/api/books/${book.id}/text`);
       const response = await fetch(`${API_BASE_URL}/api/books/${book.id}/text`);
 
       if (!response.ok) {

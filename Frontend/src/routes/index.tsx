@@ -1,7 +1,7 @@
-import SearchBar, { type SearchMode } from "@/components/SearchBar";
+import SearchBar, { type SearchMode, type AdvancedSearchOptions } from "@/components/SearchBar";
 import { SearchResultCard } from "@/components/BookCard";
 import type { Book, SearchResult, BookStats } from "@/utils";
-import { searchBooks, advancedSearch, getAllBooks, getStats } from "@/utils/api";
+import { getAllBooks, getStats } from "@/utils/api";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 
@@ -39,7 +39,11 @@ function App() {
     }
   }
 
-  async function handleSearch(query: string, mode: SearchMode) {
+  async function handleSearch(
+    query: string,
+    mode: SearchMode,
+    options: AdvancedSearchOptions
+  ) {
     if (!query.trim()) {
       setSearchResults([]);
       setHasSearched(false);
@@ -53,9 +57,50 @@ function App() {
 
       let response;
       if (mode === "bm25") {
-        response = await searchBooks(query, 50);
+        // Construire les paramètres de recherche
+        const params = new URLSearchParams();
+        params.append("q", query);
+        params.append("limit", "50");
+
+        // Ajouter les options avancées
+        if (options.author) params.append("author", options.author);
+        if (options.minWordCount)
+          params.append("minWordCount", options.minWordCount.toString());
+        if (options.maxWordCount)
+          params.append("maxWordCount", options.maxWordCount.toString());
+        if (options.minPageRank)
+          params.append("minPageRank", options.minPageRank.toString());
+        if (options.exactPhrase) params.append("exactPhrase", "true");
+        if (options.fuzzy) params.append("fuzzy", "true");
+        if (options.fuzzyDistance)
+          params.append("fuzzyDistance", options.fuzzyDistance.toString());
+        if (options.highlight) params.append("highlight", "true");
+        if (options.searchFields && options.searchFields.length > 0) {
+          params.append("fields", options.searchFields.join(","));
+        }
+
+        const API_BASE_URL =
+          import.meta.env.VITE_API_URL || "http://localhost:3000";
+        const res = await fetch(`${API_BASE_URL}/api/search?${params}`);
+        if (!res.ok) throw new Error("Search failed");
+        response = await res.json();
       } else {
-        response = await advancedSearch(query, 50);
+        // Regex search
+        const params = new URLSearchParams();
+        params.append("regex", query);
+        params.append("limit", "50");
+        if (options.caseSensitive) params.append("caseSensitive", "true");
+        if (options.author) params.append("author", options.author);
+        if (options.minWordCount)
+          params.append("minWordCount", options.minWordCount.toString());
+        if (options.maxWordCount)
+          params.append("maxWordCount", options.maxWordCount.toString());
+
+        const API_BASE_URL =
+          import.meta.env.VITE_API_URL || "http://localhost:3000";
+        const res = await fetch(`${API_BASE_URL}/api/search/advanced?${params}`);
+        if (!res.ok) throw new Error("Search failed");
+        response = await res.json();
       }
 
       setSearchResults(response.results);

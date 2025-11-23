@@ -461,27 +461,9 @@ export class SearchEngine {
     queryTerms: string[],
     params: SearchParams
   ) {
-    // Récupérer les positions des termes
-    const positions = new Map<string, number[]>();
-
-    for (const term of queryTerms) {
-      const result = this.db
-        .prepare(
-          `
-        SELECT positions FROM inverted_index WHERE term = ? AND book_id = ?
-      `
-        )
-        .get(term, book.id) as { positions: string } | undefined;
-
-      if (result) {
-        positions.set(term, JSON.parse(result.positions));
-      }
-    }
-
     return this.highlighter.generateSnippets(
       book.filePath,
       queryTerms,
-      positions,
       {
         snippetCount: params.snippetCount,
         snippetLength: params.snippetLength,

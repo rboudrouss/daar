@@ -35,6 +35,48 @@ export interface GutendexMetadata {
 }
 
 /**
+ * Nettoie le texte Gutenberg en supprimant les en-têtes et pieds de page
+ */
+function cleanGutenbergText(text: string): string {
+  const lines = text.split("\n");
+  let startIndex = -1;
+  let endIndex = -1;
+
+  // Chercher le marqueur de début
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (line.match(/^\*\*\*\s*START OF (THE|THIS) PROJECT GUTENBERG EBOOK/i)) {
+      startIndex = i + 1; // Commencer après le marqueur
+      break;
+    }
+  }
+
+  // Chercher le marqueur de fin
+  for (let i = lines.length - 1; i >= 0; i--) {
+    const line = lines[i].trim();
+    if (line.match(/^\*\*\*\s*END OF (THE|THIS) PROJECT GUTENBERG EBOOK/i)) {
+      endIndex = i; // Terminer avant le marqueur
+      break;
+    }
+  }
+
+  // Si on a trouvé les deux marqueurs, extraire le contenu
+  if (startIndex !== -1 && endIndex !== -1 && startIndex < endIndex) {
+    const cleanedLines = lines.slice(startIndex, endIndex);
+    console.log(
+      `Cleaned Gutenberg text: removed ${startIndex} lines at start and ${lines.length - endIndex} lines at end`
+    );
+    return cleanedLines.join("\n").trim();
+  }
+
+  // Si on n'a pas trouvé les marqueurs, retourner le texte original
+  console.log(
+    `Warning: Could not find Gutenberg markers, returning original text`
+  );
+  return text;
+}
+
+/**
  * Télécharge le texte d'un livre depuis Gutenberg en utilisant les URLs de Gutendex
  */
 export async function downloadGutenbergText(
@@ -74,9 +116,10 @@ export async function downloadGutenbergText(
       const response = await fetch(url);
 
       if (response.ok) {
-        const text = await response.text();
+        const rawText = await response.text();
+        const cleanedText = cleanGutenbergText(rawText);
         console.log(`Successfully downloaded book ${bookId} from ${url}`);
-        return text;
+        return cleanedText;
       }
     } catch (error) {
       console.log(`Failed to download from ${url}`);

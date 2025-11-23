@@ -31,16 +31,17 @@ export class BookIndexer {
     // 2. Tokenizer le contenu
     const { terms, positions, totalTokens } = this.tokenizer.tokenize(content);
 
-    // 3. Insérer le livre dans la DB
+    // 3. Insérer le livre dans la DB avec la couverture
     const insertBook = this.db.prepare(`
-      INSERT INTO books (title, author, file_path, word_count)
-      VALUES (?, ?, ?, ?)
+      INSERT INTO books (title, author, file_path, cover_image_path, word_count)
+      VALUES (?, ?, ?, ?, ?)
     `);
 
     const result = insertBook.run(
       metadata.title,
       metadata.author,
       metadata.filePath,
+      metadata.coverImagePath || null,
       totalTokens
     );
 
@@ -82,6 +83,7 @@ export class BookIndexer {
       title: metadata.title,
       author: metadata.author,
       filePath: metadata.filePath,
+      coverImagePath: metadata.coverImagePath,
       wordCount: totalTokens,
     };
   }

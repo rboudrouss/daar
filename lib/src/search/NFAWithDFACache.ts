@@ -305,3 +305,182 @@ export function matchNfaWithDfaCache(nfa: NFA, input: string): boolean {
   const finalState = cache.getState(currentStateId);
   return finalState?.isAccepting ?? false;
 }
+
+/**
+ * Classe réutilisable pour matcher un NFA avec un cache DFA persistant
+ *
+ * Cette classe maintient un cache des états DFA construits lors des précédents appels,
+ * ce qui permet d'améliorer les performances lors de multiples matchings avec le même NFA.
+ *
+ * @example
+ * ```typescript
+ * const nfa = parseRegex("a+b*");
+ * const matcher = new NfaMatcher(nfa);
+ *
+ * // Le cache est construit progressivement
+ * matcher.match("aaa");    // Construit les états DFA pour 'a'
+ * matcher.match("aaabbb"); // Réutilise les états existants et ajoute ceux pour 'b'
+ * matcher.match("a");      // Réutilise complètement le cache
+ *
+ * // Obtenir des statistiques sur le cache
+ * console.log(matcher.getStats());
+ *
+ * // Réinitialiser le cache si nécessaire
+ * matcher.clearCache();
+ * ```
+ */
+export class NfaMatcher {
+  private cache: LazyDFACache;
+  private nfa: NFA;
+
+  /**
+   * Crée un nouveau matcher avec cache DFA persistant
+   * @param nfa Le NFA à utiliser pour le matching
+   */
+  constructor(nfa: NFA) {
+    this.nfa = nfa;
+    this.cache = new LazyDFACache(nfa);
+  }
+
+  /**
+   * Vérifie si une chaîne correspond au motif NFA
+   * Utilise et enrichit le cache DFA à chaque appel
+   *
+   * @param input La chaîne de caractères à vérifier
+   * @returns true si la chaîne correspond au motif, sinon false
+   */
+  match(input: string): boolean {
+    // Commencer avec l'état initial (utilise le cache)
+    const initialNfaStates = this.cache.getInitialStateClosure();
+    let currentStateId = this.cache.getOrCreateState(initialNfaStates);
+
+    // Parcourir l'entrée
+    for (const c of input) {
+      const nextStateId = this.cache.computeTransition(currentStateId, c);
+
+      if (nextStateId === undefined) {
+        return false;
+      }
+
+      currentStateId = nextStateId;
+    }
+
+    // Vérifier si l'état final est acceptant
+    const finalState = this.cache.getState(currentStateId);
+    return finalState?.isAccepting ?? false;
+  }
+
+  /**
+   * Trouve toutes les occurrences du motif dans une ligne
+   * Utilise et enrichit le cache DFA à chaque appel
+   *
+   * @param line La ligne dans laquelle chercher
+   * @returns Un tableau de matches trouvés
+   */
+  findAllMatches(line: string): Match[] {
+    const matches: Match[] = [];
+
+    // Essayer de matcher à chaque position de la ligne
+    for (let startPos = 0; startPos < line.length; startPos++) {
+      // Essayer de trouver le plus long match à partir de cette position
+      const match = this.findLongestMatch(line, startPos);
+
+      if (match) {
+        matches.push(match);
+        // Sauter après ce match pour éviter les chevauchements
+        if (match.end === match.start) {
+          // Match vide, continuer à la position suivante
+        } else {
+          startPos = match.end - 1; // -1 car la boucle va incrémenter
+        }
+      }
+    }
+
+    return matches;
+  }
+
+  /**
+   * Trouve le plus long match à partir d'une position donnée
+   *
+   * @param line La ligne dans laquelle chercher
+   * @param startPos La position de départ
+   * @returns Le match trouvé, ou null
+   */
+  private findLongestMatch(line: string, startPos: number): Match | null {
+    // Commencer avec l'état initial du DFA (utilise le cache)
+    const initialNfaStates = this.cache.getInitialStateClosure();
+    let currentStateId = this.cache.getOrCreateState(initialNfaStates);
+    let lastAcceptPos = -1;
+
+    // Vérifier si l'état initial est acceptant
+    const initialState = this.cache.getState(currentStateId);
+    if (initialState?.isAccepting) {
+      lastAcceptPos = startPos;
+    }
+
+    // Parcourir la ligne caractère par caractère
+    for (let i = startPos; i < line.length; i++) {
+      const c = line[i];
+
+      // Calculer la transition (avec mise en cache)
+      const nextStateId = this.cache.computeTransition(currentStateId, c);
+
+      if (nextStateId === undefined) {
+        // Pas de transition possible, arrêter
+        break;
+      }
+
+      currentStateId = nextStateId;
+
+      // Vérifier si on est dans un état acceptant
+      const currentState = this.cache.getState(currentStateId);
+      if (currentState?.isAccepting) {
+        lastAcceptPos = i + 1; // Position après le dernier caractère matché
+      }
+    }
+
+    // Si on a trouvé au moins un état acceptant
+    if (lastAcceptPos > startPos) {
+      return {
+        start: startPos,
+        end: lastAcceptPos,
+        text: line.substring(startPos, lastAcceptPos),
+      };
+    }
+
+    // Cas spécial : regex qui matche la chaîne vide
+    if (lastAcceptPos === startPos) {
+      return {
+        start: startPos,
+        end: startPos,
+        text: "",
+      };
+    }
+
+    return null;
+  }
+
+  /**
+   * Obtient des statistiques sur le cache DFA
+   *
+   * @returns Un objet contenant le nombre d'états créés et le nombre total de transitions
+   */
+  getStats() {
+    return this.cache.getStats();
+  }
+
+  /**
+   * Réinitialise le cache DFA
+   * Utile si vous voulez libérer de la mémoire ou recommencer à zéro
+   */
+  clearCache() {
+    this.cache.clear();
+  }
+
+  /**
+   * Obtient le NFA utilisé par ce matcher
+   */
+  getNfa(): NFA {
+    return this.nfa;
+  }
+}

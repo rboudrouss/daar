@@ -93,34 +93,18 @@ export class RecommendationEngine {
       }
     }
 
+    const bookIds = Array.from(recommendations.keys());
+    const booksData = this.getBooksDataBatch(bookIds);
+
     // Convertir en BookSuggestion
     const suggestions: BookSuggestion[] = [];
 
     for (const [bookId, data] of recommendations) {
-      const book = this.db
-        .prepare(
-          `
-        SELECT b.id, b.title, b.author, b.file_path, b.cover_image_path, b.word_count, b.created_at,
-               COALESCE(bc.click_count, 0) as click_count
-        FROM books b
-        LEFT JOIN book_clicks bc ON b.id = bc.book_id
-        WHERE b.id = ?
-      `
-        )
-        .get(bookId) as any;
+      const book = booksData.get(bookId);
 
       if (book) {
         suggestions.push({
-          book: {
-            id: book.id,
-            title: book.title,
-            author: book.author,
-            filePath: book.file_path,
-            coverImagePath: book.cover_image_path,
-            wordCount: book.word_count,
-            createdAt: book.created_at,
-            clickCount: book.click_count,
-          },
+          book,
           score: data.score,
           reason: "hybrid",
           similarity: data.similarity,
@@ -185,8 +169,8 @@ export class RecommendationEngine {
     const neighbors = this.db
       .prepare(
         `
-      SELECT 
-        CASE 
+      SELECT
+        CASE
           WHEN book_id_1 = ? THEN book_id_2
           ELSE book_id_1
         END as neighbor_id,
@@ -202,32 +186,17 @@ export class RecommendationEngine {
       similarity: number;
     }>;
 
+    const bookIds = neighbors.map((n) => n.neighbor_id);
+    const booksData = this.getBooksDataBatch(bookIds);
+
     const suggestions: BookSuggestion[] = [];
 
     for (const neighbor of neighbors) {
-      const book = this.db
-        .prepare(
-          `
-        SELECT b.id, b.title, b.author, b.file_path, b.word_count, b.created_at,
-               COALESCE(bc.click_count, 0) as click_count
-        FROM books b
-        LEFT JOIN book_clicks bc ON b.id = bc.book_id
-        WHERE b.id = ?
-      `
-        )
-        .get(neighbor.neighbor_id) as any;
+      const book = booksData.get(neighbor.neighbor_id);
 
       if (book) {
         suggestions.push({
-          book: {
-            id: book.id,
-            title: book.title,
-            author: book.author,
-            filePath: book.file_path,
-            wordCount: book.word_count,
-            createdAt: book.created_at,
-            clickCount: book.click_count,
-          },
+          book,
           score: neighbor.similarity,
           reason: "jaccard",
           similarity: neighbor.similarity,
@@ -236,5 +205,41 @@ export class RecommendationEngine {
     }
 
     return suggestions;
+  }
+
+  /**
+   * Batch fetch books data for multiple book IDs
+   */
+  private getBooksDataBatch(bookIds: number[]): Map<number, Book> {
+    if (bookIds.length === 0) return new Map();
+
+    const placeholders = bookIds.map(() => "?").join(",");
+    const results = this.db
+      .prepare(
+        `
+      SELECT b.id, b.title, b.author, b.file_path, b.cover_image_path, b.word_count, b.created_at,
+             COALESCE(bc.click_count, 0) as click_count
+      FROM books b
+      LEFT JOIN book_clicks bc ON b.id = bc.book_id
+      WHERE b.id IN (${placeholders})
+    `
+      )
+      .all(...bookIds) as any[];
+
+    const booksMap = new Map<number, Book>();
+    for (const result of results) {
+      booksMap.set(result.id, {
+        id: result.id,
+        title: result.title,
+        author: result.author,
+        filePath: result.file_path,
+        coverImagePath: result.cover_image_path,
+        wordCount: result.word_count,
+        createdAt: result.created_at,
+        clickCount: result.click_count,
+      });
+    }
+
+    return booksMap;
   }
 }

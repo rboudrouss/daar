@@ -23,6 +23,9 @@ export class ScoringEngine {
   private avgDocLength: number;
   private totalDocs: number;
 
+  // Cached prepared statements
+  private stmtGetDocLength: any;
+
   constructor(config: Partial<ScoringConfig> = {}) {
     this.db = getDatabase();
     this.config = {
@@ -40,6 +43,18 @@ export class ScoringEngine {
     const stats = this.loadLibraryStats();
     this.avgDocLength = stats.avgDocLength;
     this.totalDocs = stats.totalBooks;
+
+    // Initialize prepared statements
+    this.initPreparedStatements();
+  }
+
+  /**
+   * Initialize prepared statements for better performance
+   */
+  private initPreparedStatements(): void {
+    this.stmtGetDocLength = this.db.prepare(`
+      SELECT word_count FROM books WHERE id = ?
+    `);
   }
 
   /**
@@ -251,6 +266,124 @@ export class ScoringEngine {
       this.config.pageRankWeight * normalizedPageRank;
 
     return hybridScore;
+  }
+
+  /**
+   * Calcule le score hybride en utilisant des données pré-fetchées
+   * Évite les requêtes N+1 en utilisant les données déjà récupérées en batch
+   */
+  calculateHybridScoreBatch(
+    bookId: number,
+    queryTerms: string[],
+    pageRankScore: number | undefined,
+    termFrequenciesData: Map<
+      number,
+      { termFrequencies: Map<string, number>; totalFrequency: number }
+    >
+  ): number {
+    const bm25Score = this.calculateBM25Batch(
+      bookId,
+      queryTerms,
+      termFrequenciesData
+    );
+
+    // Si pas de PageRank, retourner seulement BM25
+    if (pageRankScore === undefined || pageRankScore === null) {
+      return bm25Score;
+    }
+
+    // Normaliser PageRank
+    const normalizedPageRank = pageRankScore * this.totalDocs;
+
+    // Score hybride
+    const hybridScore =
+      this.config.bm25Weight * bm25Score +
+      this.config.pageRankWeight * normalizedPageRank;
+
+    return hybridScore;
+  }
+
+  /**
+   * Calcule le score BM25 en utilisant des données pré-fetchées
+   */
+  private calculateBM25Batch(
+    bookId: number,
+    queryTerms: string[],
+    termFrequenciesData: Map<
+      number,
+      { termFrequencies: Map<string, number>; totalFrequency: number }
+    >
+  ): number {
+    let score = 0;
+
+    // Récupérer la longueur du document (utilise le prepared statement)
+    const docLengthResult = this.stmtGetDocLength.get(bookId) as
+      | { word_count: number }
+      | undefined;
+
+    if (!docLengthResult) return 0;
+
+    const docLength = docLengthResult.word_count;
+    const bookData = termFrequenciesData.get(bookId);
+
+    if (!bookData) return 0;
+
+    // Batch fetch term stats for all query terms
+    const termStats = this.getTermStatsBatch(queryTerms);
+
+    for (const term of queryTerms) {
+      const tf = bookData.termFrequencies.get(term) || 0;
+      if (tf === 0) continue;
+
+      const df = termStats.get(term);
+      if (!df) continue;
+
+      // Calcul IDF
+      const idf = Math.log((this.totalDocs - df + 0.5) / (df + 0.5) + 1);
+
+      // Normalisation par la longueur du document
+      const norm =
+        1 - this.config.b + this.config.b * (docLength / this.avgDocLength);
+
+      // Score BM25 pour ce terme
+      const termScore =
+        idf * ((tf * (this.config.k1 + 1)) / (tf + this.config.k1 * norm));
+
+      score += termScore;
+    }
+
+    // Appliquer le bonus de proximité si activé
+    if (this.config.enableProximityBonus) {
+      const proximityBonus = this.calculateProximityBonus(bookId, queryTerms);
+      score *= proximityBonus;
+    }
+
+    return score;
+  }
+
+  /**
+   * Batch fetch term stats for multiple terms
+   */
+  private getTermStatsBatch(terms: string[]): Map<string, number> {
+    if (terms.length === 0) return new Map();
+
+    const placeholders = terms.map(() => "?").join(",");
+    const results = this.db
+      .prepare(
+        `
+      SELECT term, document_frequency
+      FROM term_stats
+      WHERE term IN (${placeholders})
+    `
+      )
+      .all(...terms) as Array<{ term: string; document_frequency: number }>;
+
+    const statsMap = new Map<string, number>();
+    for (const result of results) {
+      statsMap.set(result.term, result.document_frequency);
+    }
+
+    return statsMap;
   }
 
   /**

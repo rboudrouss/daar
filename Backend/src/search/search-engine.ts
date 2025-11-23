@@ -69,14 +69,17 @@ export class SearchEngine {
       return [];
     }
 
-    // Récupérer les PageRank scores
+    // OPTIMIZATION: Batch fetch all data needed for scoring
+    const bookIdsArray = Array.from(bookIds);
+    const booksData = this.getBooksDataBatch(bookIdsArray);
     const pageRankScores = this.getPageRankScores();
+    const termFrequencies = this.getTermFrequenciesBatch(bookIdsArray, queryTerms);
 
     // Calculer les scores pour chaque livre
     let results: SearchResult[] = [];
 
-    for (const bookId of bookIds) {
-      const book = this.getBook(bookId);
+    for (const bookId of bookIdsArray) {
+      const book = booksData.get(bookId);
       if (!book) continue;
 
       // Appliquer les filtres
@@ -85,14 +88,15 @@ export class SearchEngine {
       }
 
       const pageRankScore = pageRankScores.get(bookId);
-      const score = this.scoringEngine.calculateHybridScore(
+      const score = this.scoringEngine.calculateHybridScoreBatch(
         bookId,
         queryTerms,
-        pageRankScore
+        pageRankScore,
+        termFrequencies
       );
 
-      // Récupérer la fréquence totale des termes
-      const termFrequency = this.getTotalTermFrequency(bookId, queryTerms);
+      // Récupérer la fréquence totale des termes depuis le batch
+      const termFrequency = termFrequencies.get(bookId)?.totalFrequency || 0;
 
       const result: SearchResult = {
         book,
@@ -230,21 +234,18 @@ export class SearchEngine {
    * Trouve tous les livres contenant au moins un des termes
    */
   private findBooksWithTerms(terms: string[]): Set<number> {
-    const bookIds = new Set<number>();
+    if (terms.length === 0) return new Set();
 
-    for (const term of terms) {
-      const results = this.db
-        .prepare(
-          `
-        SELECT DISTINCT book_id FROM inverted_index WHERE term = ?
-      `
-        )
-        .all(term) as Array<{ book_id: number }>;
+    const placeholders = terms.map(() => "?").join(",");
+    const results = this.db
+      .prepare(
+        `
+      SELECT DISTINCT book_id FROM inverted_index WHERE term IN (${placeholders})
+    `
+      )
+      .all(...terms) as Array<{ book_id: number }>;
 
-      results.forEach((r) => bookIds.add(r.book_id));
-    }
-
-    return bookIds;
+    return new Set(results.map((r) => r.book_id));
   }
 
   /**
@@ -278,6 +279,93 @@ export class SearchEngine {
   }
 
   /**
+   * OPTIMIZATION: Batch fetch books data for multiple book IDs
+   */
+  private getBooksDataBatch(bookIds: number[]): Map<number, Book> {
+    if (bookIds.length === 0) return new Map();
+
+    const placeholders = bookIds.map(() => "?").join(",");
+    const results = this.db
+      .prepare(
+        `
+      SELECT b.id, b.title, b.author, b.file_path, b.cover_image_path, b.word_count, b.created_at,
+             COALESCE(bc.click_count, 0) as click_count
+      FROM books b
+      LEFT JOIN book_clicks bc ON b.id = bc.book_id
+      WHERE b.id IN (${placeholders})
+    `
+      )
+      .all(...bookIds) as any[];
+
+    const booksMap = new Map<number, Book>();
+    for (const result of results) {
+      booksMap.set(result.id, {
+        id: result.id,
+        title: result.title,
+        author: result.author,
+        filePath: result.file_path,
+        coverImagePath: result.cover_image_path,
+        wordCount: result.word_count,
+        createdAt: result.created_at,
+        clickCount: result.click_count,
+      });
+    }
+
+    return booksMap;
+  }
+
+  /**
+   * OPTIMIZATION: Batch fetch term frequencies for multiple books and terms
+   * Returns a map of bookId -> { termFrequencies: Map<term, frequency>, totalFrequency: number }
+   */
+  private getTermFrequenciesBatch(
+    bookIds: number[],
+    terms: string[]
+  ): Map<number, { termFrequencies: Map<string, number>; totalFrequency: number }> {
+    if (bookIds.length === 0 || terms.length === 0) return new Map();
+
+    const bookPlaceholders = bookIds.map(() => "?").join(",");
+    const termPlaceholders = terms.map(() => "?").join(",");
+
+    const results = this.db
+      .prepare(
+        `
+      SELECT book_id, term, term_frequency
+      FROM inverted_index
+      WHERE book_id IN (${bookPlaceholders})
+        AND term IN (${termPlaceholders})
+    `
+      )
+      .all(...bookIds, ...terms) as Array<{
+      book_id: number;
+      term: string;
+      term_frequency: number;
+    }>;
+
+    const frequenciesMap = new Map<
+      number,
+      { termFrequencies: Map<string, number>; totalFrequency: number }
+    >();
+
+    // Initialize all books
+    for (const bookId of bookIds) {
+      frequenciesMap.set(bookId, {
+        termFrequencies: new Map(),
+        totalFrequency: 0,
+      });
+    }
+
+    // Populate with results
+    for (const result of results) {
+      const bookData = frequenciesMap.get(result.book_id)!;
+      bookData.termFrequencies.set(result.term, result.term_frequency);
+      bookData.totalFrequency += result.term_frequency;
+    }
+
+    return frequenciesMap;
+  }
+
+  /**
    * Récupère les scores PageRank
    */
   private getPageRankScores(): Map<number, number> {
@@ -293,62 +381,55 @@ export class SearchEngine {
   }
 
   /**
-   * Récupère la fréquence totale des termes dans un livre
-   */
-  private getTotalTermFrequency(bookId: number, terms: string[]): number {
-    let total = 0;
-
-    for (const term of terms) {
-      const result = this.db
-        .prepare(
-          `
-        SELECT term_frequency FROM inverted_index WHERE term = ? AND book_id = ?
-      `
-        )
-        .get(term, bookId) as { term_frequency: number } | undefined;
-
-      if (result) {
-        total += result.term_frequency;
-      }
-    }
-
-    return total;
-  }
-
-  /**
    * Récupère les voisins Jaccard des livres donnés
    */
   private getJaccardNeighbors(
     bookIds: number[]
   ): Array<{ bookId: number; similarity: number }> {
+    if (bookIds.length === 0) return [];
+
     const neighbors = new Map<number, number>(); // bookId -> max similarity
 
-    for (const bookId of bookIds) {
-      // Récupérer les voisins (dans les deux sens)
-      const results = this.db
-        .prepare(
-          `
-        SELECT
-          CASE
-            WHEN book_id_1 = ? THEN book_id_2
-            ELSE book_id_1
-          END as neighbor_id,
-          similarity
-        FROM jaccard_edges
-        WHERE book_id_1 = ? OR book_id_2 = ?
-        ORDER BY similarity DESC
-        LIMIT 20
-      `
-        )
-        .all(bookId, bookId, bookId) as Array<{
-        neighbor_id: number;
-        similarity: number;
-      }>;
+    // Batch query for all book IDs at once
+    const placeholders = bookIds.map(() => "?").join(",");
+    const results = this.db
+      .prepare(
+        `
+      SELECT
+        CASE
+          WHEN book_id_1 IN (${placeholders}) THEN book_id_2
+          ELSE book_id_1
+        END as neighbor_id,
+        similarity,
+        CASE
+          WHEN book_id_1 IN (${placeholders}) THEN book_id_1
+          ELSE book_id_2
+        END as source_book_id
+      FROM jaccard_edges
+      WHERE book_id_1 IN (${placeholders}) OR book_id_2 IN (${placeholders})
+      ORDER BY similarity DESC
+    `
+      )
+      .all(...bookIds, ...bookIds, ...bookIds, ...bookIds) as Array<{
+      neighbor_id: number;
+      similarity: number;
+      source_book_id: number;
+    }>;
 
-      for (const { neighbor_id, similarity } of results) {
-        const currentSim = neighbors.get(neighbor_id) || 0;
-        neighbors.set(neighbor_id, Math.max(currentSim, similarity));
-      }
+    // Track top 20 neighbors per source book
+    const perBookNeighbors = new Map<number, number>();
+    for (const bookId of bookIds) {
+      perBookNeighbors.set(bookId, 0);
+    }
+
+    for (const { neighbor_id, similarity, source_book_id } of results) {
+      const count = perBookNeighbors.get(source_book_id) || 0;
+      if (count >= 20) continue; // Limit to top 20 per book
+
+      perBookNeighbors.set(source_book_id, count + 1);
+
+      const currentSim = neighbors.get(neighbor_id) || 0;
+      neighbors.set(neighbor_id, Math.max(currentSim, similarity));
     }
 
     return Array.from(neighbors.entries()).map(([bookId, similarity]) => ({

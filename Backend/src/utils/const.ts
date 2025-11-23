@@ -30,6 +30,8 @@ export const SEARCH_HIGHLIGHT_CONTEXT_LENGTH_AFTER = parseInt(process.env.SEARCH
 export const RECOMMENDATION_DEFAULT_LIMIT = parseInt(process.env.RECOMMENDATION_DEFAULT_LIMIT || "10");
 export const RECOMMENDATION_JACCARD_THRESHOLD = parseFloat(process.env.RECOMMENDATION_JACCARD_THRESHOLD || "0.1");
 
+export const GUTENBERG_BATCH_SIZE = parseInt(process.env.GUTENBERG_BATCH_SIZE || "30");
+
 export const SEARCH_SCORING_BM25_WEIGHT = parseFloat(process.env.SEARCH_SCORING_BM25_WEIGHT || "0.6");
 export const SEARCH_SCORING_PAGERANK_WEIGHT = parseFloat(process.env.SEARCH_SCORING_PAGERANK_WEIGHT || "0.4");
 export const SEARCH_SCORING_OCCURRENCE_WEIGHT = parseFloat(process.env.SEARCH_SCORING_OCCURRENCE_WEIGHT || "0");

@@ -5,11 +5,11 @@
 import { Hono } from "hono";
 import { getDatabase } from "../db/connection";
 import { adminAuth } from "../middleware/auth";
-import { downloadGutenbergBook } from "../utils/gutenberg";
+import { downloadGutenbergBook, fetchGutendexMetadataBatch } from "../utils/gutenberg";
 import { BookIndexer } from "../indexing/indexer";
 import { JaccardCalculator } from "../indexing/jaccard";
 import { PageRankCalculator } from "../indexing/pagerank";
-import type { BookMetadata } from "../utils/types";
+import { GUTENBERG_BATCH_SIZE } from "../utils/const";
 
 const app = new Hono();
 
@@ -45,43 +45,71 @@ app.post("/import-gutenberg", async (c) => {
       `\nStarting Gutenberg import from ID ${lastGutenbergId + 1}...`
     );
 
-    const importedBooks: BookMetadata[] = [];
     const failedIds: number[] = [];
     let successCount = 0;
+    const indexer = new BookIndexer();
 
-    // Télécharger les livres
+    // Générer la liste des IDs à télécharger
+    const bookIds: number[] = [];
     for (let i = 0; i < count; i++) {
-      const bookId = lastGutenbergId + 1 + i;
-
-      console.log(
-        `\n[${i + 1}/${count}] Downloading Gutenberg book ${bookId}...`
-      );
-
-      const book = await downloadGutenbergBook(bookId);
-
-      if (book) {
-        importedBooks.push({
-          title: book.title,
-          author: book.author,
-          filePath: book.textFilePath,
-          coverImagePath: book.coverImagePath,
-        });
-        successCount++;
-        console.log(`Successfully downloaded: ${book.title}`);
-      } else {
-        failedIds.push(bookId);
-        console.log(`Failed to download book ${bookId}`);
-      }
+      bookIds.push(lastGutenbergId + 1 + i);
     }
 
-    // Indexer les livres téléchargés
-    if (importedBooks.length > 0) {
-      console.log(`\nIndexing ${importedBooks.length} books...`);
+    // Traiter par batches
+    const batches: number[][] = [];
+    for (let i = 0; i < bookIds.length; i += GUTENBERG_BATCH_SIZE) {
+      batches.push(bookIds.slice(i, i + GUTENBERG_BATCH_SIZE));
+    }
 
-      const indexer = new BookIndexer();
-      const indexedBooks = indexer.indexBooks(importedBooks);
+    console.log(`Processing ${bookIds.length} books in ${batches.length} batches of ${GUTENBERG_BATCH_SIZE}`);
 
-      console.log(`✓ Successfully indexed ${indexedBooks.length} books`);
+    let processedCount = 0;
+
+    for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
+      const batch = batches[batchIndex];
+      console.log(`\n[Batch ${batchIndex + 1}/${batches.length}] Fetching metadata for ${batch.length} books (IDs: ${batch[0]}-${batch[batch.length - 1]})...`);
+
+      // Récupérer les métadonnées du batch
+      const metadataMap = await fetchGutendexMetadataBatch(batch);
+      console.log(`Received metadata for ${metadataMap.size}/${batch.length} books`);
+
+      // Télécharger et indexer chaque livre du batch
+      for (const bookId of batch) {
+        processedCount++;
+        console.log(`\n[${processedCount}/${count}] Processing book ${bookId}...`);
+
+        const metadata = metadataMap.get(bookId) || null;
+        const book = await downloadGutenbergBook(bookId, metadata);
+
+        if (book) {
+          console.log(`Successfully downloaded: ${book.title}`);
+
+          // Indexer immédiatement après le téléchargement
+          try {
+            console.log(`Indexing: ${book.title}...`);
+            indexer.indexBook({
+              title: book.title,
+              author: book.author,
+              filePath: book.textFilePath,
+              coverImagePath: book.coverImagePath,
+            });
+            successCount++;
+            console.log(`✓ Successfully indexed: ${book.title}`);
+          } catch (error) {
+            console.error(`Failed to index ${book.title}:`, error);
+            failedIds.push(bookId);
+          }
+        } else {
+          failedIds.push(bookId);
+          console.log(`Failed to download book ${bookId}`);
+        }
+      }
+
+      // Pause entre les batches (sauf pour le dernier)
+      if (batchIndex < batches.length - 1) {
+        console.log(`\nBatch ${batchIndex + 1} complete. Waiting 1s before next batch...`);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
     }
 
     // Mettre à jour le dernier ID Gutenberg

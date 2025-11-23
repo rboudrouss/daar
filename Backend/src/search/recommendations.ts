@@ -98,9 +98,11 @@ export class RecommendationEngine {
       const book = this.db
         .prepare(
           `
-        SELECT id, title, author, file_path, cover_image_path, word_count, created_at
-        FROM books
-        WHERE id = ?
+        SELECT b.id, b.title, b.author, b.file_path, b.cover_image_path, b.word_count, b.created_at,
+               COALESCE(bc.click_count, 0) as click_count
+        FROM books b
+        LEFT JOIN book_clicks bc ON b.id = bc.book_id
+        WHERE b.id = ?
       `
         )
         .get(bookId) as any;
@@ -115,6 +117,7 @@ export class RecommendationEngine {
             coverImagePath: book.cover_image_path,
             wordCount: book.word_count,
             createdAt: book.created_at,
+            clickCount: book.click_count,
           },
           score: data.score,
           reason: "hybrid",
@@ -138,14 +141,16 @@ export class RecommendationEngine {
         `
       SELECT b.id, b.title, b.author, b.file_path as filePath, b.cover_image_path as coverImagePath,
              b.word_count as wordCount, b.created_at as createdAt,
-             p.score as pagerank_score
+             p.score as pagerank_score,
+             COALESCE(bc.click_count, 0) as click_count
       FROM books b
       LEFT JOIN pagerank p ON b.id = p.book_id
+      LEFT JOIN book_clicks bc ON b.id = bc.book_id
       ORDER BY p.score DESC
       LIMIT ?
     `
       )
-      .all(limit) as Array<Book & { pagerank_score: number }>;
+      .all(limit) as Array<Book & { pagerank_score: number; click_count: number }>;
 
     return books.map((book) => ({
       book: {
@@ -156,6 +161,7 @@ export class RecommendationEngine {
         coverImagePath: book.coverImagePath,
         wordCount: book.wordCount,
         createdAt: book.createdAt,
+        clickCount: book.click_count,
       },
       score: book.pagerank_score || 0,
       reason: "pagerank" as const,

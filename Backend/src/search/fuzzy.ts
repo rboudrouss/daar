@@ -27,8 +27,8 @@ export function levenshteinDistance(a: string, b: string): number {
       } else {
         matrix[i][j] = Math.min(
           matrix[i - 1][j - 1] + 1, // substitution
-          matrix[i][j - 1] + 1,     // insertion
-          matrix[i - 1][j] + 1      // deletion
+          matrix[i][j - 1] + 1, // insertion
+          matrix[i - 1][j] + 1 // deletion
         );
       }
     }
@@ -52,7 +52,10 @@ export function findSimilarTerms(
   const results: Array<{ term: string; distance: number }> = [];
 
   for (const term of terms) {
-    const distance = levenshteinDistance(query.toLowerCase(), term.toLowerCase());
+    const distance = levenshteinDistance(
+      query.toLowerCase(),
+      term.toLowerCase()
+    );
     if (distance <= maxDistance) {
       results.push({ term, distance });
     }
@@ -88,7 +91,7 @@ export class FuzzyMatcher {
 
     // Recherche exacte
     if (!fuzzy) {
-      return availableTerms.filter(term => term.toLowerCase() === queryLower);
+      return availableTerms.filter((term) => term.toLowerCase() === queryLower);
     }
 
     // Recherche floue
@@ -98,7 +101,7 @@ export class FuzzyMatcher {
     }
 
     const similar = findSimilarTerms(queryLower, availableTerms, maxDistance);
-    const matchedTerms = similar.map(s => s.term);
+    const matchedTerms = similar.map((s) => s.term);
 
     // Cache le résultat
     this.termCache.set(cacheKey, matchedTerms);
@@ -113,4 +116,3 @@ export class FuzzyMatcher {
     this.termCache.clear();
   }
 }
-

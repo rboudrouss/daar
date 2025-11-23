@@ -10,6 +10,7 @@ export interface Book {
   title: string;
   author: string;
   filePath: string;
+  coverImagePath?: string;
   wordCount: number;
   createdAt?: string;
 }
@@ -21,6 +22,7 @@ export interface BookMetadata {
   title: string;
   author: string;
   filePath: string;
+  coverImagePath?: string;
 }
 
 /**
@@ -85,7 +87,7 @@ export interface SearchResult {
 export interface BookSuggestion {
   book: Book;
   score: number;
-  reason: 'jaccard' | 'pagerank' | 'popular' | 'hybrid';
+  reason: "jaccard" | "pagerank" | "popular" | "hybrid";
   similarity?: number; // Similarité Jaccard si applicable
 }
 
@@ -108,7 +110,7 @@ export interface SearchParams {
   fuzzy?: boolean; // Recherche floue
   fuzzyDistance?: number; // Distance Levenshtein max (défaut: 2)
   // Multi-champs
-  searchFields?: ('title' | 'author' | 'content')[]; // Champs à rechercher
+  searchFields?: ("title" | "author" | "content")[]; // Champs à rechercher
   fieldWeights?: { title?: number; author?: number; content?: number }; // Poids par champ
   // Highlighting
   highlight?: boolean; // Activer le highlighting
@@ -166,8 +168,13 @@ export interface IndexingConfig {
 export interface IndexingProgress {
   currentBook: number;
   totalBooks: number;
-  currentPhase: 'reading' | 'tokenizing' | 'indexing' | 'jaccard' | 'pagerank' | 'done';
+  currentPhase:
+    | "reading"
+    | "tokenizing"
+    | "indexing"
+    | "jaccard"
+    | "pagerank"
+    | "done";
   message: string;
   percentage: number;
 }
-

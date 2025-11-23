@@ -4,27 +4,6 @@
  */
 
 /**
- * Liste de stop words français et anglais (mots vides à ignorer)
- */
-const STOP_WORDS = new Set([
-  // Français
-  'le', 'la', 'les', 'un', 'une', 'des', 'de', 'du', 'et', 'ou', 'mais',
-  'donc', 'or', 'ni', 'car', 'ce', 'cette', 'ces', 'mon', 'ton', 'son',
-  'ma', 'ta', 'sa', 'mes', 'tes', 'ses', 'notre', 'votre', 'leur',
-  'je', 'tu', 'il', 'elle', 'nous', 'vous', 'ils', 'elles', 'on',
-  'qui', 'que', 'quoi', 'dont', 'où', 'dans', 'sur', 'sous', 'avec',
-  'sans', 'pour', 'par', 'en', 'au', 'aux', 'à', 'est', 'sont', 'était',
-  'été', 'être', 'avoir', 'avait', 'eu', 'fait', 'faire', 'dit', 'dire',
-  // Anglais
-  'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for',
-  'of', 'with', 'by', 'from', 'as', 'is', 'was', 'are', 'were', 'be',
-  'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will',
-  'would', 'should', 'could', 'may', 'might', 'must', 'can', 'this',
-  'that', 'these', 'those', 'i', 'you', 'he', 'she', 'it', 'we', 'they',
-  'what', 'which', 'who', 'when', 'where', 'why', 'how',
-]);
-
-/**
  * Configuration du tokenizer
  */
 export interface TokenizerConfig {
@@ -71,7 +50,9 @@ export class Tokenizer {
 
     // 3. Filtrage et collecte des positions
     const terms: string[] = [];
-    const positions = this.config.keepPositions ? new Map<string, number[]>() : undefined;
+    const positions = this.config.keepPositions
+      ? new Map<string, number[]>()
+      : undefined;
     let position = 0;
 
     for (const word of words) {
@@ -116,7 +97,7 @@ export class Tokenizer {
     const normalized = this.config.caseSensitive ? query : query.toLowerCase();
     const words = normalized.match(/[a-zà-ÿ0-9]+/gi) || [];
 
-    return words.filter(word => {
+    return words.filter((word) => {
       // Pas de filtre de longueur minimale pour les requêtes
       // Pas de stop words pour les requêtes (l'utilisateur sait ce qu'il cherche)
       return word.length > 0;
@@ -140,3 +121,132 @@ export class Tokenizer {
  */
 export const defaultTokenizer = new Tokenizer();
 
+/**
+ * Liste de stop words français et anglais (mots vides à ignorer)
+ */
+const STOP_WORDS = new Set([
+  // Français
+  "le",
+  "la",
+  "les",
+  "un",
+  "une",
+  "des",
+  "de",
+  "du",
+  "et",
+  "ou",
+  "mais",
+  "donc",
+  "or",
+  "ni",
+  "car",
+  "ce",
+  "cette",
+  "ces",
+  "mon",
+  "ton",
+  "son",
+  "ma",
+  "ta",
+  "sa",
+  "mes",
+  "tes",
+  "ses",
+  "notre",
+  "votre",
+  "leur",
+  "je",
+  "tu",
+  "il",
+  "elle",
+  "nous",
+  "vous",
+  "ils",
+  "elles",
+  "on",
+  "qui",
+  "que",
+  "quoi",
+  "dont",
+  "où",
+  "dans",
+  "sur",
+  "sous",
+  "avec",
+  "sans",
+  "pour",
+  "par",
+  "en",
+  "au",
+  "aux",
+  "à",
+  "est",
+  "sont",
+  "était",
+  "été",
+  "être",
+  "avoir",
+  "avait",
+  "eu",
+  "fait",
+  "faire",
+  "dit",
+  "dire",
+  // Anglais
+  "the",
+  "a",
+  "an",
+  "and",
+  "or",
+  "but",
+  "in",
+  "on",
+  "at",
+  "to",
+  "for",
+  "of",
+  "with",
+  "by",
+  "from",
+  "as",
+  "is",
+  "was",
+  "are",
+  "were",
+  "be",
+  "been",
+  "being",
+  "have",
+  "has",
+  "had",
+  "do",
+  "does",
+  "did",
+  "will",
+  "would",
+  "should",
+  "could",
+  "may",
+  "might",
+  "must",
+  "can",
+  "this",
+  "that",
+  "these",
+  "those",
+  "i",
+  "you",
+  "he",
+  "she",
+  "it",
+  "we",
+  "they",
+  "what",
+  "which",
+  "who",
+  "when",
+  "where",
+  "why",
+  "how",
+]);

@@ -2,9 +2,9 @@
  * Routes API pour la recherche
  */
 
-import { Hono } from 'hono';
-import { SearchEngine } from '../search/search-engine.js';
-import { SearchParams, SearchResponse } from '../utils/types.js';
+import { Hono } from "hono";
+import { SearchEngine } from "../search/search-engine.js";
+import { SearchParams, SearchResponse } from "../utils/types.js";
 
 const app = new Hono();
 
@@ -21,27 +21,35 @@ function getSearchEngine(): SearchEngine {
  * GET /api/search?q=query&limit=20&offset=0&highlight=true&fuzzy=true&author=...
  * Recherche simple par mot-clé avec toutes les options avancées
  */
-app.get('/', async (c) => {
-  const query = c.req.query('q');
-  const limit = parseInt(c.req.query('limit') || '20');
-  const offset = parseInt(c.req.query('offset') || '0');
-  const withSuggestions = c.req.query('suggestions') === 'true';
+app.get("/", async (c) => {
+  const query = c.req.query("q");
+  const limit = parseInt(c.req.query("limit") || "20");
+  const offset = parseInt(c.req.query("offset") || "0");
+  const withSuggestions = c.req.query("suggestions") === "true";
 
   // Nouvelles options
-  const highlight = c.req.query('highlight') === 'true';
-  const fuzzy = c.req.query('fuzzy') === 'true';
-  const fuzzyDistance = parseInt(c.req.query('fuzzyDistance') || '2');
-  const exactPhrase = c.req.query('exactPhrase') === 'true';
+  const highlight = c.req.query("highlight") === "true";
+  const fuzzy = c.req.query("fuzzy") === "true";
+  const fuzzyDistance = parseInt(c.req.query("fuzzyDistance") || "2");
+  const exactPhrase = c.req.query("exactPhrase") === "true";
 
   // Filtres
-  const author = c.req.query('author');
-  const minWordCount = c.req.query('minWordCount') ? parseInt(c.req.query('minWordCount')!) : undefined;
-  const maxWordCount = c.req.query('maxWordCount') ? parseInt(c.req.query('maxWordCount')!) : undefined;
-  const minPageRank = c.req.query('minPageRank') ? parseFloat(c.req.query('minPageRank')!) : undefined;
+  const author = c.req.query("author");
+  const minWordCount = c.req.query("minWordCount")
+    ? parseInt(c.req.query("minWordCount")!)
+    : undefined;
+  const maxWordCount = c.req.query("maxWordCount")
+    ? parseInt(c.req.query("maxWordCount")!)
+    : undefined;
+  const minPageRank = c.req.query("minPageRank")
+    ? parseFloat(c.req.query("minPageRank")!)
+    : undefined;
 
   // Multi-champs
-  const searchFieldsParam = c.req.query('fields');
-  const searchFields = searchFieldsParam ? searchFieldsParam.split(',') as ('title' | 'author' | 'content')[] : undefined;
+  const searchFieldsParam = c.req.query("fields");
+  const searchFields = searchFieldsParam
+    ? (searchFieldsParam.split(",") as ("title" | "author" | "content")[])
+    : undefined;
 
   if (!query) {
     return c.json({ error: 'Query parameter "q" is required' }, 400);
@@ -68,7 +76,9 @@ app.get('/', async (c) => {
 
   const engine = getSearchEngine();
   const results = engine.search(params);
-  const suggestions = withSuggestions ? engine.getSuggestions(results) : undefined;
+  const suggestions = withSuggestions
+    ? engine.getSuggestions(results)
+    : undefined;
 
   const executionTimeMs = Date.now() - startTime;
 
@@ -87,12 +97,12 @@ app.get('/', async (c) => {
  * GET /api/search/advanced?regex=pattern&limit=20
  * Recherche avancée par RegEx
  */
-app.get('/advanced', async (c) => {
-  const regex = c.req.query('regex');
-  const limit = parseInt(c.req.query('limit') || '20');
-  const offset = parseInt(c.req.query('offset') || '0');
-  const caseSensitive = c.req.query('caseSensitive') === 'true';
-  const withSuggestions = c.req.query('suggestions') === 'true';
+app.get("/advanced", async (c) => {
+  const regex = c.req.query("regex");
+  const limit = parseInt(c.req.query("limit") || "20");
+  const offset = parseInt(c.req.query("offset") || "0");
+  const caseSensitive = c.req.query("caseSensitive") === "true";
+  const withSuggestions = c.req.query("suggestions") === "true";
 
   if (!regex) {
     return c.json({ error: 'Query parameter "regex" is required' }, 400);
@@ -111,7 +121,9 @@ app.get('/advanced', async (c) => {
   try {
     const engine = getSearchEngine();
     const results = engine.searchRegex(params);
-    const suggestions = withSuggestions ? engine.getSuggestions(results) : undefined;
+    const suggestions = withSuggestions
+      ? engine.getSuggestions(results)
+      : undefined;
 
     const executionTimeMs = Date.now() - startTime;
 
@@ -125,7 +137,10 @@ app.get('/advanced', async (c) => {
 
     return c.json(response);
   } catch (error) {
-    return c.json({ error: 'Invalid regex pattern', details: (error as Error).message }, 400);
+    return c.json(
+      { error: "Invalid regex pattern", details: (error as Error).message },
+      400
+    );
   }
 });
 
@@ -133,9 +148,9 @@ app.get('/advanced', async (c) => {
  * GET /api/search/suggestions?bookId=123&limit=10
  * Récupère les suggestions pour un livre spécifique
  */
-app.get('/suggestions', async (c) => {
-  const bookIdStr = c.req.query('bookId');
-  const limit = parseInt(c.req.query('limit') || '10');
+app.get("/suggestions", async (c) => {
+  const bookIdStr = c.req.query("bookId");
+  const limit = parseInt(c.req.query("limit") || "10");
 
   if (!bookIdStr) {
     return c.json({ error: 'Query parameter "bookId" is required' }, 400);
@@ -146,24 +161,31 @@ app.get('/suggestions', async (c) => {
   // Créer un résultat de recherche fictif avec ce livre
   const engine = getSearchEngine();
   const db = (engine as any).db;
-  const book = db.prepare(`
-    SELECT id, title, author, file_path, word_count FROM books WHERE id = ?
-  `).get(bookId);
+  const book = db
+    .prepare(
+      `
+    SELECT id, title, author, file_path, cover_image_path, word_count FROM books WHERE id = ?
+  `
+    )
+    .get(bookId);
 
   if (!book) {
-    return c.json({ error: 'Book not found' }, 404);
+    return c.json({ error: "Book not found" }, 404);
   }
 
-  const fakeResults = [{
-    book: {
-      id: book.id,
-      title: book.title,
-      author: book.author,
-      filePath: book.file_path,
-      wordCount: book.word_count,
+  const fakeResults = [
+    {
+      book: {
+        id: book.id,
+        title: book.title,
+        author: book.author,
+        filePath: book.file_path,
+        coverImagePath: book.cover_image_path,
+        wordCount: book.word_count,
+      },
+      score: 1.0,
     },
-    score: 1.0,
-  }];
+  ];
 
   const suggestions = engine.getSuggestions(fakeResults, limit);
 
@@ -178,15 +200,15 @@ app.get('/suggestions', async (c) => {
  * GET /api/search/recommendations?userId=123&limit=10
  * Recommandations basées sur l'historique de clics
  */
-app.get('/recommendations', async (c) => {
-  const userId = c.req.query('userId');
-  const limit = parseInt(c.req.query('limit') || '10');
+app.get("/recommendations", async (c) => {
+  const userId = c.req.query("userId");
+  const limit = parseInt(c.req.query("limit") || "10");
 
   const engine = getSearchEngine();
   const recommendations = engine.getRecommendations(userId, limit);
 
   return c.json({
-    userId: userId || 'global',
+    userId: userId || "global",
     recommendations,
     total: recommendations.length,
   });
@@ -196,12 +218,12 @@ app.get('/recommendations', async (c) => {
  * GET /api/search/similar/:bookId?limit=10
  * Trouve des livres similaires par sémantique (TF-IDF cosine similarity)
  */
-app.get('/similar/:bookId', async (c) => {
-  const bookId = parseInt(c.req.param('bookId'));
-  const limit = parseInt(c.req.query('limit') || '10');
+app.get("/similar/:bookId", async (c) => {
+  const bookId = parseInt(c.req.param("bookId"));
+  const limit = parseInt(c.req.query("limit") || "10");
 
   if (isNaN(bookId)) {
-    return c.json({ error: 'Invalid bookId' }, 400);
+    return c.json({ error: "Invalid bookId" }, 400);
   }
 
   const engine = getSearchEngine();
@@ -215,4 +237,3 @@ app.get('/similar/:bookId', async (c) => {
 });
 
 export default app;
-

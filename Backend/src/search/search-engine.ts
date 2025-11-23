@@ -2,14 +2,19 @@
  * Moteur de recherche principal
  */
 
-import { getDatabase } from '../db/connection.js';
-import { Tokenizer } from '../indexing/tokenizer.js';
-import { ScoringEngine } from './scoring.js';
-import { Highlighter } from './highlighter.js';
-import { FuzzyMatcher } from './fuzzy.js';
-import { SemanticSearch } from './semantic.js';
-import { RecommendationEngine } from './recommendations.js';
-import { SearchParams, SearchResult, BookSuggestion, Book } from '../utils/types.js';
+import { getDatabase } from "../db/connection.js";
+import { Tokenizer } from "../indexing/tokenizer.js";
+import { ScoringEngine } from "./scoring.js";
+import { Highlighter } from "./highlighter.js";
+import { FuzzyMatcher } from "./fuzzy.js";
+import { SemanticSearch } from "./semantic.js";
+import { RecommendationEngine } from "./recommendations.js";
+import {
+  SearchParams,
+  SearchResult,
+  BookSuggestion,
+  Book,
+} from "../utils/types.js";
 
 /**
  * Moteur de recherche
@@ -79,7 +84,11 @@ export class SearchEngine {
       }
 
       const pageRankScore = pageRankScores.get(bookId);
-      const score = this.scoringEngine.calculateHybridScore(bookId, queryTerms, pageRankScore);
+      const score = this.scoringEngine.calculateHybridScore(
+        bookId,
+        queryTerms,
+        pageRankScore
+      );
 
       // Récupérer la fréquence totale des termes
       const termFrequency = this.getTotalTermFrequency(bookId, queryTerms);
@@ -106,7 +115,9 @@ export class SearchEngine {
     const offset = params.offset ?? 0;
 
     const executionTime = Date.now() - startTime;
-    console.log(`🔍 Search for "${params.query}" found ${results.length} results in ${executionTime}ms`);
+    console.log(
+      `🔍 Search for "${params.query}" found ${results.length} results in ${executionTime}ms`
+    );
 
     return results.slice(offset, offset + limit);
   }
@@ -118,56 +129,70 @@ export class SearchEngine {
     const startTime = Date.now();
 
     // Créer une regex à partir de la requête
-    const flags = params.caseSensitive ? '' : 'i';
+    const flags = params.caseSensitive ? "" : "i";
     const regex = new RegExp(params.query, flags);
 
     // Chercher tous les termes qui matchent la regex dans l'index
-    const allTerms = this.db.prepare(`
+    const allTerms = this.db
+      .prepare(
+        `
       SELECT DISTINCT term FROM term_stats
-    `).all() as Array<{ term: string }>;
+    `
+      )
+      .all() as Array<{ term: string }>;
 
     const matchingTerms = allTerms
-      .map(t => t.term)
-      .filter(term => regex.test(term));
+      .map((t) => t.term)
+      .filter((term) => regex.test(term));
 
     if (matchingTerms.length === 0) {
       return [];
     }
 
-    console.log(`📝 Regex "${params.query}" matched ${matchingTerms.length} terms`);
+    console.log(
+      `📝 Regex "${params.query}" matched ${matchingTerms.length} terms`
+    );
 
     // Utiliser la recherche normale avec les termes matchés
     return this.search({
       ...params,
-      query: matchingTerms.join(' '),
+      query: matchingTerms.join(" "),
     });
   }
 
   /**
    * Génère des suggestions basées sur les résultats de recherche
    */
-  getSuggestions(searchResults: SearchResult[], limit: number = 10): BookSuggestion[] {
+  getSuggestions(
+    searchResults: SearchResult[],
+    limit: number = 10
+  ): BookSuggestion[] {
     if (searchResults.length === 0) {
       return [];
     }
 
     // Prendre les top 3 résultats
-    const topResults = searchResults.slice(0, Math.min(3, searchResults.length));
-    const topBookIds = topResults.map(r => r.book.id);
+    const topResults = searchResults.slice(
+      0,
+      Math.min(3, searchResults.length)
+    );
+    const topBookIds = topResults.map((r) => r.book.id);
 
     // Récupérer les voisins dans le graphe Jaccard
     const neighbors = this.getJaccardNeighbors(topBookIds);
 
     // Filtrer les livres déjà dans les résultats
-    const resultBookIds = new Set(searchResults.map(r => r.book.id));
-    const filteredNeighbors = neighbors.filter(n => !resultBookIds.has(n.bookId));
+    const resultBookIds = new Set(searchResults.map((r) => r.book.id));
+    const filteredNeighbors = neighbors.filter(
+      (n) => !resultBookIds.has(n.bookId)
+    );
 
     // Récupérer les PageRank scores
     const pageRankScores = this.getPageRankScores();
 
     // Scorer les suggestions
     const suggestions: BookSuggestion[] = filteredNeighbors
-      .map(neighbor => {
+      .map((neighbor) => {
         const book = this.getBook(neighbor.bookId);
         if (!book) return null;
 
@@ -179,11 +204,13 @@ export class SearchEngine {
         return {
           book,
           score,
-          reason: 'hybrid' as const,
+          reason: "hybrid" as const,
           similarity: neighbor.similarity,
         };
       })
-      .filter((s): s is NonNullable<typeof s> => s !== null) as BookSuggestion[];
+      .filter(
+        (s): s is NonNullable<typeof s> => s !== null
+      ) as BookSuggestion[];
 
     // Trier par score et limiter
     suggestions.sort((a, b) => b.score - a.score);
@@ -198,11 +225,15 @@ export class SearchEngine {
     const bookIds = new Set<number>();
 
     for (const term of terms) {
-      const results = this.db.prepare(`
+      const results = this.db
+        .prepare(
+          `
         SELECT DISTINCT book_id FROM inverted_index WHERE term = ?
-      `).all(term) as Array<{ book_id: number }>;
+      `
+        )
+        .all(term) as Array<{ book_id: number }>;
 
-      results.forEach(r => bookIds.add(r.book_id));
+      results.forEach((r) => bookIds.add(r.book_id));
     }
 
     return bookIds;
@@ -212,10 +243,14 @@ export class SearchEngine {
    * Récupère un livre par son ID
    */
   private getBook(bookId: number): Book | null {
-    const result = this.db.prepare(`
-      SELECT id, title, author, file_path, word_count, created_at
+    const result = this.db
+      .prepare(
+        `
+      SELECT id, title, author, file_path, cover_image_path, word_count, created_at
       FROM books WHERE id = ?
-    `).get(bookId) as any;
+    `
+      )
+      .get(bookId) as any;
 
     if (!result) return null;
 
@@ -224,6 +259,7 @@ export class SearchEngine {
       title: result.title,
       author: result.author,
       filePath: result.file_path,
+      coverImagePath: result.cover_image_path,
       wordCount: result.word_count,
       createdAt: result.created_at,
     };
@@ -233,11 +269,15 @@ export class SearchEngine {
    * Récupère les scores PageRank
    */
   private getPageRankScores(): Map<number, number> {
-    const scores = this.db.prepare(`
+    const scores = this.db
+      .prepare(
+        `
       SELECT book_id, score FROM pagerank
-    `).all() as Array<{ book_id: number; score: number }>;
+    `
+      )
+      .all() as Array<{ book_id: number; score: number }>;
 
-    return new Map(scores.map(s => [s.book_id, s.score]));
+    return new Map(scores.map((s) => [s.book_id, s.score]));
   }
 
   /**
@@ -247,9 +287,13 @@ export class SearchEngine {
     let total = 0;
 
     for (const term of terms) {
-      const result = this.db.prepare(`
+      const result = this.db
+        .prepare(
+          `
         SELECT term_frequency FROM inverted_index WHERE term = ? AND book_id = ?
-      `).get(term, bookId) as { term_frequency: number } | undefined;
+      `
+        )
+        .get(term, bookId) as { term_frequency: number } | undefined;
 
       if (result) {
         total += result.term_frequency;
@@ -262,12 +306,16 @@ export class SearchEngine {
   /**
    * Récupère les voisins Jaccard des livres donnés
    */
-  private getJaccardNeighbors(bookIds: number[]): Array<{ bookId: number; similarity: number }> {
+  private getJaccardNeighbors(
+    bookIds: number[]
+  ): Array<{ bookId: number; similarity: number }> {
     const neighbors = new Map<number, number>(); // bookId -> max similarity
 
     for (const bookId of bookIds) {
       // Récupérer les voisins (dans les deux sens)
-      const results = this.db.prepare(`
+      const results = this.db
+        .prepare(
+          `
         SELECT
           CASE
             WHEN book_id_1 = ? THEN book_id_2
@@ -278,7 +326,12 @@ export class SearchEngine {
         WHERE book_id_1 = ? OR book_id_2 = ?
         ORDER BY similarity DESC
         LIMIT 20
-      `).all(bookId, bookId, bookId) as Array<{ neighbor_id: number; similarity: number }>;
+      `
+        )
+        .all(bookId, bookId, bookId) as Array<{
+        neighbor_id: number;
+        similarity: number;
+      }>;
 
       for (const { neighbor_id, similarity } of results) {
         const currentSim = neighbors.get(neighbor_id) || 0;
@@ -315,7 +368,11 @@ export class SearchEngine {
 
         const pageRankScores = this.getPageRankScores();
         const pageRankScore = pageRankScores.get(bookId);
-        const score = this.scoringEngine.calculateHybridScore(bookId, queryTerms, pageRankScore);
+        const score = this.scoringEngine.calculateHybridScore(
+          bookId,
+          queryTerms,
+          pageRankScore
+        );
 
         results.push({
           book,
@@ -336,16 +393,20 @@ export class SearchEngine {
     if (terms.length === 0) return new Set();
 
     // Commencer avec les livres du premier terme
-    const bookSets = terms.map(term => {
-      const results = this.db.prepare(`
+    const bookSets = terms.map((term) => {
+      const results = this.db
+        .prepare(
+          `
         SELECT DISTINCT book_id FROM inverted_index WHERE term = ?
-      `).all(term) as Array<{ book_id: number }>;
-      return new Set(results.map(r => r.book_id));
+      `
+        )
+        .all(term) as Array<{ book_id: number }>;
+      return new Set(results.map((r) => r.book_id));
     });
 
     // Intersection de tous les sets
     const intersection = bookSets.reduce((acc, set) => {
-      return new Set([...acc].filter(x => set.has(x)));
+      return new Set([...acc].filter((x) => set.has(x)));
     });
 
     return intersection;
@@ -359,9 +420,13 @@ export class SearchEngine {
     const termPositions = new Map<string, number[]>();
 
     for (const term of terms) {
-      const result = this.db.prepare(`
+      const result = this.db
+        .prepare(
+          `
         SELECT positions FROM inverted_index WHERE term = ? AND book_id = ?
-      `).get(term, bookId) as { positions: string } | undefined;
+      `
+        )
+        .get(term, bookId) as { positions: string } | undefined;
 
       if (!result) return false;
 
@@ -394,17 +459,29 @@ export class SearchEngine {
   /**
    * Étend la requête avec des termes similaires (fuzzy)
    */
-  private expandQueryWithFuzzy(queryTerms: string[], maxDistance: number = 2): string[] {
-    const allTerms = this.db.prepare(`
+  private expandQueryWithFuzzy(
+    queryTerms: string[],
+    maxDistance: number = 2
+  ): string[] {
+    const allTerms = this.db
+      .prepare(
+        `
       SELECT DISTINCT term FROM term_stats
-    `).all() as Array<{ term: string }>;
+    `
+      )
+      .all() as Array<{ term: string }>;
 
-    const availableTerms = allTerms.map(t => t.term);
+    const availableTerms = allTerms.map((t) => t.term);
     const expandedTerms = new Set<string>(queryTerms);
 
     for (const term of queryTerms) {
-      const similar = this.fuzzyMatcher.findMatchingTerms(term, availableTerms, true, maxDistance);
-      similar.forEach(t => expandedTerms.add(t));
+      const similar = this.fuzzyMatcher.findMatchingTerms(
+        term,
+        availableTerms,
+        true,
+        maxDistance
+      );
+      similar.forEach((t) => expandedTerms.add(t));
     }
 
     return Array.from(expandedTerms);
@@ -413,37 +490,44 @@ export class SearchEngine {
   /**
    * Recherche multi-champs (titre, auteur, contenu)
    */
-  private findBooksMultiField(queryTerms: string[], params: SearchParams): Set<number> {
-    const searchFields = params.searchFields || ['content'];
+  private findBooksMultiField(
+    queryTerms: string[],
+    params: SearchParams
+  ): Set<number> {
+    const searchFields = params.searchFields || ["content"];
     const bookIds = new Set<number>();
 
     // Recherche dans le contenu (index inversé)
-    if (searchFields.includes('content')) {
+    if (searchFields.includes("content")) {
       const contentBooks = this.findBooksWithTerms(queryTerms);
-      contentBooks.forEach(id => bookIds.add(id));
+      contentBooks.forEach((id) => bookIds.add(id));
     }
 
     // Recherche dans le titre et l'auteur
-    if (searchFields.includes('title') || searchFields.includes('author')) {
-      const query = queryTerms.join(' ');
+    if (searchFields.includes("title") || searchFields.includes("author")) {
+      const query = queryTerms.join(" ");
       const conditions: string[] = [];
       const params_array: string[] = [];
 
-      if (searchFields.includes('title')) {
-        conditions.push('title LIKE ?');
+      if (searchFields.includes("title")) {
+        conditions.push("title LIKE ?");
         params_array.push(`%${query}%`);
       }
 
-      if (searchFields.includes('author')) {
-        conditions.push('author LIKE ?');
+      if (searchFields.includes("author")) {
+        conditions.push("author LIKE ?");
         params_array.push(`%${query}%`);
       }
 
-      const results = this.db.prepare(`
-        SELECT id FROM books WHERE ${conditions.join(' OR ')}
-      `).all(...params_array) as Array<{ id: number }>;
+      const results = this.db
+        .prepare(
+          `
+        SELECT id FROM books WHERE ${conditions.join(" OR ")}
+      `
+        )
+        .all(...params_array) as Array<{ id: number }>;
 
-      results.forEach(r => bookIds.add(r.id));
+      results.forEach((r) => bookIds.add(r.id));
     }
 
     return bookIds;
@@ -452,9 +536,16 @@ export class SearchEngine {
   /**
    * Applique les filtres sur un livre
    */
-  private applyFilters(book: Book, pageRank: number | undefined, params: SearchParams): boolean {
+  private applyFilters(
+    book: Book,
+    pageRank: number | undefined,
+    params: SearchParams
+  ): boolean {
     // Filtre par auteur
-    if (params.author && !book.author.toLowerCase().includes(params.author.toLowerCase())) {
+    if (
+      params.author &&
+      !book.author.toLowerCase().includes(params.author.toLowerCase())
+    ) {
       return false;
     }
 
@@ -478,14 +569,22 @@ export class SearchEngine {
   /**
    * Génère les highlights pour un livre
    */
-  private generateHighlights(book: Book, queryTerms: string[], params: SearchParams) {
+  private generateHighlights(
+    book: Book,
+    queryTerms: string[],
+    params: SearchParams
+  ) {
     // Récupérer les positions des termes
     const positions = new Map<string, number[]>();
 
     for (const term of queryTerms) {
-      const result = this.db.prepare(`
+      const result = this.db
+        .prepare(
+          `
         SELECT positions FROM inverted_index WHERE term = ? AND book_id = ?
-      `).get(term, book.id) as { positions: string } | undefined;
+      `
+        )
+        .get(term, book.id) as { positions: string } | undefined;
 
       if (result) {
         positions.set(term, JSON.parse(result.positions));
@@ -507,7 +606,10 @@ export class SearchEngine {
    * Obtient des recommandations basées sur l'historique
    */
   getRecommendations(userId?: string, limit: number = 10): BookSuggestion[] {
-    return this.recommendationEngine.getRecommendationsFromHistory(userId, limit);
+    return this.recommendationEngine.getRecommendationsFromHistory(
+      userId,
+      limit
+    );
   }
 
   /**
@@ -516,15 +618,16 @@ export class SearchEngine {
   findSimilarBooks(bookId: number, limit: number = 10): SearchResult[] {
     const similar = this.semanticSearch.findSimilarBooks(bookId, limit);
 
-    return similar.map(s => {
-      const book = this.getBook(s.bookId);
-      if (!book) return null;
+    return similar
+      .map((s) => {
+        const book = this.getBook(s.bookId);
+        if (!book) return null;
 
-      return {
-        book,
-        score: s.similarity,
-      };
-    }).filter((r): r is SearchResult => r !== null);
+        return {
+          book,
+          score: s.similarity,
+        };
+      })
+      .filter((r): r is SearchResult => r !== null);
   }
 }
-

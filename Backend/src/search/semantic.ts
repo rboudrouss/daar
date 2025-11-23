@@ -2,7 +2,7 @@
  * Semantic Search - Recherche par similarité sémantique avec TF-IDF
  */
 
-import type Database from 'better-sqlite3';
+import type Database from "better-sqlite3";
 
 /**
  * Vecteur TF-IDF d'un document
@@ -34,13 +34,17 @@ export class SemanticSearch {
     }
 
     // Récupérer les termes du livre
-    const entries = this.db.prepare(`
+    const entries = this.db
+      .prepare(
+        `
       SELECT i.term, i.term_frequency, t.document_frequency, 
              (SELECT COUNT(*) FROM books) as total_books
       FROM inverted_index i
       JOIN term_stats t ON i.term = t.term
       WHERE i.book_id = ?
-    `).all(bookId) as Array<{
+    `
+      )
+      .all(bookId) as Array<{
       term: string;
       term_frequency: number;
       document_frequency: number;
@@ -114,9 +118,13 @@ export class SemanticSearch {
     const refVector = this.computeTFIDFVector(bookId);
 
     // Récupérer tous les autres livres
-    const allBooks = this.db.prepare(`
+    const allBooks = this.db
+      .prepare(
+        `
       SELECT id FROM books WHERE id != ?
-    `).all(bookId) as Array<{ id: number }>;
+    `
+      )
+      .all(bookId) as Array<{ id: number }>;
 
     // Calculer la similarité avec chaque livre
     const similarities: Array<{ bookId: number; similarity: number }> = [];
@@ -147,4 +155,3 @@ export class SemanticSearch {
     this.vectorCache.clear();
   }
 }
-

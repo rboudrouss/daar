@@ -5,6 +5,8 @@
 import { Hono } from "hono";
 import { getDatabase } from "../db/connection";
 import type { Book, LibraryStats } from "../utils/types";
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from "fs";
+import { join, extname } from "path";
 
 const app = new Hono();
 
@@ -21,7 +23,7 @@ app.get("/", async (c) => {
   const db = getDatabase();
 
   let query = `
-    SELECT b.id, b.title, b.author, b.file_path, b.word_count, b.created_at
+    SELECT b.id, b.title, b.author, b.file_path, b.cover_image_path, b.word_count, b.created_at
     FROM books b
   `;
 
@@ -46,6 +48,7 @@ app.get("/", async (c) => {
     title: r.title,
     author: r.author,
     filePath: r.file_path,
+    coverImagePath: r.cover_image_path,
     wordCount: r.word_count,
     createdAt: r.created_at,
   }));
@@ -98,7 +101,7 @@ app.get("/:id", async (c) => {
   const book = db
     .prepare(
       `
-    SELECT b.id, b.title, b.author, b.file_path, b.word_count, b.created_at,
+    SELECT b.id, b.title, b.author, b.file_path, b.cover_image_path, b.word_count, b.created_at,
            p.score as pagerank_score
     FROM books b
     LEFT JOIN pagerank p ON b.id = p.book_id
@@ -116,6 +119,7 @@ app.get("/:id", async (c) => {
     title: book.title,
     author: book.author,
     filePath: book.file_path,
+    coverImagePath: book.cover_image_path,
     wordCount: book.word_count,
     createdAt: book.created_at,
     pageRankScore: book.pagerank_score,
@@ -149,6 +153,100 @@ app.post("/:id/click", async (c) => {
   ).run(id);
 
   return c.json({ success: true });
+});
+
+/**
+ * POST /api/books/:id/cover
+ * Upload une image de couverture pour un livre
+ */
+app.post("/:id/cover", async (c) => {
+  const id = parseInt(c.req.param("id"));
+  const db = getDatabase();
+
+  // Vérifier que le livre existe
+  const book = db.prepare("SELECT id FROM books WHERE id = ?").get(id);
+
+  if (!book) {
+    return c.json({ error: "Book not found" }, 404);
+  }
+
+  try {
+    const body = await c.req.parseBody();
+    const file = body["cover"];
+
+    if (!file || !(file instanceof File)) {
+      return c.json({ error: "No cover image provided" }, 400);
+    }
+
+    const coversDir = "./data/covers";
+    if (!existsSync(coversDir)) {
+      mkdirSync(coversDir, { recursive: true });
+    }
+
+    const ext = extname(file.name) || ".jpg";
+    const filename = `book-${id}${ext}`;
+    const filepath = join(coversDir, filename);
+
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    writeFileSync(filepath, buffer);
+
+    db.prepare("UPDATE books SET cover_image_path = ? WHERE id = ?").run(
+      filepath,
+      id
+    );
+
+    return c.json({
+      success: true,
+      coverImagePath: filepath,
+    });
+  } catch (error) {
+    console.error("Error uploading cover:", error);
+    return c.json({ error: "Failed to upload cover image" }, 500);
+  }
+});
+
+/**
+ * GET /api/books/:id/cover
+ * Récupère l'image de couverture d'un livre
+ */
+app.get("/:id/cover", async (c) => {
+  const id = parseInt(c.req.param("id"));
+  const db = getDatabase();
+
+  const book = db
+    .prepare("SELECT cover_image_path FROM books WHERE id = ?")
+    .get(id) as { cover_image_path: string | null } | undefined;
+
+  if (!book) {
+    return c.json({ error: "Book not found" }, 404);
+  }
+
+  if (!book.cover_image_path || !existsSync(book.cover_image_path)) {
+    return c.json({ error: "Cover image not found" }, 404);
+  }
+
+  try {
+    const imageBuffer = readFileSync(book.cover_image_path);
+
+    const ext = extname(book.cover_image_path).toLowerCase();
+    const mimeTypes: Record<string, string> = {
+      ".jpg": "image/jpeg",
+      ".jpeg": "image/jpeg",
+      ".png": "image/png",
+      ".gif": "image/gif",
+      ".webp": "image/webp",
+    };
+    const contentType = mimeTypes[ext] || "image/jpeg";
+
+    return c.body(imageBuffer, 200, {
+      "Content-Type": contentType,
+      "Cache-Control": "public, max-age=31536000",
+    });
+  } catch (error) {
+    console.error("Error reading cover image:", error);
+    return c.json({ error: "Failed to read cover image" }, 500);
+  }
 });
 
 export default app;

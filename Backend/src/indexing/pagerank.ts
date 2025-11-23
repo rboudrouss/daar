@@ -2,9 +2,9 @@
  * Calcul de PageRank en utilisant les algorithmes de lib/
  */
 
-import { computePageRank, type Graph } from '@monorepo/lib';
-import { getDatabase, withTransaction } from '../db/connection.js';
-import { IndexingProgress, PageRankScore } from '../utils/types.js';
+import { computePageRank, type Graph } from "@monorepo/lib";
+import { getDatabase, withTransaction } from "../db/connection.js";
+import { IndexingProgress, PageRankScore } from "../utils/types.js";
 
 /**
  * Configuration pour le calcul de PageRank
@@ -35,16 +35,26 @@ export class PageRankCalculator {
    * Construit le graphe à partir des arêtes Jaccard
    */
   private buildGraphFromJaccard(): Graph {
-    console.log('Building graph from Jaccard edges...');
+    console.log("Building graph from Jaccard edges...");
 
     // Récupérer tous les livres
-    const books = this.db.prepare('SELECT id FROM books ORDER BY id').all() as Array<{ id: number }>;
-    const nodes = books.map(b => b.id);
+    const books = this.db
+      .prepare("SELECT id FROM books ORDER BY id")
+      .all() as Array<{ id: number }>;
+    const nodes = books.map((b) => b.id);
 
     // Récupérer toutes les arêtes Jaccard
-    const jaccardEdges = this.db.prepare(`
+    const jaccardEdges = this.db
+      .prepare(
+        `
       SELECT book_id_1, book_id_2, similarity FROM jaccard_edges
-    `).all() as Array<{ book_id_1: number; book_id_2: number; similarity: number }>;
+    `
+      )
+      .all() as Array<{
+      book_id_1: number;
+      book_id_2: number;
+      similarity: number;
+    }>;
 
     // Créer les arêtes bidirectionnelles (graphe non-orienté)
     const edges: [number, number][] = [];
@@ -55,7 +65,9 @@ export class PageRankCalculator {
     }
 
     console.log(`   Nodes: ${nodes.length}`);
-    console.log(`   Edges: ${edges.length} (${jaccardEdges.length} undirected)`);
+    console.log(
+      `   Edges: ${edges.length} (${jaccardEdges.length} undirected)`
+    );
 
     return { nodes, edges };
   }
@@ -63,8 +75,10 @@ export class PageRankCalculator {
   /**
    * Calcule le PageRank pour tous les livres
    */
-  calculatePageRank(onProgress?: (progress: IndexingProgress) => void): PageRankScore[] {
-    console.log('\nCalculating PageRank...');
+  calculatePageRank(
+    onProgress?: (progress: IndexingProgress) => void
+  ): PageRankScore[] {
+    console.log("\nCalculating PageRank...");
     console.log(`   Damping: ${this.config.damping}`);
     console.log(`   Max iterations: ${this.config.maxIterations}`);
     console.log(`   Tolerance: ${this.config.tolerance}\n`);
@@ -73,8 +87,8 @@ export class PageRankCalculator {
       onProgress({
         currentBook: 0,
         totalBooks: 0,
-        currentPhase: 'pagerank',
-        message: 'Building graph from Jaccard edges...',
+        currentPhase: "pagerank",
+        message: "Building graph from Jaccard edges...",
         percentage: 0,
       });
     }
@@ -83,12 +97,12 @@ export class PageRankCalculator {
     const graph = this.buildGraphFromJaccard();
 
     if (graph.nodes.length === 0) {
-      console.log(' No books found in database');
+      console.log(" No books found in database");
       return [];
     }
 
     if (graph.edges.length === 0) {
-      console.log(' No Jaccard edges found. Run buildJaccardGraph() first.');
+      console.log(" No Jaccard edges found. Run buildJaccardGraph() first.");
       return [];
     }
 
@@ -96,8 +110,8 @@ export class PageRankCalculator {
       onProgress({
         currentBook: 0,
         totalBooks: graph.nodes.length,
-        currentPhase: 'pagerank',
-        message: 'Computing PageRank...',
+        currentPhase: "pagerank",
+        message: "Computing PageRank...",
         percentage: 50,
       });
     }
@@ -132,17 +146,21 @@ export class PageRankCalculator {
       onProgress({
         currentBook: graph.nodes.length,
         totalBooks: graph.nodes.length,
-        currentPhase: 'pagerank',
-        message: 'PageRank calculation complete',
+        currentPhase: "pagerank",
+        message: "PageRank calculation complete",
         percentage: 100,
       });
     }
 
     // Mettre à jour les métadonnées
-    this.db.prepare(`
+    this.db
+      .prepare(
+        `
       UPDATE library_metadata SET value = 'true', updated_at = CURRENT_TIMESTAMP 
       WHERE key = 'pagerank_calculated'
-    `).run();
+    `
+      )
+      .run();
 
     return scores;
   }
@@ -169,20 +187,28 @@ export class PageRankCalculator {
    * Récupère les scores PageRank de tous les livres
    */
   getPageRankScores(): Map<number, number> {
-    const scores = this.db.prepare(`
+    const scores = this.db
+      .prepare(
+        `
       SELECT book_id, score FROM pagerank
-    `).all() as Array<{ book_id: number; score: number }>;
+    `
+      )
+      .all() as Array<{ book_id: number; score: number }>;
 
-    return new Map(scores.map(s => [s.book_id, s.score]));
+    return new Map(scores.map((s) => [s.book_id, s.score]));
   }
 
   /**
    * Récupère le score PageRank d'un livre
    */
   getBookPageRank(bookId: number): number | null {
-    const result = this.db.prepare(`
+    const result = this.db
+      .prepare(
+        `
       SELECT score FROM pagerank WHERE book_id = ?
-    `).get(bookId) as { score: number } | undefined;
+    `
+      )
+      .get(bookId) as { score: number } | undefined;
 
     return result?.score ?? null;
   }
@@ -190,14 +216,19 @@ export class PageRankCalculator {
   /**
    * Récupère les livres avec les meilleurs scores PageRank
    */
-  getTopPageRankBooks(limit: number = 10): Array<{ bookId: number; score: number }> {
-    const results = this.db.prepare(`
+  getTopPageRankBooks(
+    limit: number = 10
+  ): Array<{ bookId: number; score: number }> {
+    const results = this.db
+      .prepare(
+        `
       SELECT book_id, score FROM pagerank
       ORDER BY score DESC
       LIMIT ?
-    `).all(limit) as Array<{ book_id: number; score: number }>;
+    `
+      )
+      .all(limit) as Array<{ book_id: number; score: number }>;
 
-    return results.map(r => ({ bookId: r.book_id, score: r.score }));
+    return results.map((r) => ({ bookId: r.book_id, score: r.score }));
   }
 }
-

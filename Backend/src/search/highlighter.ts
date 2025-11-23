@@ -2,8 +2,8 @@
  * Highlighter - Génère des extraits de texte avec highlighting
  */
 
-import * as fs from 'fs';
-import { TextSnippet } from '../utils/types';
+import * as fs from "fs";
+import { TextSnippet } from "../utils/types";
 
 export interface HighlightOptions {
   snippetCount?: number; // Nombre de snippets à retourner
@@ -41,7 +41,7 @@ export class Highlighter {
     // Lire le contenu du fichier
     let content: string;
     try {
-      content = fs.readFileSync(filePath, 'utf-8');
+      content = fs.readFileSync(filePath, "utf-8");
     } catch (error) {
       console.error(`Error reading file ${filePath}:`, error);
       return [];
@@ -51,8 +51,12 @@ export class Highlighter {
     const tokens = this.tokenizeWithPositions(content);
 
     // Collecter toutes les positions de tous les termes
-    const allPositions: Array<{ term: string; tokenIndex: number; charPosition: number }> = [];
-    
+    const allPositions: Array<{
+      term: string;
+      tokenIndex: number;
+      charPosition: number;
+    }> = [];
+
     for (const term of terms) {
       const termPositions = positions.get(term) || [];
       for (const tokenIndex of termPositions) {
@@ -80,7 +84,8 @@ export class Highlighter {
 
       // Vérifier si cette position n'est pas déjà couverte
       const isOverlapping = usedRanges.some(
-        range => pos.charPosition >= range.start && pos.charPosition <= range.end
+        (range) =>
+          pos.charPosition >= range.start && pos.charPosition <= range.end
       );
 
       if (isOverlapping) {
@@ -89,26 +94,29 @@ export class Highlighter {
 
       // Calculer les bornes du snippet
       const start = Math.max(0, pos.charPosition - opts.contextBefore);
-      const end = Math.min(content.length, pos.charPosition + opts.contextAfter);
+      const end = Math.min(
+        content.length,
+        pos.charPosition + opts.contextAfter
+      );
 
       // Extraire le texte
       let snippetText = content.substring(start, end);
 
       // Ajouter des ellipses si nécessaire
       if (start > 0) {
-        snippetText = '...' + snippetText;
+        snippetText = "..." + snippetText;
       }
       if (end < content.length) {
-        snippetText = snippetText + '...';
+        snippetText = snippetText + "...";
       }
 
       // Highlighter tous les termes dans ce snippet
       const matchedTerms: string[] = [];
       for (const term of terms) {
-        const regex = new RegExp(`\\b${this.escapeRegex(term)}\\b`, 'gi');
+        const regex = new RegExp(`\\b${this.escapeRegex(term)}\\b`, "gi");
         if (regex.test(snippetText)) {
           matchedTerms.push(term);
-          snippetText = snippetText.replace(regex, '<mark>$&</mark>');
+          snippetText = snippetText.replace(regex, "<mark>$&</mark>");
         }
       }
 
@@ -127,7 +135,9 @@ export class Highlighter {
   /**
    * Tokenize le texte et retourne les positions de chaque token
    */
-  private tokenizeWithPositions(text: string): Array<{ token: string; start: number; end: number }> {
+  private tokenizeWithPositions(
+    text: string
+  ): Array<{ token: string; start: number; end: number }> {
     const tokens: Array<{ token: string; start: number; end: number }> = [];
     const regex = /\b\w+\b/g;
     let match;
@@ -147,7 +157,6 @@ export class Highlighter {
    * Échappe les caractères spéciaux pour RegEx
    */
   private escapeRegex(str: string): string {
-    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   }
 }
-

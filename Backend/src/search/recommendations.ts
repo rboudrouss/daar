@@ -2,8 +2,8 @@
  * Recommendations - Système de recommandations basé sur Jaccard et l'historique
  */
 
-import type Database from 'better-sqlite3';
-import { BookSuggestion, Book } from '../utils/types';
+import type Database from "better-sqlite3";
+import { BookSuggestion, Book } from "../utils/types";
 
 /**
  * Classe pour générer des recommandations
@@ -26,14 +26,21 @@ export class RecommendationEngine {
     limit: number = 10
   ): BookSuggestion[] {
     // Récupérer les livres les plus cliqués par l'utilisateur (ou globalement)
-    const clickedBooks = this.db.prepare(`
+    const clickedBooks = this.db
+      .prepare(
+        `
       SELECT book_id, COUNT(*) as click_count
       FROM book_clicks
-      ${userId ? 'WHERE user_id = ?' : ''}
+      ${userId ? "WHERE user_id = ?" : ""}
       GROUP BY book_id
       ORDER BY click_count DESC
       LIMIT 5
-    `).all(userId ? [userId] : []) as Array<{ book_id: number; click_count: number }>;
+    `
+      )
+      .all(userId ? [userId] : []) as Array<{
+      book_id: number;
+      click_count: number;
+    }>;
 
     if (clickedBooks.length === 0) {
       // Pas d'historique, retourner les livres avec le meilleur PageRank
@@ -41,10 +48,15 @@ export class RecommendationEngine {
     }
 
     // Pour chaque livre cliqué, trouver les voisins Jaccard
-    const recommendations = new Map<number, { score: number; similarity: number }>();
+    const recommendations = new Map<
+      number,
+      { score: number; similarity: number }
+    >();
 
     for (const clicked of clickedBooks) {
-      const neighbors = this.db.prepare(`
+      const neighbors = this.db
+        .prepare(
+          `
         SELECT 
           CASE 
             WHEN book_id_1 = ? THEN book_id_2
@@ -55,14 +67,16 @@ export class RecommendationEngine {
         WHERE book_id_1 = ? OR book_id_2 = ?
         ORDER BY similarity DESC
         LIMIT 10
-      `).all(clicked.book_id, clicked.book_id, clicked.book_id) as Array<{
+      `
+        )
+        .all(clicked.book_id, clicked.book_id, clicked.book_id) as Array<{
         neighbor_id: number;
         similarity: number;
       }>;
 
       for (const neighbor of neighbors) {
         // Ne pas recommander les livres déjà cliqués
-        if (clickedBooks.some(b => b.book_id === neighbor.neighbor_id)) {
+        if (clickedBooks.some((b) => b.book_id === neighbor.neighbor_id)) {
           continue;
         }
 
@@ -90,17 +104,29 @@ export class RecommendationEngine {
     const suggestions: BookSuggestion[] = [];
 
     for (const [bookId, data] of recommendations) {
-      const book = this.db.prepare(`
-        SELECT id, title, author, file_path, word_count, created_at
+      const book = this.db
+        .prepare(
+          `
+        SELECT id, title, author, file_path, cover_image_path, word_count, created_at
         FROM books
         WHERE id = ?
-      `).get(bookId) as Book | undefined;
+      `
+        )
+        .get(bookId) as any;
 
       if (book) {
         suggestions.push({
-          book,
+          book: {
+            id: book.id,
+            title: book.title,
+            author: book.author,
+            filePath: book.file_path,
+            coverImagePath: book.cover_image_path,
+            wordCount: book.word_count,
+            createdAt: book.created_at,
+          },
           score: data.score,
-          reason: 'hybrid',
+          reason: "hybrid",
           similarity: data.similarity,
         });
       }
@@ -116,26 +142,32 @@ export class RecommendationEngine {
    * Retourne les livres avec le meilleur PageRank
    */
   private getTopPageRankBooks(limit: number): BookSuggestion[] {
-    const books = this.db.prepare(`
-      SELECT b.id, b.title, b.author, b.file_path as filePath, b.word_count as wordCount, b.created_at as createdAt,
+    const books = this.db
+      .prepare(
+        `
+      SELECT b.id, b.title, b.author, b.file_path as filePath, b.cover_image_path as coverImagePath,
+             b.word_count as wordCount, b.created_at as createdAt,
              p.score as pagerank_score
       FROM books b
       LEFT JOIN pagerank p ON b.id = p.book_id
       ORDER BY p.score DESC
       LIMIT ?
-    `).all(limit) as Array<Book & { pagerank_score: number }>;
+    `
+      )
+      .all(limit) as Array<Book & { pagerank_score: number }>;
 
-    return books.map(book => ({
+    return books.map((book) => ({
       book: {
         id: book.id,
         title: book.title,
         author: book.author,
         filePath: book.filePath,
+        coverImagePath: book.coverImagePath,
         wordCount: book.wordCount,
         createdAt: book.createdAt,
       },
       score: book.pagerank_score || 0,
-      reason: 'pagerank' as const,
+      reason: "pagerank" as const,
     }));
   }
 
@@ -145,8 +177,13 @@ export class RecommendationEngine {
    * @param limit Nombre de recommandations
    * @returns Liste de suggestions
    */
-  getJaccardRecommendations(bookId: number, limit: number = 10): BookSuggestion[] {
-    const neighbors = this.db.prepare(`
+  getJaccardRecommendations(
+    bookId: number,
+    limit: number = 10
+  ): BookSuggestion[] {
+    const neighbors = this.db
+      .prepare(
+        `
       SELECT 
         CASE 
           WHEN book_id_1 = ? THEN book_id_2
@@ -157,7 +194,9 @@ export class RecommendationEngine {
       WHERE book_id_1 = ? OR book_id_2 = ?
       ORDER BY similarity DESC
       LIMIT ?
-    `).all(bookId, bookId, bookId, limit) as Array<{
+    `
+      )
+      .all(bookId, bookId, bookId, limit) as Array<{
       neighbor_id: number;
       similarity: number;
     }>;
@@ -165,17 +204,21 @@ export class RecommendationEngine {
     const suggestions: BookSuggestion[] = [];
 
     for (const neighbor of neighbors) {
-      const book = this.db.prepare(`
+      const book = this.db
+        .prepare(
+          `
         SELECT id, title, author, file_path, word_count, created_at
         FROM books
         WHERE id = ?
-      `).get(neighbor.neighbor_id) as Book | undefined;
+      `
+        )
+        .get(neighbor.neighbor_id) as Book | undefined;
 
       if (book) {
         suggestions.push({
           book,
           score: neighbor.similarity,
-          reason: 'jaccard',
+          reason: "jaccard",
           similarity: neighbor.similarity,
         });
       }
@@ -184,4 +227,3 @@ export class RecommendationEngine {
     return suggestions;
   }
 }
-

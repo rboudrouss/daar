@@ -2,10 +2,10 @@
  * Système d'indexation des livres
  */
 
-import { readFileSync } from 'fs';
-import { getDatabase, withTransaction } from '../db/connection.js';
-import { Tokenizer } from './tokenizer.js';
-import { BookMetadata, Book, IndexingProgress } from '../utils/types.js';
+import { readFileSync } from "fs";
+import { getDatabase, withTransaction } from "../db/connection.js";
+import { Tokenizer } from "./tokenizer.js";
+import { BookMetadata, Book, IndexingProgress } from "../utils/types.js";
 
 /**
  * Indexeur de livres
@@ -26,7 +26,7 @@ export class BookIndexer {
     console.log(`Indexing: ${metadata.title}`);
 
     // 1. Lire le contenu du fichier
-    const content = readFileSync(metadata.filePath, 'utf-8');
+    const content = readFileSync(metadata.filePath, "utf-8");
 
     // 2. Tokenizer le contenu
     const { terms, positions, totalTokens } = this.tokenizer.tokenize(content);
@@ -73,7 +73,9 @@ export class BookIndexer {
       }
     });
 
-    console.log(`Indexed: ${metadata.title} (${totalTokens} words, ${termCounts.size} unique terms)`);
+    console.log(
+      `Indexed: ${metadata.title} (${totalTokens} words, ${termCounts.size} unique terms)`
+    );
 
     return {
       id: bookId,
@@ -103,7 +105,7 @@ export class BookIndexer {
         onProgress({
           currentBook: i + 1,
           totalBooks: total,
-          currentPhase: 'indexing',
+          currentPhase: "indexing",
           message: `Indexing ${metadata.title}`,
           percentage: ((i + 1) / total) * 100,
         });
@@ -120,7 +122,9 @@ export class BookIndexer {
     // Mettre à jour les métadonnées de la bibliothèque
     this.updateLibraryMetadata(books);
 
-    console.log(`\nIndexation complete: ${books.length}/${total} books indexed\n`);
+    console.log(
+      `\nIndexation complete: ${books.length}/${total} books indexed\n`
+    );
 
     return books;
   }
@@ -133,7 +137,9 @@ export class BookIndexer {
     const totalWords = books.reduce((sum, book) => sum + book.wordCount, 0);
     const avgDocLength = totalBooks > 0 ? totalWords / totalBooks : 0;
 
-    const totalTermsResult = this.db.prepare('SELECT COUNT(*) as count FROM term_stats').get() as { count: number };
+    const totalTermsResult = this.db
+      .prepare("SELECT COUNT(*) as count FROM term_stats")
+      .get() as { count: number };
     const totalTerms = totalTermsResult.count;
 
     const updateMeta = this.db.prepare(`
@@ -141,25 +147,28 @@ export class BookIndexer {
     `);
 
     withTransaction(() => {
-      updateMeta.run(totalBooks.toString(), 'total_books');
-      updateMeta.run(totalTerms.toString(), 'total_terms');
-      updateMeta.run(avgDocLength.toString(), 'avg_doc_length');
-      updateMeta.run(totalWords.toString(), 'total_words');
-      updateMeta.run(new Date().toISOString(), 'last_indexed');
+      updateMeta.run(totalBooks.toString(), "total_books");
+      updateMeta.run(totalTerms.toString(), "total_terms");
+      updateMeta.run(avgDocLength.toString(), "avg_doc_length");
+      updateMeta.run(totalWords.toString(), "total_words");
+      updateMeta.run(new Date().toISOString(), "last_indexed");
     });
 
     console.log(`Library stats updated:`);
     console.log(`   - Total books: ${totalBooks}`);
     console.log(`   - Total unique terms: ${totalTerms}`);
-    console.log(`   - Average document length: ${avgDocLength.toFixed(2)} words`);
+    console.log(
+      `   - Average document length: ${avgDocLength.toFixed(2)} words`
+    );
   }
 
   /**
    * Récupère les statistiques de la bibliothèque
    */
   getLibraryStats() {
-    const stats = this.db.prepare('SELECT key, value FROM library_metadata').all() as Array<{ key: string; value: string }>;
-    return Object.fromEntries(stats.map(s => [s.key, s.value]));
+    const stats = this.db
+      .prepare("SELECT key, value FROM library_metadata")
+      .all() as Array<{ key: string; value: string }>;
+    return Object.fromEntries(stats.map((s) => [s.key, s.value]));
   }
 }
-

@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS books (
   title TEXT NOT NULL,
   author TEXT NOT NULL,
   file_path TEXT NOT NULL UNIQUE,
+  cover_image_path TEXT, -- Chemin vers l'image de couverture
   word_count INTEGER NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

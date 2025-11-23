@@ -3,8 +3,8 @@
  * Implémente BM25 et scoring hybride
  */
 
-import { getDatabase } from '../db/connection.js';
-import { ScoringConfig } from '../utils/types.js';
+import { getDatabase } from "../db/connection.js";
+import { ScoringConfig } from "../utils/types.js";
 
 /**
  * Calculateur de scores
@@ -35,11 +35,17 @@ export class ScoringEngine {
    * Charge les statistiques de la bibliothèque
    */
   private loadLibraryStats(): { avgDocLength: number; totalBooks: number } {
-    const meta = this.db.prepare(`
+    const meta = this.db
+      .prepare(
+        `
       SELECT key, value FROM library_metadata WHERE key IN ('avg_doc_length', 'total_books')
-    `).all() as Array<{ key: string; value: string }>;
+    `
+      )
+      .all() as Array<{ key: string; value: string }>;
 
-    const stats = Object.fromEntries(meta.map(m => [m.key, parseFloat(m.value)]));
+    const stats = Object.fromEntries(
+      meta.map((m) => [m.key, parseFloat(m.value)])
+    );
 
     return {
       avgDocLength: stats.avg_doc_length || 0,
@@ -50,16 +56,17 @@ export class ScoringEngine {
   /**
    * Calcule le score BM25 pour un document et un ensemble de termes
    */
-  calculateBM25(
-    bookId: number,
-    queryTerms: string[]
-  ): number {
+  calculateBM25(bookId: number, queryTerms: string[]): number {
     let score = 0;
 
     // Récupérer la longueur du document
-    const docLengthResult = this.db.prepare(`
+    const docLengthResult = this.db
+      .prepare(
+        `
       SELECT word_count FROM books WHERE id = ?
-    `).get(bookId) as { word_count: number } | undefined;
+    `
+      )
+      .get(bookId) as { word_count: number } | undefined;
 
     if (!docLengthResult) return 0;
 
@@ -67,18 +74,26 @@ export class ScoringEngine {
 
     for (const term of queryTerms) {
       // Récupérer TF (term frequency) pour ce document
-      const tfResult = this.db.prepare(`
+      const tfResult = this.db
+        .prepare(
+          `
         SELECT term_frequency FROM inverted_index WHERE term = ? AND book_id = ?
-      `).get(term, bookId) as { term_frequency: number } | undefined;
+      `
+        )
+        .get(term, bookId) as { term_frequency: number } | undefined;
 
       if (!tfResult) continue;
 
       const tf = tfResult.term_frequency;
 
       // Récupérer DF (document frequency)
-      const dfResult = this.db.prepare(`
+      const dfResult = this.db
+        .prepare(
+          `
         SELECT document_frequency FROM term_stats WHERE term = ?
-      `).get(term) as { document_frequency: number } | undefined;
+      `
+        )
+        .get(term) as { document_frequency: number } | undefined;
 
       if (!dfResult) continue;
 
@@ -88,10 +103,12 @@ export class ScoringEngine {
       const idf = Math.log((this.totalDocs - df + 0.5) / (df + 0.5) + 1);
 
       // Normalisation par la longueur du document
-      const norm = 1 - this.config.b + this.config.b * (docLength / this.avgDocLength);
+      const norm =
+        1 - this.config.b + this.config.b * (docLength / this.avgDocLength);
 
       // Score BM25 pour ce terme
-      const termScore = idf * ((tf * (this.config.k1 + 1)) / (tf + this.config.k1 * norm));
+      const termScore =
+        idf * ((tf * (this.config.k1 + 1)) / (tf + this.config.k1 * norm));
 
       score += termScore;
     }
@@ -134,9 +151,13 @@ export class ScoringEngine {
     let totalOccurrences = 0;
 
     for (const term of queryTerms) {
-      const result = this.db.prepare(`
+      const result = this.db
+        .prepare(
+          `
         SELECT term_frequency FROM inverted_index WHERE term = ? AND book_id = ?
-      `).get(term, bookId) as { term_frequency: number } | undefined;
+      `
+        )
+        .get(term, bookId) as { term_frequency: number } | undefined;
 
       if (result) {
         totalOccurrences += result.term_frequency;
@@ -144,9 +165,13 @@ export class ScoringEngine {
     }
 
     // Normaliser par la longueur du document
-    const docLengthResult = this.db.prepare(`
+    const docLengthResult = this.db
+      .prepare(
+        `
       SELECT word_count FROM books WHERE id = ?
-    `).get(bookId) as { word_count: number } | undefined;
+    `
+      )
+      .get(bookId) as { word_count: number } | undefined;
 
     if (!docLengthResult || docLengthResult.word_count === 0) return 0;
 
@@ -167,4 +192,3 @@ export class ScoringEngine {
     return { ...this.config };
   }
 }
-

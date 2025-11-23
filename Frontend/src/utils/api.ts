@@ -108,13 +108,27 @@ export async function getBookSuggestions(
 }
 
 /**
- * Get all books
+ * Get all books with pagination
  */
-export async function getAllBooks(): Promise<Book[]> {
-  const response = await fetch(`${API_BASE_URL}/api/books`);
+export async function getAllBooks(limit: number = 50, offset: number = 0, sortBy: string = "id", order: string = "asc"): Promise<{ books: Book[], total: number }> {
+  const response = await fetch(`${API_BASE_URL}/api/books?limit=${limit}&offset=${offset}&sortBy=${sortBy}&order=${order}`);
 
   if (!response.ok) {
     throw new Error(`Failed to get books: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  return { books: data.books, total: data.total };
+}
+
+/**
+ * Get popular books sorted by click count
+ */
+export async function getPopularBooks(limit: number = 10): Promise<Book[]> {
+  const response = await fetch(`${API_BASE_URL}/api/books?limit=${limit}&sortBy=click_count&order=desc`);
+
+  if (!response.ok) {
+    throw new Error(`Failed to get popular books: ${response.statusText}`);
   }
 
   const data = await response.json();

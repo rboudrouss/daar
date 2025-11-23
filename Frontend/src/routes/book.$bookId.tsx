@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import type { Book, SuggestionResult } from "@/utils";
-import { getBookById, getBookSuggestions, getCoverImageUrl } from "@/utils/api";
+import { getBookById, getBookSuggestions, getCoverImageUrl, trackBookClick } from "@/utils/api";
 import BookCard from "@/components/BookCard";
 
 export const Route = createFileRoute("/book/$bookId")({
@@ -29,6 +29,9 @@ function BookDetailPage() {
 
       const bookData = await getBookById(parseInt(bookId));
       setBook(bookData);
+
+      // Track the click when viewing the book detail page
+      trackBookClick(parseInt(bookId));
 
       // Load suggestions
       const suggestionsData = await getBookSuggestions(parseInt(bookId), 6);
@@ -250,6 +253,18 @@ function BookDetailPage() {
                     }}
                   >
                     <strong>⭐ PageRank Score:</strong> {book.pageRank.toFixed(6)}
+                  </p>
+                )}
+                {book.clickCount !== undefined && book.clickCount > 0 && (
+                  <p
+                    style={{
+                      margin: "0 0 8px 0",
+                      fontSize: "16px",
+                      color: "#FF9800",
+                      fontWeight: "500",
+                    }}
+                  >
+                    <strong>👆 Click Count:</strong> {book.clickCount.toLocaleString()}
                   </p>
                 )}
                 <p

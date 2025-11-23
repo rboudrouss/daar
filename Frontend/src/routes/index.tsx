@@ -1,9 +1,9 @@
 import SearchBar, { type SearchMode, type AdvancedSearchOptions } from "@/components/SearchBar";
 import { SearchResultCard } from "@/components/BookCard";
 import type { Book, SearchResult, BookStats, SuggestionResult } from "@/utils";
-import { getAllBooks, getStats, getRecommendations } from "@/utils/api";
+import { getAllBooks, getStats, getPopularBooks, getRecommendations } from "@/utils/api";
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 export const Route = createFileRoute("/")({
   component: App,
@@ -11,34 +11,102 @@ export const Route = createFileRoute("/")({
 
 function App() {
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
-  const [allBooks, setAllBooks] = useState<Book[]>([]);
+  const [popularBooks, setPopularBooks] = useState<Book[]>([]);
   const [recommendations, setRecommendations] = useState<SuggestionResult[]>([]);
+  const [allBooks, setAllBooks] = useState<Book[]>([]);
   const [stats, setStats] = useState<BookStats | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
   const [executionTime, setExecutionTime] = useState<number>(0);
+  const [currentOffset, setCurrentOffset] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+
+  const observerTarget = useRef<HTMLDivElement>(null);
 
   // Load initial data
   useEffect(() => {
     loadInitialData();
   }, []);
 
+  // Infinite scroll observer
+  useEffect(() => {
+    if (!hasSearched && hasMore && !isLoadingMore) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          if (entries[0].isIntersecting) {
+            loadMoreBooks();
+          }
+        },
+        { threshold: 0.1 }
+      );
+
+      if (observerTarget.current) {
+        observer.observe(observerTarget.current);
+      }
+
+      return () => {
+        if (observerTarget.current) {
+          observer.unobserve(observerTarget.current);
+        }
+      };
+    }
+  }, [hasSearched, hasMore, isLoadingMore, currentOffset]);
+
   async function loadInitialData() {
     try {
       setIsLoading(true);
-      const [booksData, statsData, recommendationsData] = await Promise.all([
-        getAllBooks(),
+      const [popularBooksData, recommendationsData, statsData] = await Promise.all([
+        getPopularBooks(10),
+        getRecommendations(20),
         getStats(),
-        getRecommendations(50),
       ]);
-      setAllBooks(booksData);
-      setStats(statsData);
+      setPopularBooks(popularBooksData);
       setRecommendations(recommendationsData);
+      setStats(statsData);
+
+      // Load first batch of all books
+      const { books, total } = await getAllBooks(50, 0);
+
+      // Filter out popular books and recommendations to avoid duplicates
+      const excludedIds = new Set([
+        ...popularBooksData.map(b => b.id),
+        ...recommendationsData.map(r => r.book.id)
+      ]);
+      const filteredBooks = books.filter(b => !excludedIds.has(b.id));
+
+      setAllBooks(filteredBooks);
+      setCurrentOffset(50);
+      setHasMore(50 < total);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load data");
     } finally {
       setIsLoading(false);
+    }
+  }
+
+  async function loadMoreBooks() {
+    if (isLoadingMore || !hasMore) return;
+
+    try {
+      setIsLoadingMore(true);
+      const { books, total } = await getAllBooks(50, currentOffset);
+
+      // Filter out popular books and recommendations to avoid duplicates
+      const excludedIds = new Set([
+        ...popularBooks.map(b => b.id),
+        ...recommendations.map(r => r.book.id)
+      ]);
+      const filteredBooks = books.filter(b => !excludedIds.has(b.id));
+
+      setAllBooks((prev) => [...prev, ...filteredBooks]);
+      setCurrentOffset((prev) => prev + 50);
+      setHasMore(currentOffset + 50 < total);
+    } catch (err) {
+      console.error("Failed to load more books:", err);
+    } finally {
+      setIsLoadingMore(false);
     }
   }
 
@@ -117,12 +185,8 @@ function App() {
     }
   }
 
-  // Display search results if searched, otherwise show recommendations (or all books if no recommendations)
-  const displayBooks = hasSearched
-    ? searchResults
-    : recommendations.length > 0
-      ? recommendations.map(r => ({ book: r.book, score: r.similarity, matchedTerms: [] }))
-      : allBooks.map(b => ({ book: b, score: 0, matchedTerms: [] }));
+  // Display search results if searched
+  const displayBooks = hasSearched ? searchResults : [];
 
   return (
     <div style={{ minHeight: "100vh", backgroundColor: "#fafafa" }}>
@@ -253,44 +317,144 @@ function App() {
       {/* Books Grid */}
       {!isLoading && (
         <div style={{ maxWidth: "1400px", margin: "0 auto", padding: "0 24px 24px 24px" }}>
-          {!hasSearched && recommendations.length > 0 && (
-            <div style={{ marginBottom: "16px", padding: "12px", backgroundColor: "#e8f5e9", borderRadius: "4px", border: "1px solid #4CAF50" }}>
-              <p style={{ margin: 0, color: "#2e7d32", fontWeight: "500" }}>
-                Showing popular books based on global activity.
-              </p>
-            </div>
-          )}
-          {displayBooks.length > 0 ? (
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: hasSearched
-                  ? "repeat(auto-fill, minmax(550px, 1fr))"
-                  : "repeat(auto-fill, minmax(350px, 1fr))",
-                gap: "16px",
-              }}
-            >
-              {displayBooks.map((result) => (
-                <SearchResultCard key={result.book.id} result={result} />
-              ))}
-            </div>
-          ) : (
-            <div
-              style={{
-                textAlign: "center",
-                padding: "48px 24px",
-                color: "#666",
-              }}
-            >
-              <p style={{ fontSize: "18px", margin: 0 }}>
-                {hasSearched ? "No books found" : "No books in library"}
-              </p>
-              {hasSearched && (
+          {hasSearched ? (
+            /* Search Results */
+            displayBooks.length > 0 ? (
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fill, minmax(550px, 1fr))",
+                  gap: "16px",
+                }}
+              >
+                {displayBooks.map((result, index) => (
+                  <SearchResultCard key={`${result.book.id}-${index}`} result={result} />
+                ))}
+              </div>
+            ) : (
+              <div
+                style={{
+                  textAlign: "center",
+                  padding: "48px 24px",
+                  color: "#666",
+                }}
+              >
+                <p style={{ fontSize: "18px", margin: 0 }}>No books found</p>
                 <p style={{ fontSize: "14px", marginTop: "8px" }}>
                   Try a different search query
                 </p>
+              </div>
+            )
+          ) : (
+            /* Home Page - 3 Sections */
+            <>
+              {/* Section 1: Most Popular Books */}
+              {popularBooks.length > 0 && (
+                <section style={{ marginBottom: "48px" }}>
+                  <div style={{ marginBottom: "16px", padding: "12px 16px", backgroundColor: "#fff3e0", borderRadius: "8px", border: "2px solid #FF9800", display: "flex", alignItems: "center", gap: "8px" }}>
+                    <span style={{ fontSize: "24px" }}>🔥</span>
+                    <h2 style={{ margin: 0, color: "#E65100", fontWeight: "600", fontSize: "20px" }}>
+                      Most Popular Books
+                    </h2>
+                  </div>
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "repeat(auto-fill, minmax(350px, 1fr))",
+                      gap: "16px",
+                    }}
+                  >
+                    {popularBooks.map((book) => (
+                      <SearchResultCard key={book.id} result={{ book, score: 0, matchedTerms: [] }} />
+                    ))}
+                  </div>
+                </section>
               )}
-            </div>
+
+              {/* Section 2: Recommendations */}
+              {recommendations.length > 0 && (
+                <section style={{ marginBottom: "48px" }}>
+                  <div style={{ marginBottom: "16px", padding: "12px 16px", backgroundColor: "#e8f5e9", borderRadius: "8px", border: "2px solid #4CAF50", display: "flex", alignItems: "center", gap: "8px" }}>
+                    <span style={{ fontSize: "24px" }}>✨</span>
+                    <h2 style={{ margin: 0, color: "#2e7d32", fontWeight: "600", fontSize: "20px" }}>
+                      Recommended For You
+                    </h2>
+                  </div>
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "repeat(auto-fill, minmax(350px, 1fr))",
+                      gap: "16px",
+                    }}
+                  >
+                    {recommendations.map((rec) => (
+                      <SearchResultCard key={rec.book.id} result={{ book: rec.book, score: rec.similarity, matchedTerms: [] }} />
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {/* Section 3: All Books (Infinite Scroll) */}
+              {allBooks.length > 0 && (
+                <section>
+                  <div style={{ marginBottom: "16px", padding: "12px 16px", backgroundColor: "#e3f2fd", borderRadius: "8px", border: "2px solid #2196F3", display: "flex", alignItems: "center", gap: "8px" }}>
+                    <span style={{ fontSize: "24px" }}>📚</span>
+                    <h2 style={{ margin: 0, color: "#1565C0", fontWeight: "600", fontSize: "20px" }}>
+                      Browse All Books
+                    </h2>
+                  </div>
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "repeat(auto-fill, minmax(350px, 1fr))",
+                      gap: "16px",
+                    }}
+                  >
+                    {allBooks.map((book) => (
+                      <SearchResultCard key={book.id} result={{ book, score: 0, matchedTerms: [] }} />
+                    ))}
+                  </div>
+
+                  {/* Infinite scroll trigger */}
+                  {hasMore && (
+                    <div
+                      ref={observerTarget}
+                      style={{
+                        padding: "24px",
+                        textAlign: "center",
+                      }}
+                    >
+                      {isLoadingMore && (
+                        <div
+                          style={{
+                            display: "inline-block",
+                            width: "32px",
+                            height: "32px",
+                            border: "3px solid #e0e0e0",
+                            borderTop: "3px solid #2196F3",
+                            borderRadius: "50%",
+                            animation: "spin 1s linear infinite",
+                          }}
+                        />
+                      )}
+                    </div>
+                  )}
+                </section>
+              )}
+
+              {/* Empty state */}
+              {popularBooks.length === 0 && recommendations.length === 0 && allBooks.length === 0 && (
+                <div
+                  style={{
+                    textAlign: "center",
+                    padding: "48px 24px",
+                    color: "#666",
+                  }}
+                >
+                  <p style={{ fontSize: "18px", margin: 0 }}>No books in library</p>
+                </div>
+              )}
+            </>
           )}
         </div>
       )}

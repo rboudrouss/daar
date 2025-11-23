@@ -203,7 +203,11 @@ app.get("/suggestions", async (c) => {
   const book = db
     .prepare(
       `
-    SELECT id, title, author, file_path, cover_image_path, word_count FROM books WHERE id = ?
+    SELECT b.id, b.title, b.author, b.file_path, b.cover_image_path, b.word_count,
+           COALESCE(bc.click_count, 0) as click_count
+    FROM books b
+    LEFT JOIN book_clicks bc ON b.id = bc.book_id
+    WHERE b.id = ?
   `
     )
     .get(bookId);
@@ -221,6 +225,7 @@ app.get("/suggestions", async (c) => {
         filePath: book.file_path,
         coverImagePath: book.cover_image_path,
         wordCount: book.word_count,
+        clickCount: book.click_count,
       },
       score: 1.0,
     },

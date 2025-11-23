@@ -204,16 +204,26 @@ export class RecommendationEngine {
       const book = this.db
         .prepare(
           `
-        SELECT id, title, author, file_path, word_count, created_at
-        FROM books
-        WHERE id = ?
+        SELECT b.id, b.title, b.author, b.file_path, b.word_count, b.created_at,
+               COALESCE(bc.click_count, 0) as click_count
+        FROM books b
+        LEFT JOIN book_clicks bc ON b.id = bc.book_id
+        WHERE b.id = ?
       `
         )
-        .get(neighbor.neighbor_id) as Book | undefined;
+        .get(neighbor.neighbor_id) as any;
 
       if (book) {
         suggestions.push({
-          book,
+          book: {
+            id: book.id,
+            title: book.title,
+            author: book.author,
+            filePath: book.file_path,
+            wordCount: book.word_count,
+            createdAt: book.created_at,
+            clickCount: book.click_count,
+          },
           score: neighbor.similarity,
           reason: "jaccard",
           similarity: neighbor.similarity,

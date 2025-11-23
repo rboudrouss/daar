@@ -42,6 +42,8 @@ app.get("/", async (c) => {
       LEFT JOIN pagerank p ON b.id = p.book_id
       ORDER BY p.score ${order === "desc" ? "DESC" : "ASC"}
     `;
+  } else if (sortBy === "click_count") {
+    query += ` ORDER BY bc.click_count ${order === "desc" ? "DESC" : "ASC"}`;
   } else {
     const validColumns = ["id", "title", "author", "word_count"];
     const column = validColumns.includes(sortBy) ? sortBy : "id";
@@ -138,7 +140,7 @@ app.get("/:id", async (c) => {
       : undefined,
     wordCount: book.word_count,
     createdAt: book.created_at,
-    pageRankScore: book.pagerank_score,
+    pageRank: book.pagerank_score,
     clickCount: book.click_count,
   });
 });
@@ -169,7 +171,12 @@ app.post("/:id/click", async (c) => {
   `
   ).run(id);
 
-  return c.json({ success: true });
+  // Récupérer le nouveau compteur
+  const result = db
+    .prepare("SELECT click_count FROM book_clicks WHERE book_id = ?")
+    .get(id) as { click_count: number } | undefined;
+
+  return c.json({ success: true, clickCount: result?.click_count || 1 });
 });
 
 /**

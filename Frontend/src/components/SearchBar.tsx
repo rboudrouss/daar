@@ -9,7 +9,6 @@ export interface AdvancedSearchOptions {
   maxWordCount?: number;
   minPageRank?: number;
   // Options BM25
-  exactPhrase?: boolean;
   fuzzy?: boolean;
   fuzzyDistance?: number;
   highlight?: boolean;
@@ -249,14 +248,6 @@ export default function SearchBar({
                   BM25 Options
                 </h4>
                 <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                  <label style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                    <input
-                      type="checkbox"
-                      checked={options.exactPhrase || false}
-                      onChange={(e) => updateOption("exactPhrase", e.target.checked)}
-                    />
-                    <span style={{ fontSize: "14px" }}>Exact phrase</span>
-                  </label>
                   <label style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                     <input
                       type="checkbox"

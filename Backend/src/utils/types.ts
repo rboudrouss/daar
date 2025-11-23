@@ -106,7 +106,6 @@ export interface SearchParams {
   maxWordCount?: number;
   minPageRank?: number;
   // Options
-  exactPhrase?: boolean; // Recherche de phrase exacte
   fuzzy?: boolean; // Recherche floue
   fuzzyDistance?: number; // Distance Levenshtein max (défaut: 2)
   // Multi-champs

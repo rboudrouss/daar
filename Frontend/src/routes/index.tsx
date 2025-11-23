@@ -70,7 +70,6 @@ function App() {
           params.append("maxWordCount", options.maxWordCount.toString());
         if (options.minPageRank)
           params.append("minPageRank", options.minPageRank.toString());
-        if (options.exactPhrase) params.append("exactPhrase", "true");
         if (options.fuzzy) params.append("fuzzy", "true");
         if (options.fuzzyDistance)
           params.append("fuzzyDistance", options.fuzzyDistance.toString());

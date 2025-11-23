@@ -54,7 +54,99 @@ export class ScoringEngine {
   }
 
   /**
+   * Calcule le bonus de proximité basé sur les positions des termes
+   * Retourne un multiplicateur entre 1.0 (pas de proximité) et 3.0 (phrase exacte)
+   */
+  calculateProximityBonus(bookId: number, queryTerms: string[]): number {
+    if (queryTerms.length <= 1) return 1.0; // Pas de proximité pour un seul terme
+
+    // Récupérer les positions de tous les termes
+    const termPositions = new Map<string, number[]>();
+
+    for (const term of queryTerms) {
+      const result = this.db
+        .prepare(
+          `
+        SELECT positions FROM inverted_index WHERE term = ? AND book_id = ?
+      `
+        )
+        .get(term, bookId) as { positions: string } | undefined;
+
+      if (!result) return 1.0; // Si un terme manque, pas de bonus
+
+      const positions = JSON.parse(result.positions) as number[];
+      termPositions.set(term, positions);
+    }
+
+    // Chercher la distance minimale entre les termes
+    let minDistance = Infinity;
+    let hasExactPhrase = false;
+
+    // Pour chaque position du premier terme
+    const firstTermPositions = termPositions.get(queryTerms[0])!;
+
+    for (const startPos of firstTermPositions) {
+      let maxDistanceInWindow = 0;
+      let isExactPhrase = true;
+
+      // Vérifier si tous les autres termes sont proches
+      for (let i = 1; i < queryTerms.length; i++) {
+        const positions = termPositions.get(queryTerms[i])!;
+
+        // Trouver la position la plus proche de startPos + i
+        const expectedPos = startPos + i;
+        let closestPos = positions[0];
+        let minDist = Math.abs(positions[0] - expectedPos);
+
+        for (const pos of positions) {
+          const dist = Math.abs(pos - expectedPos);
+          if (dist < minDist) {
+            minDist = dist;
+            closestPos = pos;
+          }
+        }
+
+        // Distance par rapport à la position attendue
+        const distance = Math.abs(closestPos - expectedPos);
+        maxDistanceInWindow = Math.max(maxDistanceInWindow, distance);
+
+        // Si pas exactement à la position attendue, ce n'est pas une phrase exacte
+        if (distance !== 0) {
+          isExactPhrase = false;
+        }
+      }
+
+      // Mettre à jour la distance minimale trouvée
+      if (maxDistanceInWindow < minDistance) {
+        minDistance = maxDistanceInWindow;
+      }
+
+      // Si on trouve une phrase exacte, on peut arrêter
+      if (isExactPhrase) {
+        hasExactPhrase = true;
+        break;
+      }
+    }
+
+    // Calculer le bonus basé sur la proximité
+    if (hasExactPhrase) {
+      return 3.0; // Phrase exacte : bonus x3
+    } else if (minDistance === 0) {
+      return 2.5; // Termes consécutifs mais pas dans l'ordre exact
+    } else if (minDistance <= 2) {
+      return 2.0; // Très proche (dans une fenêtre de 2 mots)
+    } else if (minDistance <= 5) {
+      return 1.5; // Proche (dans une fenêtre de 5 mots)
+    } else if (minDistance <= 10) {
+      return 1.2; // Moyennement proche (dans une fenêtre de 10 mots)
+    } else {
+      return 1.0; // Pas de bonus
+    }
+  }
+
+  /**
    * Calcule le score BM25 pour un document et un ensemble de termes
+   * Avec bonus de proximité
    */
   calculateBM25(bookId: number, queryTerms: string[]): number {
     let score = 0;
@@ -112,6 +204,10 @@ export class ScoringEngine {
 
       score += termScore;
     }
+
+    // Appliquer le bonus de proximité
+    const proximityBonus = this.calculateProximityBonus(bookId, queryTerms);
+    score *= proximityBonus;
 
     return score;
   }

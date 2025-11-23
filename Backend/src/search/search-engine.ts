@@ -44,11 +44,6 @@ export class SearchEngine {
   search(params: SearchParams): SearchResult[] {
     const startTime = Date.now();
 
-    // Recherche par phrase exacte
-    if (params.exactPhrase) {
-      return this.searchExactPhrase(params);
-    }
-
     // Tokenizer la requête
     let queryTerms = this.tokenizer.tokenizeQuery(params.query);
 
@@ -345,116 +340,7 @@ export class SearchEngine {
     }));
   }
 
-  /**
-   * Recherche par phrase exacte
-   */
-  private searchExactPhrase(params: SearchParams): SearchResult[] {
-    const queryTerms = this.tokenizer.tokenizeQuery(params.query);
 
-    if (queryTerms.length === 0) {
-      return [];
-    }
-
-    // Trouver les livres contenant tous les termes
-    const candidateBooks = this.findBooksWithAllTerms(queryTerms);
-
-    const results: SearchResult[] = [];
-
-    for (const bookId of candidateBooks) {
-      // Vérifier si les termes apparaissent dans l'ordre exact
-      if (this.hasExactPhrase(bookId, queryTerms)) {
-        const book = this.getBook(bookId);
-        if (!book) continue;
-
-        const pageRankScores = this.getPageRankScores();
-        const pageRankScore = pageRankScores.get(bookId);
-        const score = this.scoringEngine.calculateHybridScore(
-          bookId,
-          queryTerms,
-          pageRankScore
-        );
-
-        results.push({
-          book,
-          score,
-          termFrequency: queryTerms.length,
-        });
-      }
-    }
-
-    results.sort((a, b) => b.score - a.score);
-    return results.slice(0, params.limit ?? 20);
-  }
-
-  /**
-   * Trouve les livres contenant tous les termes
-   */
-  private findBooksWithAllTerms(terms: string[]): Set<number> {
-    if (terms.length === 0) return new Set();
-
-    // Commencer avec les livres du premier terme
-    const bookSets = terms.map((term) => {
-      const results = this.db
-        .prepare(
-          `
-        SELECT DISTINCT book_id FROM inverted_index WHERE term = ?
-      `
-        )
-        .all(term) as Array<{ book_id: number }>;
-      return new Set(results.map((r) => r.book_id));
-    });
-
-    // Intersection de tous les sets
-    const intersection = bookSets.reduce((acc, set) => {
-      return new Set([...acc].filter((x) => set.has(x)));
-    });
-
-    return intersection;
-  }
-
-  /**
-   * Vérifie si un livre contient la phrase exacte
-   */
-  private hasExactPhrase(bookId: number, terms: string[]): boolean {
-    // Récupérer les positions de chaque terme
-    const termPositions = new Map<string, number[]>();
-
-    for (const term of terms) {
-      const result = this.db
-        .prepare(
-          `
-        SELECT positions FROM inverted_index WHERE term = ? AND book_id = ?
-      `
-        )
-        .get(term, bookId) as { positions: string } | undefined;
-
-      if (!result) return false;
-
-      const positions = JSON.parse(result.positions) as number[];
-      termPositions.set(term, positions);
-    }
-
-    // Vérifier si les termes apparaissent consécutivement
-    const firstTermPositions = termPositions.get(terms[0])!;
-
-    for (const startPos of firstTermPositions) {
-      let isMatch = true;
-
-      for (let i = 1; i < terms.length; i++) {
-        const expectedPos = startPos + i;
-        const positions = termPositions.get(terms[i])!;
-
-        if (!positions.includes(expectedPos)) {
-          isMatch = false;
-          break;
-        }
-      }
-
-      if (isMatch) return true;
-    }
-
-    return false;
-  }
 
   /**
    * Étend la requête avec des termes similaires (fuzzy)

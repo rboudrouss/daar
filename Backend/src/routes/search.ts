@@ -72,7 +72,6 @@ app.get("/", async (c) => {
   const highlight = c.req.query("highlight") === "true";
   const fuzzy = c.req.query("fuzzy") === "true";
   const fuzzyDistance = parseInt(c.req.query("fuzzyDistance") || "2");
-  const exactPhrase = c.req.query("exactPhrase") === "true";
 
   // Filtres
   const author = c.req.query("author");
@@ -105,7 +104,6 @@ app.get("/", async (c) => {
     highlight,
     fuzzy,
     fuzzyDistance,
-    exactPhrase,
     author,
     minWordCount,
     maxWordCount,

@@ -207,6 +207,46 @@ export class BookIndexer {
   }
 
   /**
+   * Met à jour les métadonnées de la bibliothèque en se basant sur toutes les données de la DB
+   * Utile après avoir indexé des livres individuellement
+   */
+  public updateLibraryMetadataFromDB(): void {
+    // Compter tous les livres et leurs mots
+    const booksResult = this.db
+      .prepare("SELECT COUNT(*) as count, SUM(word_count) as total_words FROM books")
+      .get() as { count: number; total_words: number | null };
+
+    const totalBooks = booksResult.count;
+    const totalWords = booksResult.total_words || 0;
+    const avgDocLength = totalBooks > 0 ? totalWords / totalBooks : 0;
+
+    const totalTermsResult = this.db
+      .prepare("SELECT COUNT(*) as count FROM term_stats")
+      .get() as { count: number };
+    const totalTerms = totalTermsResult.count;
+
+    const updateMeta = this.db.prepare(`
+      UPDATE library_metadata SET value = ?, updated_at = CURRENT_TIMESTAMP WHERE key = ?
+    `);
+
+    withTransaction(() => {
+      updateMeta.run(totalBooks.toString(), "total_books");
+      updateMeta.run(totalTerms.toString(), "total_terms");
+      updateMeta.run(avgDocLength.toString(), "avg_doc_length");
+      updateMeta.run(totalWords.toString(), "total_words");
+      updateMeta.run(new Date().toISOString(), "last_indexed");
+    });
+
+    console.log(`Library stats updated from DB:`);
+    console.log(`   - Total books: ${totalBooks}`);
+    console.log(`   - Total unique terms: ${totalTerms}`);
+    console.log(`   - Total words: ${totalWords}`);
+    console.log(
+      `   - Average document length: ${avgDocLength.toFixed(2)} words`
+    );
+  }
+
+  /**
    * Récupère les statistiques de la bibliothèque
    */
   getLibraryStats() {

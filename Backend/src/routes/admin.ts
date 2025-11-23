@@ -131,6 +131,10 @@ app.post("/import-gutenberg", async (c) => {
       "UPDATE library_metadata SET value = ?, updated_at = CURRENT_TIMESTAMP WHERE key = 'last_gutenberg_id'"
     ).run(newLastId.toString());
 
+    // Mettre à jour les statistiques de la bibliothèque
+    console.log("\nUpdating library metadata...");
+    indexer.updateLibraryMetadataFromDB();
+
     return c.json({
       success: true,
       imported: successCount,
@@ -288,7 +292,9 @@ app.post("/reindex", async (c) => {
       }
     }
 
-    // Les statistiques seront mises à jour automatiquement par les requêtes SQL
+    // Mettre à jour les statistiques de la bibliothèque
+    console.log("\nUpdating library metadata...");
+    indexer.updateLibraryMetadataFromDB();
 
     console.log(`✓ Successfully reindexed ${reindexedCount} books`);
 
@@ -302,6 +308,35 @@ app.post("/reindex", async (c) => {
     return c.json(
       {
         error: "Failed to reindex books",
+        message: error instanceof Error ? error.message : String(error),
+      },
+      500
+    );
+  }
+});
+
+/**
+ * POST /api/admin/update-stats
+ * Met à jour les statistiques de la bibliothèque (total_books, total_words, etc.)
+ */
+app.post("/update-stats", async (c) => {
+  try {
+    console.log("\nUpdating library statistics...");
+
+    const indexer = new BookIndexer();
+    indexer.updateLibraryMetadataFromDB();
+
+    console.log("✓ Library statistics updated successfully");
+
+    return c.json({
+      success: true,
+      message: "Library statistics updated successfully",
+    });
+  } catch (error) {
+    console.error("Error updating library statistics:", error);
+    return c.json(
+      {
+        error: "Failed to update library statistics",
         message: error instanceof Error ? error.message : String(error),
       },
       500

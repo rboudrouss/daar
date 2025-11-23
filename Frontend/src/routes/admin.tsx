@@ -84,6 +84,10 @@ function AdminPanel() {
     await callAdminAPI("reindex", {});
   }
 
+  async function handleUpdateStats() {
+    await callAdminAPI("update-stats", {});
+  }
+
   return (
     <div style={{ minHeight: "100vh", backgroundColor: "#fafafa" }}>
       {/* Header */}
@@ -359,6 +363,7 @@ function AdminPanel() {
             borderRadius: "8px",
             padding: "24px",
             boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+            marginBottom: "24px",
           }}
         >
           <h2
@@ -390,6 +395,46 @@ function AdminPanel() {
             }}
           >
             {isLoading ? "Processing..." : "Reindex"}
+          </button>
+        </div>
+
+        {/* Update Stats Section */}
+        <div
+          style={{
+            backgroundColor: "white",
+            borderRadius: "8px",
+            padding: "24px",
+            boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+          }}
+        >
+          <h2
+            style={{
+              margin: "0 0 16px 0",
+              fontSize: "20px",
+              fontWeight: "600",
+            }}
+          >
+            Update Library Statistics
+          </h2>
+          <p style={{ margin: "0 0 16px 0", color: "#666", fontSize: "14px" }}>
+            Recalculate library statistics (total books, total words, etc.) from
+            the database. Use this if the statistics are showing incorrect values.
+          </p>
+          <button
+            onClick={handleUpdateStats}
+            disabled={isLoading}
+            style={{
+              padding: "12px 24px",
+              fontSize: "16px",
+              backgroundColor: isLoading ? "#ccc" : "#00BCD4",
+              color: "white",
+              border: "none",
+              borderRadius: "4px",
+              cursor: isLoading ? "not-allowed" : "pointer",
+              fontWeight: "500",
+            }}
+          >
+            {isLoading ? "Processing..." : "Update Statistics"}
           </button>
         </div>
       </div>

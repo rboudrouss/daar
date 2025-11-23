@@ -72,6 +72,19 @@ export async function searchBooks(
 
 /**
  * Advanced search using regex patterns
+ *
+ * @param regex - Regex pattern (without slashes). Supported syntax:
+ *   - Literals: abc, 123
+ *   - Operators: * (star), + (plus), ? (optional)
+ *   - Alternation: cat|dog
+ *   - Grouping: (ab)+
+ *   - Any char: .
+ *   - Escape: \* for literal *
+ * @param limit - Maximum number of results
+ *
+ * @example
+ * advancedSearch("cat|dog", 20)  // ✓ Correct
+ * advancedSearch("/cat|dog/", 20) // ✗ Wrong - do not use slashes
  */
 export async function advancedSearch(
   regex: string,

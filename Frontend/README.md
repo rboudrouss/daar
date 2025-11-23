@@ -6,6 +6,8 @@ A modern React frontend for the Library Search Engine, featuring BM25 search, Pa
 
 - **Smart Search**: BM25 algorithm for intelligent full-text search
 - **Advanced Search**: Regex pattern matching for precise queries
+  - Supported syntax: literals, `*` (star), `+` (plus), `?` (optional), `|` (alternation), `.` (any char), `()` (grouping), `\` (escape)
+  - **Note**: Enter patterns directly without slashes (e.g., `cat|dog`, not `/cat|dog/`)
 - **PageRank Scoring**: Books ranked by importance and connections
 - **Book Recommendations**: Jaccard similarity-based suggestions
 - **Cover Images**: Beautiful book covers from Project Gutenberg

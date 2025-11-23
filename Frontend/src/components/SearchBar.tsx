@@ -145,7 +145,7 @@ export default function SearchBar({
             placeholder={
               searchMode === "bm25"
                 ? "Search books by title, author, or content..."
-                : "Enter regex pattern (e.g., \\bword\\b)"
+                : "Enter regex pattern (e.g., cat|dog, .*test.*, a+)"
             }
             value={inputValue}
             onChange={(e) => handleInputChange(e.target.value)}
@@ -423,6 +423,38 @@ export default function SearchBar({
                   />
                   <span style={{ fontSize: "14px" }}>Case sensitive</span>
                 </label>
+
+                {/* Aide sur la syntaxe regex */}
+                <div
+                  style={{
+                    marginTop: "12px",
+                    padding: "12px",
+                    backgroundColor: "#f5f5f5",
+                    borderRadius: "4px",
+                    fontSize: "13px",
+                    lineHeight: "1.6",
+                  }}
+                >
+                  <div style={{ fontWeight: "600", marginBottom: "6px", color: "#333" }}>
+                    Supported syntax:
+                  </div>
+                  <div style={{ color: "#666" }}>
+                    • Literals: <code style={{ backgroundColor: "#e0e0e0", padding: "2px 4px", borderRadius: "2px" }}>abc</code>, <code style={{ backgroundColor: "#e0e0e0", padding: "2px 4px", borderRadius: "2px" }}>123</code>
+                    <br />
+                    • Operators: <code style={{ backgroundColor: "#e0e0e0", padding: "2px 4px", borderRadius: "2px" }}>*</code> (zero or more), <code style={{ backgroundColor: "#e0e0e0", padding: "2px 4px", borderRadius: "2px" }}>+</code> (one or more), <code style={{ backgroundColor: "#e0e0e0", padding: "2px 4px", borderRadius: "2px" }}>?</code> (optional)
+                    <br />
+                    • Alternation: <code style={{ backgroundColor: "#e0e0e0", padding: "2px 4px", borderRadius: "2px" }}>cat|dog</code>
+                    <br />
+                    • Grouping: <code style={{ backgroundColor: "#e0e0e0", padding: "2px 4px", borderRadius: "2px" }}>(ab)+</code>
+                    <br />
+                    • Any char: <code style={{ backgroundColor: "#e0e0e0", padding: "2px 4px", borderRadius: "2px" }}>.</code>
+                    <br />
+                    • Escape: <code style={{ backgroundColor: "#e0e0e0", padding: "2px 4px", borderRadius: "2px" }}>\*</code> for literal *
+                  </div>
+                  <div style={{ marginTop: "8px", fontSize: "12px", color: "#999", fontStyle: "italic" }}>
+                    Do not use slashes (e.g., /pattern/). Enter pattern directly.
+                  </div>
+                </div>
               </div>
             )}
           </div>

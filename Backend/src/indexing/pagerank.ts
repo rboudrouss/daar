@@ -5,6 +5,7 @@
 import { computePageRank, type Graph } from "@monorepo/lib";
 import { getDatabase, withTransaction } from "../db/connection.js";
 import { IndexingProgress, PageRankScore } from "../utils/types.js";
+import { PAGERANK_DEFAULT_DAMPING, PAGERANK_DEFAULT_MAX_ITERATIONS, PAGERANK_DEFAULT_TOLERANCE } from "../utils/const.js";
 
 /**
  * Configuration pour le calcul de PageRank
@@ -25,9 +26,9 @@ export class PageRankCalculator {
   constructor(config: Partial<PageRankConfig> = {}) {
     this.db = getDatabase();
     this.config = {
-      damping: config.damping ?? 0.85,
-      maxIterations: config.maxIterations ?? 100,
-      tolerance: config.tolerance ?? 1e-6,
+      damping: config.damping ?? PAGERANK_DEFAULT_DAMPING,
+      maxIterations: config.maxIterations ?? PAGERANK_DEFAULT_MAX_ITERATIONS,
+      tolerance: config.tolerance ?? PAGERANK_DEFAULT_TOLERANCE,
     };
   }
 

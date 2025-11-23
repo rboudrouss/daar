@@ -4,6 +4,7 @@
 
 import type Database from "better-sqlite3";
 import { BookSuggestion, Book } from "../utils/types";
+import { RECOMMENDATION_DEFAULT_LIMIT } from "../utils/const";
 
 /**
  * Classe pour générer des recommandations
@@ -20,7 +21,7 @@ export class RecommendationEngine {
    * @param limit Nombre de recommandations
    * @returns Liste de suggestions
    */
-  getRecommendationsFromHistory(limit: number = 10): BookSuggestion[] {
+  getRecommendationsFromHistory(limit: number = RECOMMENDATION_DEFAULT_LIMIT): BookSuggestion[] {
     // Récupérer les livres les plus cliqués globalement
     const clickedBooks = this.db
       .prepare(
@@ -70,11 +71,6 @@ export class RecommendationEngine {
       }>;
 
       for (const neighbor of neighbors) {
-        // Ne pas recommander les livres déjà cliqués
-        if (clickedBooks.some((b) => b.book_id === neighbor.neighbor_id)) {
-          continue;
-        }
-
         // Calculer un score combiné : similarité * poids du livre cliqué
         const weight = clicked.click_count / clickedBooks[0].click_count; // Normaliser
         const score = neighbor.similarity * weight;
@@ -174,7 +170,7 @@ export class RecommendationEngine {
    */
   getJaccardRecommendations(
     bookId: number,
-    limit: number = 10
+    limit: number = RECOMMENDATION_DEFAULT_LIMIT
   ): BookSuggestion[] {
     const neighbors = this.db
       .prepare(

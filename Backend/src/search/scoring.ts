@@ -4,6 +4,7 @@
  */
 
 import { getDatabase } from "../db/connection.js";
+import { SEARCH_SCORING_BM25_WEIGHT, SEARCH_SCORING_PAGERANK_WEIGHT, SEARCH_SCORING_OCCURRENCE_WEIGHT, SEARCH_SCORING_K1, SEARCH_SCORING_B, SEARCH_SCORING_ENABLE_PROXIMITY_BONUS } from "../utils/const.js";
 import { ScoringConfig } from "../utils/types.js";
 
 /**
@@ -18,11 +19,12 @@ export class ScoringEngine {
   constructor(config: Partial<ScoringConfig> = {}) {
     this.db = getDatabase();
     this.config = {
-      bm25Weight: config.bm25Weight ?? 0.6,
-      pageRankWeight: config.pageRankWeight ?? 0.4,
-      occurrenceWeight: config.occurrenceWeight ?? 0.0,
-      k1: config.k1 ?? 1.2,
-      b: config.b ?? 0.75,
+      bm25Weight: config.bm25Weight ?? SEARCH_SCORING_BM25_WEIGHT,
+      pageRankWeight: config.pageRankWeight ?? SEARCH_SCORING_PAGERANK_WEIGHT,
+      occurrenceWeight: config.occurrenceWeight ?? SEARCH_SCORING_OCCURRENCE_WEIGHT,
+      k1: config.k1 ?? SEARCH_SCORING_K1,
+      b: config.b ?? SEARCH_SCORING_B,
+      enableProximityBonus: config.enableProximityBonus ?? SEARCH_SCORING_ENABLE_PROXIMITY_BONUS,
     };
 
     // Charger les statistiques de la bibliothèque
@@ -146,7 +148,7 @@ export class ScoringEngine {
 
   /**
    * Calcule le score BM25 pour un document et un ensemble de termes
-   * Avec bonus de proximité
+   * Avec bonus de proximité (si activé)
    */
   calculateBM25(bookId: number, queryTerms: string[]): number {
     let score = 0;
@@ -205,9 +207,11 @@ export class ScoringEngine {
       score += termScore;
     }
 
-    // Appliquer le bonus de proximité
-    const proximityBonus = this.calculateProximityBonus(bookId, queryTerms);
-    score *= proximityBonus;
+    // Appliquer le bonus de proximité si activé
+    if (this.config.enableProximityBonus) {
+      const proximityBonus = this.calculateProximityBonus(bookId, queryTerms);
+      score *= proximityBonus;
+    }
 
     return score;
   }

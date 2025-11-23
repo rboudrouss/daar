@@ -3,6 +3,7 @@
  */
 
 import type Database from "better-sqlite3";
+import { RECOMMENDATION_DEFAULT_LIMIT, RECOMMENDATION_JACCARD_THRESHOLD } from "../utils/const";
 
 /**
  * Vecteur TF-IDF d'un document
@@ -111,8 +112,8 @@ export class SemanticSearch {
    */
   findSimilarBooks(
     bookId: number,
-    limit: number = 10,
-    minSimilarity: number = 0.1
+    limit: number = RECOMMENDATION_DEFAULT_LIMIT,
+    minSimilarity: number = RECOMMENDATION_JACCARD_THRESHOLD
   ): Array<{ bookId: number; similarity: number }> {
     // Calculer le vecteur du livre de référence
     const refVector = this.computeTFIDFVector(bookId);

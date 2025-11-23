@@ -3,6 +3,7 @@
  */
 
 import { getDatabase, withTransaction } from "../db/connection.js";
+import { JACCARD_DEFAULT_THRESHOLD, JACCARD_DEFAULT_TOP_K, JACCARD_DEFAULT_BATCH_SIZE } from "../utils/const.js";
 import { IndexingProgress, JaccardEdge } from "../utils/types.js";
 
 /**
@@ -24,9 +25,9 @@ export class JaccardCalculator {
   constructor(config: Partial<JaccardConfig> = {}) {
     this.db = getDatabase();
     this.config = {
-      similarityThreshold: config.similarityThreshold ?? 0.05,
-      topK: config.topK ?? 50,
-      batchSize: config.batchSize ?? 1000,
+      similarityThreshold: config.similarityThreshold ?? JACCARD_DEFAULT_THRESHOLD,
+      topK: config.topK ?? JACCARD_DEFAULT_TOP_K,
+      batchSize: config.batchSize ?? JACCARD_DEFAULT_BATCH_SIZE,
     };
   }
 

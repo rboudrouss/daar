@@ -4,6 +4,12 @@
 
 import * as fs from "fs";
 import { TextSnippet } from "../utils/types";
+import {
+  SEARCH_HIGHLIGHT_SNIPPET_COUNT,
+  SEARCH_HIGHLIGHT_SNIPPET_LENGTH,
+  SEARCH_HIGHLIGHT_CONTEXT_LENGTH_BEFORE,
+  SEARCH_HIGHLIGHT_CONTEXT_LENGTH_AFTER,
+} from "../utils/const";
 
 export interface HighlightOptions {
   snippetCount?: number; // Nombre de snippets à retourner
@@ -17,10 +23,10 @@ export interface HighlightOptions {
  */
 export class Highlighter {
   private defaultOptions: Required<HighlightOptions> = {
-    snippetCount: 3,
-    snippetLength: 150,
-    contextBefore: 75,
-    contextAfter: 75,
+    snippetCount: SEARCH_HIGHLIGHT_SNIPPET_COUNT,
+    snippetLength: SEARCH_HIGHLIGHT_SNIPPET_LENGTH,
+    contextBefore: SEARCH_HIGHLIGHT_CONTEXT_LENGTH_BEFORE,
+    contextAfter: SEARCH_HIGHLIGHT_CONTEXT_LENGTH_AFTER,
   };
 
   /**

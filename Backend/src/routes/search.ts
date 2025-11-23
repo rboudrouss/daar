@@ -236,18 +236,16 @@ app.get("/suggestions", async (c) => {
 });
 
 /**
- * GET /api/search/recommendations?userId=123&limit=10
- * Recommandations basées sur l'historique de clics
+ * GET /api/search/recommendations?limit=10
+ * Recommandations basées sur l'historique de clics globaux
  */
 app.get("/recommendations", async (c) => {
-  const userId = c.req.query("userId");
   const limit = parseInt(c.req.query("limit") || "10");
 
   const engine = getSearchEngine();
-  const recommendations = engine.getRecommendations(userId, limit);
+  const recommendations = engine.getRecommendations(limit);
 
   return c.json({
-    userId: userId || "global",
     recommendations,
     total: recommendations.length,
   });

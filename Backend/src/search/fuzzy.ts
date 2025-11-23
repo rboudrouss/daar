@@ -2,6 +2,8 @@
  * Fuzzy Search - Recherche floue avec Levenshtein distance
  */
 
+import { SEARCH_FUZZY_DEFAULT_MAX_DISTANCE } from "../utils/const";
+
 /**
  * Calcule la distance de Levenshtein entre deux chaînes
  * @param a Première chaîne
@@ -47,7 +49,7 @@ export function levenshteinDistance(a: string, b: string): number {
 export function findSimilarTerms(
   query: string,
   terms: string[],
-  maxDistance: number = 2
+  maxDistance: number
 ): Array<{ term: string; distance: number }> {
   const results: Array<{ term: string; distance: number }> = [];
 
@@ -85,7 +87,7 @@ export class FuzzyMatcher {
     query: string,
     availableTerms: string[],
     fuzzy: boolean = false,
-    maxDistance: number = 2
+    maxDistance: number = SEARCH_FUZZY_DEFAULT_MAX_DISTANCE
   ): string[] {
     const queryLower = query.toLowerCase();
 

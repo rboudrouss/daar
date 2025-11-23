@@ -3,6 +3,8 @@
  * Transforme le texte brut en termes indexables
  */
 
+import { TOKENIZER_IGNORE_STOP_WORDS, TOKENIZER_MIN_WORD_LENGTH, TOKENIZER_CASE_SENSITIVE, TOKENIZER_KEEP_POSITIONS } from "../utils/const";
+
 /**
  * Configuration du tokenizer
  */
@@ -30,10 +32,10 @@ export class Tokenizer {
 
   constructor(config: Partial<TokenizerConfig> = {}) {
     this.config = {
-      removeStopWords: config.removeStopWords ?? true,
-      minWordLength: config.minWordLength ?? 2,
-      caseSensitive: config.caseSensitive ?? false,
-      keepPositions: config.keepPositions ?? true,
+      removeStopWords: config.removeStopWords ?? TOKENIZER_IGNORE_STOP_WORDS,
+      minWordLength: config.minWordLength ?? TOKENIZER_MIN_WORD_LENGTH,
+      caseSensitive: config.caseSensitive ?? TOKENIZER_CASE_SENSITIVE,
+      keepPositions: config.keepPositions ?? TOKENIZER_KEEP_POSITIONS,
     };
   }
 

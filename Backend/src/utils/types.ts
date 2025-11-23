@@ -137,6 +137,7 @@ export interface ScoringConfig {
   occurrenceWeight: number; // Poids du nombre d'occurrences
   k1: number; // Paramètre BM25
   b: number; // Paramètre BM25
+  enableProximityBonus: boolean; // Activer le bonus de proximité
 }
 
 /**

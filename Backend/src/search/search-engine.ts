@@ -15,6 +15,7 @@ import {
   BookSuggestion,
   Book,
 } from "../utils/types.js";
+import { RECOMMENDATION_DEFAULT_LIMIT, SEARCH_FUZZY_DEFAULT_MAX_DISTANCE } from "../utils/const.js";
 
 /**
  * Moteur de recherche
@@ -160,7 +161,7 @@ export class SearchEngine {
    */
   getSuggestions(
     searchResults: SearchResult[],
-    limit: number = 10
+    limit: number = RECOMMENDATION_DEFAULT_LIMIT
   ): BookSuggestion[] {
     if (searchResults.length === 0) {
       return [];
@@ -347,7 +348,7 @@ export class SearchEngine {
    */
   private expandQueryWithFuzzy(
     queryTerms: string[],
-    maxDistance: number = 2
+    maxDistance: number = SEARCH_FUZZY_DEFAULT_MAX_DISTANCE
   ): string[] {
     const allTerms = this.db
       .prepare(
@@ -491,14 +492,14 @@ export class SearchEngine {
   /**
    * Obtient des recommandations basées sur l'historique de clics globaux
    */
-  getRecommendations(limit: number = 10): BookSuggestion[] {
+  getRecommendations(limit: number = RECOMMENDATION_DEFAULT_LIMIT): BookSuggestion[] {
     return this.recommendationEngine.getRecommendationsFromHistory(limit);
   }
 
   /**
    * Trouve des livres similaires par sémantique
    */
-  findSimilarBooks(bookId: number, limit: number = 10): SearchResult[] {
+  findSimilarBooks(bookId: number, limit: number = RECOMMENDATION_DEFAULT_LIMIT): SearchResult[] {
     const similar = this.semanticSearch.findSimilarBooks(bookId, limit);
 
     return similar

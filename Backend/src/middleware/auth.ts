@@ -3,14 +3,13 @@
  */
 
 import { Context, Next } from "hono";
+import { ADMIN_PASSWORD } from "../utils/const";
 
 /**
  * Middleware pour vérifier le mot de passe admin
  */
 export const adminAuth = async (c: Context, next: Next) => {
-  const adminPassword = process.env.ADMIN_PASSWORD;
-
-  if (!adminPassword) {
+  if (!ADMIN_PASSWORD) {
     return c.json({ error: "Admin password not configured on server" }, 500);
   }
 
@@ -31,7 +30,7 @@ export const adminAuth = async (c: Context, next: Next) => {
     );
   }
 
-  if (password !== adminPassword) {
+  if (password !== ADMIN_PASSWORD) {
     return c.json({ error: "Invalid admin password" }, 403);
   }
 

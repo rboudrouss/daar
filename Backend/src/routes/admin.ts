@@ -26,8 +26,8 @@ app.post("/import-gutenberg", async (c) => {
     const body = await c.req.json();
     const count = parseInt(body.count || "10");
 
-    if (count <= 0 || count > 100) {
-      return c.json({ error: "Count must be between 1 and 100" }, 400);
+    if (count <= 0 || count > 1000) {
+      return c.json({ error: "Count must be between 1 and 1000" }, 400);
     }
 
     const db = getDatabase();

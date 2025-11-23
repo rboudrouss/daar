@@ -20,6 +20,46 @@ export class BookIndexer {
   }
 
   /**
+   * Réindexe un livre existant (met à jour uniquement l'index inversé)
+   */
+  reindexBook(bookId: number, filePath: string): void {
+    // 1. Lire le contenu du fichier
+    const content = readFileSync(filePath, "utf-8");
+
+    // 2. Tokenizer le contenu
+    const { terms, positions, totalTokens } = this.tokenizer.tokenize(content);
+
+    // 3. Compter les occurrences de chaque terme
+    const termCounts = this.tokenizer.countTerms(terms);
+
+    // 4. Insérer dans l'index inversé (dans une transaction)
+    const insertIndex = this.db.prepare(`
+      INSERT INTO inverted_index (term, book_id, term_frequency, positions)
+      VALUES (?, ?, ?, ?)
+    `);
+
+    const updateTermStats = this.db.prepare(`
+      INSERT INTO term_stats (term, document_frequency, total_frequency)
+      VALUES (?, 1, ?)
+      ON CONFLICT(term) DO UPDATE SET
+        document_frequency = document_frequency + 1,
+        total_frequency = total_frequency + ?
+    `);
+
+    withTransaction(() => {
+      for (const [term, count] of termCounts.entries()) {
+        const termPositions = positions?.get(term) || [];
+        const positionsJson = JSON.stringify(termPositions);
+
+        insertIndex.run(term, bookId, count, positionsJson);
+        updateTermStats.run(term, count, count);
+      }
+    });
+
+    console.log(`Reindexed book ${bookId} (${totalTokens} words, ${termCounts.size} unique terms)`);
+  }
+
+  /**
    * Indexe un seul livre
    */
   indexBook(metadata: BookMetadata): Book {

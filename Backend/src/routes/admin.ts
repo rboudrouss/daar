@@ -199,4 +199,68 @@ app.post("/calculate-pagerank", async (c) => {
   }
 });
 
+/**
+ * POST /api/admin/reindex
+ * Réindexe tous les livres (met à jour les positions de caractères)
+ */
+app.post("/reindex", async (c) => {
+  try {
+    const db = getDatabase();
+
+    console.log("\nReindexing all books...");
+
+    // Récupérer tous les livres
+    const books = db.prepare("SELECT * FROM books").all() as Array<{
+      id: number;
+      title: string;
+      author: string;
+      file_path: string;
+      cover_image_path: string;
+    }>;
+
+    console.log(`Found ${books.length} books to reindex`);
+
+    // Supprimer l'ancien index
+    console.log("Deleting old index...");
+    db.prepare("DELETE FROM inverted_index").run();
+    db.prepare("DELETE FROM term_stats").run();
+
+    // Réindexer tous les livres
+    const indexer = new BookIndexer();
+    let reindexedCount = 0;
+
+    for (const book of books) {
+      try {
+        indexer.reindexBook(book.id, book.file_path);
+        reindexedCount++;
+
+        if (reindexedCount % 10 === 0) {
+          console.log(`Progress: ${reindexedCount}/${books.length} books reindexed`);
+        }
+      } catch (error) {
+        console.error(`Failed to reindex book ${book.id} (${book.title}):`, error);
+      }
+    }
+
+    // Les statistiques seront mises à jour automatiquement par les requêtes SQL
+
+    console.log(`✓ Successfully reindexed ${reindexedCount} books`);
+
+    return c.json({
+      success: true,
+      booksReindexed: reindexedCount,
+      message: `Successfully reindexed ${reindexedCount} books`,
+    });
+  } catch (error) {
+    console.error("Error reindexing books:", error);
+    return c.json(
+      {
+        error: "Failed to reindex books",
+        message: error instanceof Error ? error.message : String(error),
+      },
+      500
+    );
+  }
+});
+
 export default app;

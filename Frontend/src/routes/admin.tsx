@@ -74,6 +74,10 @@ function AdminPanel() {
     await callAdminAPI("calculate-pagerank", {});
   }
 
+  async function handleReindex() {
+    await callAdminAPI("reindex", {});
+  }
+
   return (
     <div style={{ minHeight: "100vh", backgroundColor: "#fafafa" }}>
       {/* Header */}
@@ -295,6 +299,7 @@ function AdminPanel() {
             borderRadius: "8px",
             padding: "24px",
             boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+            marginBottom: "24px",
           }}
         >
           <h2 style={{ margin: "0 0 16px 0", fontSize: "20px", fontWeight: "600" }}>
@@ -319,6 +324,41 @@ function AdminPanel() {
             }}
           >
             {isLoading ? "Processing..." : "Calculate PageRank"}
+          </button>
+        </div>
+
+        {/* Reindex Section */}
+        <div
+          style={{
+            backgroundColor: "white",
+            borderRadius: "8px",
+            padding: "24px",
+            boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+          }}
+        >
+          <h2 style={{ margin: "0 0 16px 0", fontSize: "20px", fontWeight: "600" }}>
+            🔄 Reindex All Books
+          </h2>
+          <p style={{ margin: "0 0 16px 0", color: "#666", fontSize: "14px" }}>
+            Rebuild the search index for all books. This updates character positions
+            and term frequencies. Use this if the index becomes corrupted or after
+            database changes.
+          </p>
+          <button
+            onClick={handleReindex}
+            disabled={isLoading}
+            style={{
+              padding: "12px 24px",
+              fontSize: "16px",
+              backgroundColor: isLoading ? "#ccc" : "#9C27B0",
+              color: "white",
+              border: "none",
+              borderRadius: "4px",
+              cursor: isLoading ? "not-allowed" : "pointer",
+              fontWeight: "500",
+            }}
+          >
+            {isLoading ? "Processing..." : "Reindex"}
           </button>
         </div>
       </div>

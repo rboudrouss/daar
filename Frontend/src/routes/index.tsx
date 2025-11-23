@@ -1,7 +1,7 @@
 import SearchBar, { type SearchMode, type AdvancedSearchOptions } from "@/components/SearchBar";
 import { SearchResultCard } from "@/components/BookCard";
-import type { Book, SearchResult, BookStats } from "@/utils";
-import { getAllBooks, getStats } from "@/utils/api";
+import type { Book, SearchResult, BookStats, SuggestionResult } from "@/utils";
+import { getAllBooks, getStats, getRecommendations } from "@/utils/api";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 
@@ -12,6 +12,7 @@ export const Route = createFileRoute("/")({
 function App() {
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [allBooks, setAllBooks] = useState<Book[]>([]);
+  const [recommendations, setRecommendations] = useState<SuggestionResult[]>([]);
   const [stats, setStats] = useState<BookStats | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -26,12 +27,14 @@ function App() {
   async function loadInitialData() {
     try {
       setIsLoading(true);
-      const [booksData, statsData] = await Promise.all([
+      const [booksData, statsData, recommendationsData] = await Promise.all([
         getAllBooks(),
         getStats(),
+        getRecommendations(50),
       ]);
       setAllBooks(booksData);
       setStats(statsData);
+      setRecommendations(recommendationsData);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load data");
     } finally {
@@ -114,7 +117,12 @@ function App() {
     }
   }
 
-  const displayBooks = hasSearched ? searchResults : allBooks;
+  // Display search results if searched, otherwise show recommendations (or all books if no recommendations)
+  const displayBooks = hasSearched
+    ? searchResults
+    : recommendations.length > 0
+      ? recommendations.map(r => ({ book: r.book, score: r.similarity, matchedTerms: [] }))
+      : allBooks.map(b => ({ book: b, score: 0, matchedTerms: [] }));
 
   return (
     <div style={{ minHeight: "100vh", backgroundColor: "#fafafa" }}>
@@ -245,6 +253,13 @@ function App() {
       {/* Books Grid */}
       {!isLoading && (
         <div style={{ maxWidth: "1400px", margin: "0 auto", padding: "0 24px 24px 24px" }}>
+          {!hasSearched && recommendations.length > 0 && (
+            <div style={{ marginBottom: "16px", padding: "12px", backgroundColor: "#e8f5e9", borderRadius: "4px", border: "1px solid #4CAF50" }}>
+              <p style={{ margin: 0, color: "#2e7d32", fontWeight: "500" }}>
+                Showing popular books based on global activity.
+              </p>
+            </div>
+          )}
           {displayBooks.length > 0 ? (
             <div
               style={{
@@ -255,16 +270,9 @@ function App() {
                 gap: "16px",
               }}
             >
-              {hasSearched
-                ? searchResults.map((result) => (
-                    <SearchResultCard key={result.book.id} result={result} />
-                  ))
-                : allBooks.map((book) => (
-                    <SearchResultCard
-                      key={book.id}
-                      result={{ book, score: 0, matchedTerms: [] }}
-                    />
-                  ))}
+              {displayBooks.map((result) => (
+                <SearchResultCard key={result.book.id} result={result} />
+              ))}
             </div>
           ) : (
             <div

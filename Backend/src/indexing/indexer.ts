@@ -14,45 +14,50 @@ export class BookIndexer {
   private tokenizer: Tokenizer;
   private db;
 
+  // Prepared statements réutilisables (créés une seule fois)
+  private stmtInsertBook;
+  private stmtInsertIndex;
+  private stmtUpdateTermStats;
+
   constructor(tokenizer?: Tokenizer) {
     this.tokenizer = tokenizer || new Tokenizer();
     this.db = getDatabase();
-  }
 
-  /**
-   * Réindexe un livre existant (met à jour uniquement l'index inversé)
-   */
-  reindexBook(bookId: number, filePath: string): void {
-    // 1. Lire le contenu du fichier
-    const content = readFileSync(filePath, "utf-8");
+    // Créer les prepared statements une seule fois
+    this.stmtInsertBook = this.db.prepare(`
+      INSERT INTO books (title, author, file_path, cover_image_path, word_count)
+      VALUES (?, ?, ?, ?, ?)
+    `);
 
-    // 2. Tokenizer le contenu
-    const { terms, positions, totalTokens } = this.tokenizer.tokenize(content);
-
-    // 3. Compter les occurrences de chaque terme
-    const termCounts = this.tokenizer.countTerms(terms);
-
-    // 4. Insérer dans l'index inversé (dans une transaction)
-    const insertIndex = this.db.prepare(`
+    this.stmtInsertIndex = this.db.prepare(`
       INSERT INTO inverted_index (term, book_id, term_frequency, positions)
       VALUES (?, ?, ?, ?)
     `);
 
-    const updateTermStats = this.db.prepare(`
+    this.stmtUpdateTermStats = this.db.prepare(`
       INSERT INTO term_stats (term, document_frequency, total_frequency)
       VALUES (?, 1, ?)
       ON CONFLICT(term) DO UPDATE SET
         document_frequency = document_frequency + 1,
         total_frequency = total_frequency + ?
     `);
+  }
+
+  /**
+   * Réindexe un livre existant (met à jour uniquement l'index inversé)
+   */
+  reindexBook(bookId: number, filePath: string): void {
+    const content = readFileSync(filePath, "utf-8");
+    const { terms, positions, totalTokens } = this.tokenizer.tokenize(content);
+    const termCounts = this.tokenizer.countTerms(terms);
 
     withTransaction(() => {
       for (const [term, count] of termCounts.entries()) {
         const termPositions = positions?.get(term) || [];
-        const positionsJson = JSON.stringify(termPositions);
+        const positionsJson = this.serializePositions(termPositions);
 
-        insertIndex.run(term, bookId, count, positionsJson);
-        updateTermStats.run(term, count, count);
+        this.stmtInsertIndex.run(term, bookId, count, positionsJson);
+        this.stmtUpdateTermStats.run(term, count, count);
       }
     });
 
@@ -62,24 +67,24 @@ export class BookIndexer {
   }
 
   /**
+   * Pré-sérialise les positions en JSON (optimisation)
+   */
+  private serializePositions(positions: number[]): string {
+    if (positions.length === 0) return "[]";
+    return `[${positions.join(",")}]`;
+  }
+
+  /**
    * Indexe un seul livre
    */
   indexBook(metadata: BookMetadata): Book {
     console.log(`Indexing: ${metadata.title}`);
 
-    // 1. Lire le contenu du fichier
     const content = readFileSync(metadata.filePath, "utf-8");
-
-    // 2. Tokenizer le contenu
     const { terms, positions, totalTokens } = this.tokenizer.tokenize(content);
 
-    // 3. Insérer le livre dans la DB avec la couverture
-    const insertBook = this.db.prepare(`
-      INSERT INTO books (title, author, file_path, cover_image_path, word_count)
-      VALUES (?, ?, ?, ?, ?)
-    `);
-
-    const result = insertBook.run(
+    // Insérer le livre dans la DB
+    const result = this.stmtInsertBook.run(
       metadata.title,
       metadata.author,
       metadata.filePath,
@@ -88,31 +93,17 @@ export class BookIndexer {
     );
 
     const bookId = result.lastInsertRowid as number;
-
-    // 4. Compter les occurrences de chaque terme
     const termCounts = this.tokenizer.countTerms(terms);
 
-    // 5. Insérer dans l'index inversé (dans une transaction)
-    const insertIndex = this.db.prepare(`
-      INSERT INTO inverted_index (term, book_id, term_frequency, positions)
-      VALUES (?, ?, ?, ?)
-    `);
-
-    const updateTermStats = this.db.prepare(`
-      INSERT INTO term_stats (term, document_frequency, total_frequency)
-      VALUES (?, 1, ?)
-      ON CONFLICT(term) DO UPDATE SET
-        document_frequency = document_frequency + 1,
-        total_frequency = total_frequency + ?
-    `);
-
+    // Insérer dans l'index inversé (dans une transaction)
     withTransaction(() => {
       for (const [term, count] of termCounts.entries()) {
         const termPositions = positions?.get(term) || [];
-        const positionsJson = JSON.stringify(termPositions);
+        // Optimisation: sérialisation manuelle plus rapide que JSON.stringify
+        const positionsJson = this.serializePositions(termPositions);
 
-        insertIndex.run(term, bookId, count, positionsJson);
-        updateTermStats.run(term, count, count);
+        this.stmtInsertIndex.run(term, bookId, count, positionsJson);
+        this.stmtUpdateTermStats.run(term, count, count);
       }
     });
 
@@ -141,34 +132,74 @@ export class BookIndexer {
     const total = metadataList.length;
 
     console.log(`\nStarting indexation of ${total} books...\n`);
+    const startTime = Date.now();
 
-    for (let i = 0; i < total; i++) {
-      const metadata = metadataList[i];
+    // Traiter tous les livres dans une seule grande transaction pour de meilleures performances
+    withTransaction(() => {
+      for (let i = 0; i < total; i++) {
+        const metadata = metadataList[i];
 
-      if (onProgress) {
-        onProgress({
-          currentBook: i + 1,
-          totalBooks: total,
-          currentPhase: "indexing",
-          message: `Indexing ${metadata.title}`,
-          percentage: ((i + 1) / total) * 100,
-        });
+        if (onProgress) {
+          onProgress({
+            currentBook: i + 1,
+            totalBooks: total,
+            currentPhase: "indexing",
+            message: `Indexing ${metadata.title}`,
+            percentage: ((i + 1) / total) * 100,
+          });
+        }
+
+        try {
+          // Lire et tokenizer
+          const content = readFileSync(metadata.filePath, "utf-8");
+          const { terms, positions, totalTokens } = this.tokenizer.tokenize(content);
+
+          // Insérer le livre
+          const result = this.stmtInsertBook.run(
+            metadata.title,
+            metadata.author,
+            metadata.filePath,
+            metadata.coverImagePath || null,
+            totalTokens
+          );
+
+          const bookId = result.lastInsertRowid as number;
+          const termCounts = this.tokenizer.countTerms(terms);
+
+          // Insérer les termes (déjà dans la transaction globale)
+          for (const [term, count] of termCounts.entries()) {
+            const termPositions = positions?.get(term) || [];
+            const positionsJson = this.serializePositions(termPositions);
+
+            this.stmtInsertIndex.run(term, bookId, count, positionsJson);
+            this.stmtUpdateTermStats.run(term, count, count);
+          }
+
+          books.push({
+            id: bookId,
+            title: metadata.title,
+            author: metadata.author,
+            filePath: metadata.filePath,
+            coverImagePath: metadata.coverImagePath,
+            wordCount: totalTokens,
+          });
+
+          console.log(
+            `Indexed: ${metadata.title} (${totalTokens} words, ${termCounts.size} unique terms)`
+          );
+        } catch (error) {
+          console.error(`Error indexing ${metadata.title}:`, error);
+        }
       }
+    });
 
-      try {
-        const book = this.indexBook(metadata);
-        books.push(book);
-      } catch (error) {
-        console.error(`Error indexing ${metadata.title}:`, error);
-      }
-    }
+    const elapsed = (Date.now() - startTime) / 1000;
+    console.log(
+      `\nIndexation complete: ${books.length}/${total} books indexed in ${elapsed.toFixed(2)}s\n`
+    );
 
     // Mettre à jour les métadonnées de la bibliothèque
     this.updateLibraryMetadata(books);
-
-    console.log(
-      `\nIndexation complete: ${books.length}/${total} books indexed\n`
-    );
 
     return books;
   }

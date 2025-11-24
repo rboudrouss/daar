@@ -46,27 +46,27 @@ export class Tokenizer {
   }
 
   /**
-   * Tokenize un texte en termes
+   * Tokenize un texte en termes (optimisé)
    */
   tokenize(text: string): TokenizationResult {
-    // 1. Découpage en mots avec leurs positions de caractères dans le texte ORIGINAL
     const regex = /[a-zà-ÿ0-9]+/gi;
     const words: Array<{ word: string; charPosition: number }> = [];
-    let match;
 
-    while ((match = regex.exec(text)) !== null) {
-      // Normaliser le mot (pas le texte entier) pour l'indexation
+    // Utiliser matchAll() au lieu de exec() en boucle (plus performant)
+    const matches = text.matchAll(regex);
+
+    for (const match of matches) {
       const normalizedWord = this.config.caseSensitive
         ? match[0]
         : match[0].toLowerCase();
 
       words.push({
         word: normalizedWord,
-        charPosition: match.index, // Position du caractère dans le texte ORIGINAL
+        charPosition: match.index!,
       });
     }
 
-    // 3. Filtrage et collecte des positions
+    // Filtrage et collecte des positions
     const terms: string[] = [];
     const positions = this.config.keepPositions
       ? new Map<string, number[]>()
@@ -90,7 +90,7 @@ export class Tokenizer {
       // Ajouter le terme
       terms.push(word);
 
-      // Enregistrer la position de caractère (pas l'index de token)
+      // Enregistrer la position de caractère
       if (positions) {
         if (!positions.has(word)) {
           positions.set(word, []);

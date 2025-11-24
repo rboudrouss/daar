@@ -43,45 +43,99 @@ export class JaccardCalculator {
     set1: Set<string>,
     set2: Set<string>
   ): number {
-    const intersection = new Set([...set1].filter((x) => set2.has(x)));
-    const union = new Set([...set1, ...set2]);
+    const smallerSet = set1.size < set2.size ? set1 : set2;
+    const largerSet = set1.size < set2.size ? set2 : set1;
 
-    if (union.size === 0) return 0;
+    let intersectionSize = 0;
+    for (const item of smallerSet) {
+      if (largerSet.has(item)) {
+        intersectionSize++;
+      }
+    }
 
-    return intersection.size / union.size;
+    const unionSize = set1.size + set2.size - intersectionSize;
+    if (unionSize === 0) return 0;
+
+    return intersectionSize / unionSize;
   }
 
   /**
-   * Récupère les termes uniques d'un livre
+   * Pré-charge tous les termes de tous les livres en une seule requête
+   * Retourne un Map<bookId, Set<term>>
    */
-  private getBookTerms(bookId: number): Set<string> {
-    const terms = this.db
+  private preloadAllBookTerms(): Map<number, Set<string>> {
+    console.log("Preloading all book terms...");
+    const startTime = Date.now();
+
+    // Une seule requête pour TOUS les livres
+    const allTerms = this.db
       .prepare(
         `
-      SELECT DISTINCT term FROM inverted_index WHERE book_id = ?
+      SELECT book_id, term FROM inverted_index
+      ORDER BY book_id
     `
       )
-      .all(bookId) as Array<{ term: string }>;
+      .all() as Array<{ book_id: number; term: string }>;
 
-    return new Set(terms.map((t) => t.term));
+    // Construire le Map
+    const bookTermsMap = new Map<number, Set<string>>();
+    for (const { book_id, term } of allTerms) {
+      if (!bookTermsMap.has(book_id)) {
+        bookTermsMap.set(book_id, new Set());
+      }
+      bookTermsMap.get(book_id)!.add(term);
+    }
+
+    const elapsed = (Date.now() - startTime) / 1000;
+    console.log(
+      `Preloaded ${allTerms.length} terms for ${bookTermsMap.size} books in ${elapsed.toFixed(2)}s\n`
+    );
+
+    return bookTermsMap;
   }
 
   /**
-   * Récupère tous les livres qui partagent au moins un terme avec le livre donné
+   * Pré-calcule toutes les paires de livres candidats en une seule requête
+   * Retourne un Map<bookId, Set<candidateBookId>>
    */
-  private getCandidateBooks(bookId: number): Set<number> {
-    const candidates = this.db
+  private preloadAllCandidates(bookIds: number[]): Map<number, Set<number>> {
+    console.log("Preloading candidate pairs...");
+    const startTime = Date.now();
+
+    // Une seule requête pour TOUTES les paires de candidats
+    const allCandidates = this.db
       .prepare(
         `
-      SELECT DISTINCT i2.book_id
+      SELECT i1.book_id as book1, i2.book_id as book2
       FROM inverted_index i1
       JOIN inverted_index i2 ON i1.term = i2.term
-      WHERE i1.book_id = ? AND i2.book_id != ?
+      WHERE i1.book_id < i2.book_id
+      GROUP BY i1.book_id, i2.book_id
     `
       )
-      .all(bookId, bookId) as Array<{ book_id: number }>;
+      .all() as Array<{ book1: number; book2: number }>;
 
-    return new Set(candidates.map((c) => c.book_id));
+    // Construire le Map bidirectionnel
+    const candidatesMap = new Map<number, Set<number>>();
+
+    // Initialiser tous les livres
+    for (const bookId of bookIds) {
+      candidatesMap.set(bookId, new Set());
+    }
+
+    // Remplir les candidats (bidirectionnel)
+    for (const { book1, book2 } of allCandidates) {
+      candidatesMap.get(book1)!.add(book2);
+      candidatesMap.get(book2)!.add(book1);
+    }
+
+    const elapsed = (Date.now() - startTime) / 1000;
+    const totalPairs = allCandidates.length;
+    console.log(
+      `Preloaded ${totalPairs} candidate pairs in ${elapsed.toFixed(2)}s\n`
+    );
+
+    return candidatesMap;
   }
 
   /**
@@ -91,6 +145,8 @@ export class JaccardCalculator {
     console.log("\nBuilding Jaccard similarity graph...");
     console.log(`   Threshold: ${this.config.similarityThreshold}`);
     console.log(`   Top-K neighbors: ${this.config.topK}\n`);
+
+    const overallStartTime = Date.now();
 
     // Récupérer tous les IDs de livres
     const books = this.db
@@ -104,13 +160,12 @@ export class JaccardCalculator {
       return 0;
     }
 
-    // Calculer le nombre total de paires
-    const totalPairs = (totalBooks * (totalBooks - 1)) / 2;
-    console.log(
-      `Processing ${totalBooks} books (${totalPairs} potential pairs)...\n`
-    );
+    console.log(`Processing ${totalBooks} books...\n`);
 
-    // Stocker toutes les similarités pour chaque livre (pour le Top-K)
+    const bookTermsMap = this.preloadAllBookTerms();
+
+    const candidatesMap = this.preloadAllCandidates(bookIds);
+
     const allSimilarities = new Map<
       number,
       Array<{ bookId: number; similarity: number }>
@@ -119,18 +174,24 @@ export class JaccardCalculator {
     let processedPairs = 0;
     const startTime = Date.now();
 
+    console.log("Calculating Jaccard similarities...");
+
     // Calculer les similarités
     for (let i = 0; i < totalBooks; i++) {
       const bookId1 = bookIds[i];
-      const terms1 = this.getBookTerms(bookId1);
+      const terms1 = bookTermsMap.get(bookId1);
 
-      // Optimisation : ne comparer qu'avec les livres qui partagent au moins un terme
-      const candidates = this.getCandidateBooks(bookId1);
+      if (!terms1 || terms1.size === 0) continue;
+
+      // Récupérer les candidats pré-calculés
+      const candidates = candidatesMap.get(bookId1) || new Set();
 
       for (const bookId2 of candidates) {
         if (bookId2 <= bookId1) continue; // Éviter les doublons et auto-comparaisons
 
-        const terms2 = this.getBookTerms(bookId2);
+        const terms2 = bookTermsMap.get(bookId2);
+        if (!terms2 || terms2.size === 0) continue;
+
         const similarity = this.calculateJaccardSimilarity(terms1, terms2);
 
         processedPairs++;
@@ -155,7 +216,8 @@ export class JaccardCalculator {
         const percentage = ((i + 1) / totalBooks) * 100;
         const elapsed = (Date.now() - startTime) / 1000;
         const rate = processedPairs / elapsed;
-        const remaining = (totalPairs - processedPairs) / rate;
+        const estimatedTotal = (processedPairs / (i + 1)) * totalBooks;
+        const remaining = (estimatedTotal - processedPairs) / rate;
 
         onProgress({
           currentBook: i + 1,
@@ -167,11 +229,16 @@ export class JaccardCalculator {
       }
     }
 
+    const calcElapsed = (Date.now() - startTime) / 1000;
+    console.log(
+      `\nCalculated ${processedPairs} similarities in ${calcElapsed.toFixed(2)}s`
+    );
+
     // Appliquer le Top-K et insérer dans la DB
     const edges = this.applyTopKAndInsert(allSimilarities);
 
-    const elapsed = (Date.now() - startTime) / 1000;
-    console.log(`\nJaccard graph built in ${elapsed.toFixed(2)}s`);
+    const totalElapsed = (Date.now() - overallStartTime) / 1000;
+    console.log(`\nJaccard graph built in ${totalElapsed.toFixed(2)}s`);
     console.log(`   Processed ${processedPairs} pairs`);
     console.log(
       `   Created ${edges} edges (avg ${(edges / totalBooks).toFixed(1)} per book)\n`

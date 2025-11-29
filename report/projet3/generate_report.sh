@@ -1,0 +1,1 @@
+pandoc *.md --pdf-engine=xelatex -o rapport.pdf

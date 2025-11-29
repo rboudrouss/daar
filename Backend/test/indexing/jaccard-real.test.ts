@@ -14,34 +14,46 @@ const mockDb = {
       };
     }
 
-    // Mock pour récupérer les termes d'un livre
-    if (query.includes("SELECT DISTINCT term FROM inverted_index")) {
+    // Mock pour charger les termes d'un batch de livres
+    // Query: SELECT book_id, term FROM inverted_index WHERE book_id IN (...)
+    if (query.includes("SELECT book_id, term FROM inverted_index") && query.includes("WHERE book_id IN")) {
       return {
-        all: (bookId: number) => {
-          if (bookId === 1) {
-            return [{ term: "hello" }, { term: "world" }, { term: "test" }];
-          } else if (bookId === 2) {
-            return [{ term: "hello" }, { term: "world" }, { term: "foo" }];
-          } else if (bookId === 3) {
-            return [{ term: "bar" }, { term: "baz" }];
+        all: (...bookIds: number[]) => {
+          const results: Array<{ book_id: number; term: string }> = [];
+          for (const bookId of bookIds) {
+            if (bookId === 1) {
+              results.push({ book_id: 1, term: "hello" });
+              results.push({ book_id: 1, term: "world" });
+              results.push({ book_id: 1, term: "test" });
+            } else if (bookId === 2) {
+              results.push({ book_id: 2, term: "hello" });
+              results.push({ book_id: 2, term: "world" });
+              results.push({ book_id: 2, term: "foo" });
+            } else if (bookId === 3) {
+              results.push({ book_id: 3, term: "bar" });
+              results.push({ book_id: 3, term: "baz" });
+            }
           }
-          return [];
+          return results;
         },
       };
     }
 
-    // Mock pour récupérer les livres candidats (qui partagent des termes)
-    if (query.includes("SELECT DISTINCT i2.book_id")) {
+    // Mock pour récupérer les candidats (livres qui partagent des termes)
+    // Query: SELECT i1.book_id as book1, i2.book_id as book2 FROM inverted_index i1 JOIN inverted_index i2 ON i1.term = i2.term WHERE i1.book_id IN (...) AND i1.book_id < i2.book_id GROUP BY i1.book_id, i2.book_id
+    if (query.includes("SELECT i1.book_id as book1, i2.book_id as book2")) {
       return {
-        all: (bookId: number) => {
-          if (bookId === 1) {
-            return [{ book_id: 2 }, { book_id: 3 }];
-          } else if (bookId === 2) {
-            return [{ book_id: 1 }, { book_id: 3 }];
-          } else if (bookId === 3) {
-            return [{ book_id: 1 }, { book_id: 2 }];
+        all: (...bookIds: number[]) => {
+          const results: Array<{ book1: number; book2: number }> = [];
+          // Book 1 shares terms with Book 2 (hello, world)
+          if (bookIds.includes(1)) {
+            results.push({ book1: 1, book2: 2 });
           }
-          return [];
+          // Book 2 shares terms with Book 3 - none actually, but let's add for testing
+          if (bookIds.includes(2)) {
+            results.push({ book1: 2, book2: 3 });
+          }
+          return results;
         },
       };
     }

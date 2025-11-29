@@ -2,7 +2,7 @@
  * Tests pour le Highlighter (code réel)
  */
 
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { Highlighter } from "../../src/search/highlighter";
 import * as fs from "fs";
 import * as path from "path";
@@ -77,6 +77,9 @@ describe("Highlighter - Code réel", () => {
       const terms = ["fox"];
       const positions = new Map([["fox", [16]]]);
 
+      // Spy on console.error to suppress the expected error message
+      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
       const snippets = highlighter.generateSnippets(
         "/nonexistent/file.txt",
         terms,
@@ -84,6 +87,9 @@ describe("Highlighter - Code réel", () => {
       );
 
       expect(snippets).toEqual([]);
+      expect(consoleErrorSpy).toHaveBeenCalledOnce();
+
+      consoleErrorSpy.mockRestore();
     });
 
     it("devrait fusionner des snippets proches", () => {

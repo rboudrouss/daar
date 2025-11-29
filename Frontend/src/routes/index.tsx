@@ -35,6 +35,7 @@ function App() {
   const [hasMore, setHasMore] = useState(true);
 
   const observerTarget = useRef<HTMLDivElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // Load initial data
   useEffect(() => {
@@ -128,12 +129,26 @@ function App() {
     options: AdvancedSearchOptions
   ) {
     if (!query.trim()) {
+      // Annuler toute requête en cours
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+        abortControllerRef.current = null;
+      }
       startTransition(() => {
         setSearchResults([]);
         setHasSearched(false);
       });
       return;
     }
+
+    // Annuler la requête précédente si elle existe
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    // Créer un nouveau AbortController pour cette requête
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
 
     try {
       setIsLoading(true);
@@ -165,7 +180,9 @@ function App() {
 
         const API_BASE_URL =
           import.meta.env.VITE_API_URL || "http://localhost:3000";
-        const res = await fetch(`${API_BASE_URL}/api/search?${params}`);
+        const res = await fetch(`${API_BASE_URL}/api/search?${params}`, {
+          signal: abortController.signal,
+        });
         if (!res.ok) throw new Error("Search failed");
         response = await res.json();
         console.log(response);
@@ -184,7 +201,10 @@ function App() {
         const API_BASE_URL =
           import.meta.env.VITE_API_URL || "http://localhost:3000";
         const res = await fetch(
-          `${API_BASE_URL}/api/search/advanced?${params}`
+          `${API_BASE_URL}/api/search/advanced?${params}`,
+          {
+            signal: abortController.signal,
+          }
         );
         if (!res.ok) throw new Error("Search failed");
         response = await res.json();
@@ -196,12 +216,21 @@ function App() {
         setExecutionTime(response.executionTimeMs);
       });
     } catch (err) {
+      // Ignorer les erreurs d'annulation
+      if (err instanceof Error && err.name === "AbortError") {
+        console.log("Requête annulée");
+        return;
+      }
       setError(err instanceof Error ? err.message : "Search failed");
       startTransition(() => {
         setSearchResults([]);
       });
     } finally {
-      setIsLoading(false);
+      // Ne réinitialiser isLoading que si cette requête n'a pas été annulée
+      if (abortControllerRef.current === abortController) {
+        setIsLoading(false);
+        abortControllerRef.current = null;
+      }
     }
   }
 

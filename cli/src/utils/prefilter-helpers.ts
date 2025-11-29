@@ -71,7 +71,7 @@ export function matchWithPrefilter<TStructure>(
   // Use prefilter if available
   if (prefilterStructure.prefilter) {
     // Split text into lines
-    const lines = text.split('\n');
+    const lines = text.split("\n");
     const allMatches: Match[] = [];
     let currentPos = 0;
 

@@ -157,11 +157,17 @@ export class JaccardCalculator {
     // Traiter par batches pour économiser la RAM
     const PROCESSING_BATCH_SIZE = 50; // Traiter 50 livres à la fois
 
-    for (let batchStart = 0; batchStart < totalBooks; batchStart += PROCESSING_BATCH_SIZE) {
+    for (
+      let batchStart = 0;
+      batchStart < totalBooks;
+      batchStart += PROCESSING_BATCH_SIZE
+    ) {
       const batchEnd = Math.min(batchStart + PROCESSING_BATCH_SIZE, totalBooks);
       const currentBatch = bookIds.slice(batchStart, batchEnd);
 
-      console.log(`Processing batch ${Math.floor(batchStart / PROCESSING_BATCH_SIZE) + 1}/${Math.ceil(totalBooks / PROCESSING_BATCH_SIZE)} (books ${batchStart + 1}-${batchEnd})...`);
+      console.log(
+        `Processing batch ${Math.floor(batchStart / PROCESSING_BATCH_SIZE) + 1}/${Math.ceil(totalBooks / PROCESSING_BATCH_SIZE)} (books ${batchStart + 1}-${batchEnd})...`
+      );
 
       // Charger les termes du batch actuel
       const batchTermsMap = this.loadBookTermsBatch(currentBatch);
@@ -208,11 +214,17 @@ export class JaccardCalculator {
               // Appliquer Top-K progressivement pour limiter la RAM
               if (neighbors1.length > this.config.topK * 2) {
                 neighbors1.sort((a, b) => b.similarity - a.similarity);
-                allSimilarities.set(bookId1, neighbors1.slice(0, this.config.topK));
+                allSimilarities.set(
+                  bookId1,
+                  neighbors1.slice(0, this.config.topK)
+                );
               }
               if (neighbors2.length > this.config.topK * 2) {
                 neighbors2.sort((a, b) => b.similarity - a.similarity);
-                allSimilarities.set(bookId2, neighbors2.slice(0, this.config.topK));
+                allSimilarities.set(
+                  bookId2,
+                  neighbors2.slice(0, this.config.topK)
+                );
               }
             }
           }

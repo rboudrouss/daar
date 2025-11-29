@@ -80,10 +80,7 @@ function flattenResults(testResults: TestResult[]): ExportRow[] {
 /**
  * Export test results to CSV format
  */
-export function exportToCSV(
-  testResults: TestResult[],
-  filename: string
-): void {
+export function exportToCSV(testResults: TestResult[], filename: string): void {
   const rows = flattenResults(testResults);
 
   if (rows.length === 0) {
@@ -128,7 +125,7 @@ export function exportToCSV(
 
   // Write to file
   fs.writeFileSync(filename, csvLines.join("\n"), "utf-8");
-  console.log(`\n✓ Results exported to CSV: ${filename}`);
+  console.log(`\nResults exported to CSV: ${filename}`);
 }
 
 /**
@@ -166,6 +163,5 @@ export function exportToJSON(
 
   // Write to file with pretty formatting
   fs.writeFileSync(filename, JSON.stringify(jsonOutput, null, 2), "utf-8");
-  console.log(`\n✓ Results exported to JSON: ${filename}`);
+  console.log(`\nResults exported to JSON: ${filename}`);
 }
-

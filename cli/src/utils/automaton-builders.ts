@@ -23,7 +23,10 @@ export interface AutomatonStructure {
 /**
  * Build NFA from pattern
  */
-export function buildNFA(pattern: string): { syntaxTree: SyntaxTree; nfa: NFA } {
+export function buildNFA(pattern: string): {
+  syntaxTree: SyntaxTree;
+  nfa: NFA;
+} {
   const syntaxTree = parseRegex(pattern);
   const nfa = nfaFromSyntaxTree(syntaxTree);
   return { syntaxTree, nfa };
@@ -75,4 +78,3 @@ export function getDFAStructureSize(dfa: DFA): { nodes: number; kb: number } {
     kb: calculateStructureSize(dfa),
   };
 }
-

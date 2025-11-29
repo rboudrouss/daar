@@ -281,9 +281,10 @@ function computeLengthBounds(tree: SyntaxTree): { min: number; max: number } {
     const right = computeLengthBounds(tree.right);
     return {
       min: left.min + right.min,
-      max: left.max === Infinity || right.max === Infinity
-        ? Infinity
-        : left.max + right.max,
+      max:
+        left.max === Infinity || right.max === Infinity
+          ? Infinity
+          : left.max + right.max,
     };
   } else if (tree.type === "alt") {
     const left = computeLengthBounds(tree.left);
@@ -395,4 +396,3 @@ function tryConvertToSqlLike(tree: SyntaxTree): string | null {
 
   return null;
 }
-

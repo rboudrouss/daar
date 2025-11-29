@@ -131,4 +131,3 @@ describe("SemanticSearch - Code réel avec mock DB", () => {
     });
   });
 });
-

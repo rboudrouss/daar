@@ -151,4 +151,3 @@ describe("Tokenizer - Code réel", () => {
     });
   });
 });
-

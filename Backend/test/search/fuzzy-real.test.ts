@@ -139,10 +139,19 @@ describe("FuzzyMatcher - Code réel", () => {
     const matcher = new FuzzyMatcher();
     const availableTerms = ["hello", "hallo", "world"];
 
-    const matches1 = matcher.findMatchingTerms("hello", availableTerms, true, 1);
-    const matches2 = matcher.findMatchingTerms("hello", availableTerms, true, 1);
+    const matches1 = matcher.findMatchingTerms(
+      "hello",
+      availableTerms,
+      true,
+      1
+    );
+    const matches2 = matcher.findMatchingTerms(
+      "hello",
+      availableTerms,
+      true,
+      1
+    );
 
     expect(matches1).toEqual(matches2);
   });
 });
-

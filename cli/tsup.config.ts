@@ -1,18 +1,17 @@
-import { defineConfig } from 'tsup'
+import { defineConfig } from "tsup";
 
 export default defineConfig({
-  entry: ['src/index.ts'],
-  format: ['cjs'],
+  entry: ["src/index.ts"],
+  format: ["cjs"],
   dts: true,
   sourcemap: true,
   clean: true,
-  platform: 'node',
+  platform: "node",
   noExternal: [/.*/],
   minify: true,
   treeshake: true,
   shims: true,
   banner: {
-    js: '#!/usr/bin/env -S node --expose-gc',
+    js: "#!/usr/bin/env -S node --expose-gc",
   },
-})
-
+});

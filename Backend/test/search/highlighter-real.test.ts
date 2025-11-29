@@ -78,7 +78,9 @@ describe("Highlighter - Code réel", () => {
       const positions = new Map([["fox", [16]]]);
 
       // Spy on console.error to suppress the expected error message
-      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+      const consoleErrorSpy = vi
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
 
       const snippets = highlighter.generateSnippets(
         "/nonexistent/file.txt",
@@ -181,4 +183,3 @@ describe("Highlighter - Code réel", () => {
     });
   });
 });
-

@@ -163,4 +163,3 @@ describe("RecommendationEngine - Code réel avec mock DB", () => {
     });
   });
 });
-

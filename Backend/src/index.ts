@@ -68,7 +68,8 @@ app.route("/api/search", searchRoutes);
 
 // Servir le frontend (fichiers statiques)
 // En production, le frontend buildé sera dans ../frontend/dist
-const frontendPath = process.env.FRONTEND_PATH || path.join(__dirname, "../../Frontend/dist");
+const frontendPath =
+  process.env.FRONTEND_PATH || path.join(__dirname, "../../Frontend/dist");
 
 app.use("/*", serveStatic({ root: frontendPath }));
 

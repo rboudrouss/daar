@@ -152,7 +152,8 @@ export class BookIndexer {
         try {
           // Lire et tokenizer
           const content = readFileSync(metadata.filePath, "utf-8");
-          const { terms, positions, totalTokens } = this.tokenizer.tokenize(content);
+          const { terms, positions, totalTokens } =
+            this.tokenizer.tokenize(content);
 
           // Insérer le livre
           const result = this.stmtInsertBook.run(
@@ -244,7 +245,9 @@ export class BookIndexer {
   public updateLibraryMetadataFromDB(): void {
     // Compter tous les livres et leurs mots
     const booksResult = this.db
-      .prepare("SELECT COUNT(*) as count, SUM(word_count) as total_words FROM books")
+      .prepare(
+        "SELECT COUNT(*) as count, SUM(word_count) as total_words FROM books"
+      )
       .get() as { count: number; total_words: number | null };
 
     const totalBooks = booksResult.count;

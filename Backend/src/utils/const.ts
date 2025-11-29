@@ -153,21 +153,11 @@ export function getSearchScoringOccurrenceWeight(): number {
 }
 
 export function getSearchScoringK1(): number {
-  return getConfig(
-    "SEARCH_SCORING_K1",
-    "SEARCH_SCORING_K1",
-    1.2,
-    "number"
-  );
+  return getConfig("SEARCH_SCORING_K1", "SEARCH_SCORING_K1", 1.2, "number");
 }
 
 export function getSearchScoringB(): number {
-  return getConfig(
-    "SEARCH_SCORING_B",
-    "SEARCH_SCORING_B",
-    0.75,
-    "number"
-  );
+  return getConfig("SEARCH_SCORING_B", "SEARCH_SCORING_B", 0.75, "number");
 }
 
 export function getSearchScoringEnableProximityBonus(): boolean {

@@ -16,7 +16,10 @@ const mockDb = {
 
     // Mock pour charger les termes d'un batch de livres
     // Query: SELECT book_id, term FROM inverted_index WHERE book_id IN (...)
-    if (query.includes("SELECT book_id, term FROM inverted_index") && query.includes("WHERE book_id IN")) {
+    if (
+      query.includes("SELECT book_id, term FROM inverted_index") &&
+      query.includes("WHERE book_id IN")
+    ) {
       return {
         all: (...bookIds: number[]) => {
           const results: Array<{ book_id: number; term: string }> = [];
@@ -144,4 +147,3 @@ describe("JaccardCalculator - Code réel avec mock DB", () => {
     });
   });
 });
-

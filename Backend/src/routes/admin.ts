@@ -107,7 +107,7 @@ app.post("/import-gutenberg", async (c) => {
               coverImagePath: book.coverImagePath,
             });
             successCount++;
-            console.log(`✓ Successfully indexed: ${book.title}`);
+            console.log(`Successfully indexed: ${book.title}`);
           } catch (error) {
             console.error(`Failed to index ${book.title}:`, error);
             failedIds.push(bookId);
@@ -298,7 +298,7 @@ app.post("/reindex", async (c) => {
     console.log("\nUpdating library metadata...");
     indexer.updateLibraryMetadataFromDB();
 
-    console.log(`✓ Successfully reindexed ${reindexedCount} books`);
+    console.log(`Successfully reindexed ${reindexedCount} books`);
 
     return c.json({
       success: true,
@@ -328,7 +328,7 @@ app.post("/update-stats", async (c) => {
     const indexer = new BookIndexer();
     indexer.updateLibraryMetadataFromDB();
 
-    console.log("✓ Library statistics updated successfully");
+    console.log("Library statistics updated successfully");
 
     return c.json({
       success: true,
@@ -380,16 +380,13 @@ app.put("/config", async (c) => {
     const { key, value } = body;
 
     if (!key || value === undefined) {
-      return c.json(
-        { error: "Missing required fields: key and value" },
-        400
-      );
+      return c.json({ error: "Missing required fields: key and value" }, 400);
     }
 
     // Update the configuration
     updateConfig(key, value);
 
-    console.log(`✓ Configuration updated: ${key} = ${value}`);
+    console.log(`Configuration updated: ${key} = ${value}`);
 
     return c.json({
       success: true,

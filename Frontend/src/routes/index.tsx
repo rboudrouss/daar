@@ -289,7 +289,7 @@ function App() {
             </div>
             <div>
               <strong>PageRank:</strong>{" "}
-              {stats.pageRankCalculated ? "✓ Calculated" : "✗ Not calculated"}
+              {stats.pageRankCalculated ? "Calculated" : "Not calculated"}
             </div>
           </div>
         </div>

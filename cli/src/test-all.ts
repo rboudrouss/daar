@@ -146,7 +146,8 @@ const TEST_SCENARIOS: TestScenario[] = [
     name: "Prefilter - Thematic Words After 'the'",
     pattern: "the (soul|body|mind|dead|life|world|death)",
     text: "In the soul of man there lies the body and mind. The dead cannot speak but the life continues. The world turns and the death comes to all.",
-    description: "Common thematic words after 'the' - all literals >= 4 chars for good prefiltering",
+    description:
+      "Common thematic words after 'the' - all literals >= 4 chars for good prefiltering",
   },
   {
     name: "Prefilter - Common Suffixes",
@@ -156,7 +157,8 @@ const TEST_SCENARIOS: TestScenario[] = [
   },
   {
     name: "Prefilter - Subject-Verb Patterns",
-    pattern: "(I|You|He|She|It|We|They) (was|were|had|been|said|made|came|went)",
+    pattern:
+      "(I|You|He|She|It|We|They) (was|were|had|been|said|made|came|went)",
     text: "I was there when He said it. She had been waiting while They were coming. We made plans and You came along. It went well.",
     description: "Subject-verb combinations - literals >= 2-4 chars",
   },
@@ -164,25 +166,29 @@ const TEST_SCENARIOS: TestScenario[] = [
     name: "Prefilter - Common Words Repeated",
     pattern: "(the|and|that|with|from)(.*)(the|and|that|with|from)",
     text: "The man walked through the forest and found treasure and gold. That which came from that place was valuable. With care and with patience, all was achieved.",
-    description: "Common words appearing twice - tests concatenation with 3-4 char literals",
+    description:
+      "Common words appearing twice - tests concatenation with 3-4 char literals",
   },
   {
     name: "Prefilter - URL-like Patterns",
     pattern: "(www\\.)*(.*)\\.(com|org|net|edu)",
     text: "Visit example.com or contact us at info.org. Educational resources at university.edu and networking at social.net are available.",
-    description: "Domain-like suffixes - good for prefiltering with 3 char literals",
+    description:
+      "Domain-like suffixes - good for prefiltering with 3 char literals",
   },
   {
     name: "Prefilter - Code Keywords",
     pattern: "(function|class|const|return|import)",
     text: "function main() { const value = 42; return value; } class MyClass { import something; }",
-    description: "Programming keywords - literals >= 5 chars for excellent prefiltering",
+    description:
+      "Programming keywords - literals >= 5 chars for excellent prefiltering",
   },
   {
     name: "Prefilter - Article-Noun Patterns",
     pattern: "(the|a|an) (cat|dog|bird|fish|tree|house|car)",
     text: "The cat sat on a mat. A dog chased the bird while an fish swam. The tree stood near a house and the car.",
-    description: "Article followed by common nouns - mixed literal lengths 1-5 chars",
+    description:
+      "Article followed by common nouns - mixed literal lengths 1-5 chars",
   },
 
   // Edge cases
@@ -219,7 +225,12 @@ const TEST_SCENARIOS: TestScenario[] = [
   {
     name: "Performance - Sparse Matches",
     pattern: "(rare|uncommon|infrequent)",
-    text: "common words " + "typical usual normal ordinary ".repeat(100) + " rare " + "typical usual normal ordinary ".repeat(100) + " uncommon",
+    text:
+      "common words " +
+      "typical usual normal ordinary ".repeat(100) +
+      " rare " +
+      "typical usual normal ordinary ".repeat(100) +
+      " uncommon",
     description: "Few matches in large text - prefilter should skip most text",
   },
   {
@@ -292,7 +303,7 @@ function matchLineByLine<T>(
   matchFn: (structure: T, line: string) => Match[],
   structure: T
 ): Match[] {
-  const lines = text.split('\n');
+  const lines = text.split("\n");
   const allMatches: Match[] = [];
   let currentPos = 0;
 

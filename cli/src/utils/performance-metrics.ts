@@ -106,9 +106,7 @@ function printPrefilterStats(metrics: PerformanceMetrics): void {
     console.error(
       `  - Literals:         ${metrics.prefilterStats.literals.join(", ")}`
     );
-    console.error(
-      `  - Algorithm:        ${metrics.prefilterStats.algorithm}`
-    );
+    console.error(`  - Algorithm:        ${metrics.prefilterStats.algorithm}`);
   }
 }
 

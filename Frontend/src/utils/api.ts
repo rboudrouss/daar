@@ -83,7 +83,7 @@ export async function searchBooks(
  * @param limit - Maximum number of results
  *
  * @example
- * advancedSearch("cat|dog", 20)  // ✓ Correct
+ * advancedSearch("cat|dog", 20)  // Correct
  * advancedSearch("/cat|dog/", 20) // ✗ Wrong - do not use slashes
  */
 export async function advancedSearch(

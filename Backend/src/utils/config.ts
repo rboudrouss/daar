@@ -115,4 +115,3 @@ export function getAllConfig(): Record<string, any> {
 
   return result;
 }
-

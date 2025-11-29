@@ -147,7 +147,10 @@ describe("BookIndexer - Code réel avec mock DB", () => {
   describe("Réindexation d'un livre", () => {
     it("devrait réindexer un livre existant", () => {
       // Créer un nouveau fichier pour ce test
-      const reindexFilePath = path.join("/tmp", `test-reindex-${Date.now()}.txt`);
+      const reindexFilePath = path.join(
+        "/tmp",
+        `test-reindex-${Date.now()}.txt`
+      );
       fs.writeFileSync(reindexFilePath, testContent, "utf-8");
 
       try {
@@ -188,4 +191,3 @@ describe("BookIndexer - Code réel avec mock DB", () => {
     });
   });
 });
-

@@ -26,28 +26,27 @@ export function buildSqlQuery(
   termColumn: string = "term"
 ): SqlQuery {
   switch (analysis.type) {
-    case "match_all":
-      // OPTIMISATION #3: Pattern qui matche tout - pas besoin de NFA
-      {
-        const conditions: string[] = [];
-        const params: any[] = [];
+    case "match_all": // OPTIMISATION #3: Pattern qui matche tout - pas besoin de NFA
+    {
+      const conditions: string[] = [];
+      const params: any[] = [];
 
-        // Ajouter contraintes de longueur si disponibles
-        if (analysis.minLength !== undefined && analysis.minLength > 0) {
-          conditions.push(`LENGTH(${termColumn}) >= ?`);
-          params.push(analysis.minLength);
-        }
-        if (analysis.maxLength !== undefined && analysis.maxLength !== Infinity) {
-          conditions.push(`LENGTH(${termColumn}) <= ?`);
-          params.push(analysis.maxLength);
-        }
-
-        return {
-          whereClause: conditions.length > 0 ? conditions.join(" AND ") : "1=1",
-          parameters: params,
-          needsNfaFiltering: false, // Pas besoin de NFA pour match-all
-        };
+      // Ajouter contraintes de longueur si disponibles
+      if (analysis.minLength !== undefined && analysis.minLength > 0) {
+        conditions.push(`LENGTH(${termColumn}) >= ?`);
+        params.push(analysis.minLength);
       }
+      if (analysis.maxLength !== undefined && analysis.maxLength !== Infinity) {
+        conditions.push(`LENGTH(${termColumn}) <= ?`);
+        params.push(analysis.maxLength);
+      }
+
+      return {
+        whereClause: conditions.length > 0 ? conditions.join(" AND ") : "1=1",
+        parameters: params,
+        needsNfaFiltering: false, // Pas besoin de NFA pour match-all
+      };
+    }
 
     case "exact":
       // Correspondance exacte - pas besoin de NFA
@@ -59,8 +58,13 @@ export function buildSqlQuery(
 
     case "alternation":
       // Alternation de littéraux - pas besoin de NFA
-      if (analysis.alternationLiterals && analysis.alternationLiterals.length > 0) {
-        const placeholders = analysis.alternationLiterals.map(() => "?").join(",");
+      if (
+        analysis.alternationLiterals &&
+        analysis.alternationLiterals.length > 0
+      ) {
+        const placeholders = analysis.alternationLiterals
+          .map(() => "?")
+          .join(",");
         return {
           whereClause: `${termColumn} IN (${placeholders})`,
           parameters: analysis.alternationLiterals,
@@ -84,7 +88,10 @@ export function buildSqlQuery(
             conditions.push(`LENGTH(${termColumn}) >= ?`);
             params.push(analysis.minLength);
           }
-          if (analysis.maxLength !== undefined && analysis.maxLength !== Infinity) {
+          if (
+            analysis.maxLength !== undefined &&
+            analysis.maxLength !== Infinity
+          ) {
             conditions.push(`LENGTH(${termColumn}) <= ?`);
             params.push(analysis.maxLength);
           }
@@ -113,7 +120,10 @@ export function buildSqlQuery(
             conditions.push(`LENGTH(${termColumn}) >= ?`);
             params.push(analysis.minLength);
           }
-          if (analysis.maxLength !== undefined && analysis.maxLength !== Infinity) {
+          if (
+            analysis.maxLength !== undefined &&
+            analysis.maxLength !== Infinity
+          ) {
             conditions.push(`LENGTH(${termColumn}) <= ?`);
             params.push(analysis.maxLength);
           }
@@ -142,7 +152,10 @@ export function buildSqlQuery(
             conditions.push(`LENGTH(${termColumn}) >= ?`);
             params.push(analysis.minLength);
           }
-          if (analysis.maxLength !== undefined && analysis.maxLength !== Infinity) {
+          if (
+            analysis.maxLength !== undefined &&
+            analysis.maxLength !== Infinity
+          ) {
             conditions.push(`LENGTH(${termColumn}) <= ?`);
             params.push(analysis.maxLength);
           }
@@ -176,7 +189,10 @@ export function buildSqlQuery(
             conditions.push(`LENGTH(${termColumn}) >= ?`);
             params.push(analysis.minLength);
           }
-          if (analysis.maxLength !== undefined && analysis.maxLength !== Infinity) {
+          if (
+            analysis.maxLength !== undefined &&
+            analysis.maxLength !== Infinity
+          ) {
             conditions.push(`LENGTH(${termColumn}) <= ?`);
             params.push(analysis.maxLength);
           }
@@ -190,33 +206,35 @@ export function buildSqlQuery(
       }
       break;
 
-    case "complex":
-      // Pattern complexe sans littéraux
-      // OPTIMISATION #5: Utiliser les contraintes de longueur si disponibles
-      {
-        const conditions: string[] = [];
-        const params: any[] = [];
+    case "complex": // Pattern complexe sans littéraux
+    // OPTIMISATION #5: Utiliser les contraintes de longueur si disponibles
+    {
+      const conditions: string[] = [];
+      const params: any[] = [];
 
-        if (analysis.exactLength !== undefined) {
-          conditions.push(`LENGTH(${termColumn}) = ?`);
-          params.push(analysis.exactLength);
-        } else {
-          if (analysis.minLength !== undefined && analysis.minLength > 0) {
-            conditions.push(`LENGTH(${termColumn}) >= ?`);
-            params.push(analysis.minLength);
-          }
-          if (analysis.maxLength !== undefined && analysis.maxLength !== Infinity) {
-            conditions.push(`LENGTH(${termColumn}) <= ?`);
-            params.push(analysis.maxLength);
-          }
+      if (analysis.exactLength !== undefined) {
+        conditions.push(`LENGTH(${termColumn}) = ?`);
+        params.push(analysis.exactLength);
+      } else {
+        if (analysis.minLength !== undefined && analysis.minLength > 0) {
+          conditions.push(`LENGTH(${termColumn}) >= ?`);
+          params.push(analysis.minLength);
         }
-
-        return {
-          whereClause: conditions.length > 0 ? conditions.join(" AND ") : "1=1",
-          parameters: params,
-          needsNfaFiltering: true,
-        };
+        if (
+          analysis.maxLength !== undefined &&
+          analysis.maxLength !== Infinity
+        ) {
+          conditions.push(`LENGTH(${termColumn}) <= ?`);
+          params.push(analysis.maxLength);
+        }
       }
+
+      return {
+        whereClause: conditions.length > 0 ? conditions.join(" AND ") : "1=1",
+        parameters: params,
+        needsNfaFiltering: true,
+      };
+    }
   }
 
   // Fallback: pas de filtrage SQL, retourner tous les termes
@@ -236,4 +254,3 @@ export function buildSqlQuery(
 function escapeSqlLike(literal: string): string {
   return literal.replace(/%/g, "\\%").replace(/_/g, "\\_");
 }
-

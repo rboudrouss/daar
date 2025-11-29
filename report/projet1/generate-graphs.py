@@ -417,7 +417,7 @@ if len(worst_case_data) > 0:
 else:
     print("  -> Aucune donnée pour le cas pathologique")
 
-print("\n✓ Tous les graphiques ont été générés avec succès!")
+print("\nTous les graphiques ont été générés avec succès!")
 print("\nGraphiques générés:")
 print("  1. graph1_kmp_vs_boyermoore.png - Justifie le choix KMP vs Boyer-Moore")
 print("  2. graph2_structure_size.png - Justifie l'intérêt de la minimisation")

@@ -74,7 +74,8 @@ const mockDb = {
     if (query.includes("SELECT title FROM books")) {
       return {
         get: (bookId: number) => {
-          if (bookId === 1) return { title: "The Adventures of Sherlock Holmes" };
+          if (bookId === 1)
+            return { title: "The Adventures of Sherlock Holmes" };
           if (bookId === 2) return { title: "Pride and Prejudice" };
           if (bookId === 3) return { title: "A Tale of Two Cities" };
           return { title: "Unknown Book" };
@@ -152,7 +153,10 @@ describe("ScoringEngine - Code réel avec mock DB", () => {
 
   describe("Bonus de proximité", () => {
     it("devrait calculer le bonus de proximité pour des termes proches", () => {
-      const bonus = scoringEngine.calculateProximityBonus(1, ["hello", "world"]);
+      const bonus = scoringEngine.calculateProximityBonus(1, [
+        "hello",
+        "world",
+      ]);
 
       // Les termes sont à distance 1, devrait avoir un bon bonus
       expect(bonus).toBeGreaterThan(1.0);
@@ -176,31 +180,48 @@ describe("ScoringEngine - Code réel avec mock DB", () => {
 
   describe("Bonus de titre", () => {
     it("devrait retourner 2.0 quand tous les termes sont dans le titre", () => {
-      const bonus = scoringEngine.calculateTitleBonus(1, ["adventures", "sherlock"]);
+      const bonus = scoringEngine.calculateTitleBonus(1, [
+        "adventures",
+        "sherlock",
+      ]);
 
       expect(bonus).toBe(2.0);
     });
 
     it("devrait retourner 1.5 quand au moins la moitié des termes sont dans le titre", () => {
-      const bonus = scoringEngine.calculateTitleBonus(1, ["sherlock", "watson"]);
+      const bonus = scoringEngine.calculateTitleBonus(1, [
+        "sherlock",
+        "watson",
+      ]);
 
       expect(bonus).toBe(1.5);
     });
 
     it("devrait retourner 1.2 quand au moins un terme est dans le titre", () => {
-      const bonus = scoringEngine.calculateTitleBonus(1, ["sherlock", "watson", "mystery", "detective"]);
+      const bonus = scoringEngine.calculateTitleBonus(1, [
+        "sherlock",
+        "watson",
+        "mystery",
+        "detective",
+      ]);
 
       expect(bonus).toBe(1.2);
     });
 
     it("devrait retourner 1.0 quand aucun terme n'est dans le titre", () => {
-      const bonus = scoringEngine.calculateTitleBonus(1, ["pride", "prejudice"]);
+      const bonus = scoringEngine.calculateTitleBonus(1, [
+        "pride",
+        "prejudice",
+      ]);
 
       expect(bonus).toBe(1.0);
     });
 
     it("devrait être insensible à la casse", () => {
-      const bonus = scoringEngine.calculateTitleBonus(1, ["SHERLOCK", "HOLMES"]);
+      const bonus = scoringEngine.calculateTitleBonus(1, [
+        "SHERLOCK",
+        "HOLMES",
+      ]);
 
       expect(bonus).toBe(2.0);
     });
@@ -225,4 +246,3 @@ describe("ScoringEngine - Code réel avec mock DB", () => {
     });
   });
 });
-

@@ -102,18 +102,27 @@ export function printTestSuiteFooter(
   // Print memory measurement disclaimer
   console.log("\n" + "<!>  MEMORY MEASUREMENT DISCLAIMER".padStart(60));
   console.log("-".repeat(100));
-  console.log("Memory measurements shown above are NOT reliable and are provided only to give a rough idea.");
+  console.log(
+    "Memory measurements shown above are NOT reliable and are provided only to give a rough idea."
+  );
   console.log("They are affected by:");
   console.log("  • Garbage collection timing (unpredictable)");
   console.log("  • Shared heap memory (includes temporary objects)");
   console.log("  • V8 engine internals (hidden classes, inline caches, etc.)");
   console.log("  • Measurement overhead");
-  console.log("\nFor reliable size estimates, refer to the 'Structure Size' column instead.");
-  console.log("Structure Size is calculated from the data structure itself and is consistent.");
+  console.log(
+    "\nFor reliable size estimates, refer to the 'Structure Size' column instead."
+  );
+  console.log(
+    "Structure Size is calculated from the data structure itself and is consistent."
+  );
 
   // Print GC warning if not available
   if (!gcAvailable) {
-    console.log("\n" + "<!>  WARNING: --expose-gc NOT ENABLED. Memory measurements are even less reliable without manual garbage collection.");
+    console.log(
+      "\n" +
+        "<!>  WARNING: --expose-gc NOT ENABLED. Memory measurements are even less reliable without manual garbage collection."
+    );
   }
 
   console.log("=".repeat(100) + "\n");

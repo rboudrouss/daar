@@ -80,6 +80,49 @@ export class ScoringEngine {
   }
 
   /**
+   * Calcule le bonus de titre si les termes de recherche apparaissent dans le titre
+   * Retourne un multiplicateur entre 1.0 (pas dans le titre) et 2.0 (tous les termes dans le titre)
+   */
+  calculateTitleBonus(bookId: number, queryTerms: string[]): number {
+    if (queryTerms.length === 0) return 1.0;
+
+    // Récupérer le titre du livre
+    const result = this.db
+      .prepare(
+        `
+        SELECT title FROM books WHERE id = ?
+      `
+      )
+      .get(bookId) as { title: string } | undefined;
+
+    if (!result) return 1.0;
+
+    // Normaliser le titre (lowercase pour comparaison insensible à la casse)
+    const titleLower = result.title.toLowerCase();
+
+    // Compter combien de termes de la requête apparaissent dans le titre
+    let matchingTerms = 0;
+    for (const term of queryTerms) {
+      if (titleLower.includes(term.toLowerCase())) {
+        matchingTerms++;
+      }
+    }
+
+    // Calculer le bonus basé sur le pourcentage de termes trouvés
+    const matchRatio = matchingTerms / queryTerms.length;
+
+    if (matchRatio === 1.0) {
+      return 2.0; // Tous les termes dans le titre : bonus x2
+    } else if (matchRatio >= 0.5) {
+      return 1.5; // Au moins la moitié des termes : bonus x1.5
+    } else if (matchRatio > 0) {
+      return 1.2; // Au moins un terme : bonus x1.2
+    } else {
+      return 1.0; // Aucun terme dans le titre : pas de bonus
+    }
+  }
+
+  /**
    * Calcule le bonus de proximité basé sur les positions des termes
    * Retourne un multiplicateur entre 1.0 (pas de proximité) et 3.0 (phrase exacte)
    */
@@ -237,6 +280,10 @@ export class ScoringEngine {
       score *= proximityBonus;
     }
 
+    // Appliquer le bonus de titre
+    const titleBonus = this.calculateTitleBonus(bookId, queryTerms);
+    score *= titleBonus;
+
     return score;
   }
 
@@ -357,6 +404,10 @@ export class ScoringEngine {
       const proximityBonus = this.calculateProximityBonus(bookId, queryTerms);
       score *= proximityBonus;
     }
+
+    // Appliquer le bonus de titre
+    const titleBonus = this.calculateTitleBonus(bookId, queryTerms);
+    score *= titleBonus;
 
     return score;
   }

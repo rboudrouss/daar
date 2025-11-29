@@ -19,7 +19,7 @@ import {
   RECOMMENDATION_DEFAULT_LIMIT,
   SEARCH_FUZZY_DEFAULT_MAX_DISTANCE,
   STOP_WORDS,
-  TOKENIZER_IGNORE_STOP_WORDS,
+  getTokenizerIgnoreStopWords,
 } from "../utils/const.js";
 import {
   parseRegex,
@@ -606,7 +606,7 @@ export class SearchEngine {
     const positions = new Map<string, number[]>();
 
     for (const term of new Set(queryTerms)) {
-      if (TOKENIZER_IGNORE_STOP_WORDS && STOP_WORDS.has(term.toLowerCase()))
+      if (getTokenizerIgnoreStopWords() && STOP_WORDS.has(term.toLowerCase()))
         continue;
       const result = this.db
         .prepare(

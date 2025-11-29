@@ -12,7 +12,8 @@ import {
 import { BookIndexer } from "../indexing/indexer";
 import { JaccardCalculator } from "../indexing/jaccard";
 import { PageRankCalculator } from "../indexing/pagerank";
-import { GUTENBERG_BATCH_SIZE } from "../utils/const";
+import { getGutenbergBatchSize } from "../utils/const";
+import { getAllConfig, updateConfig } from "../utils/config";
 
 const app = new Hono();
 
@@ -59,13 +60,14 @@ app.post("/import-gutenberg", async (c) => {
     }
 
     // Traiter par batches
+    const batchSize = getGutenbergBatchSize();
     const batches: number[][] = [];
-    for (let i = 0; i < bookIds.length; i += GUTENBERG_BATCH_SIZE) {
-      batches.push(bookIds.slice(i, i + GUTENBERG_BATCH_SIZE));
+    for (let i = 0; i < bookIds.length; i += batchSize) {
+      batches.push(bookIds.slice(i, i + batchSize));
     }
 
     console.log(
-      `Processing ${bookIds.length} books in ${batches.length} batches of ${GUTENBERG_BATCH_SIZE}`
+      `Processing ${bookIds.length} books in ${batches.length} batches of ${batchSize}`
     );
 
     let processedCount = 0;
@@ -337,6 +339,69 @@ app.post("/update-stats", async (c) => {
     return c.json(
       {
         error: "Failed to update library statistics",
+        message: error instanceof Error ? error.message : String(error),
+      },
+      500
+    );
+  }
+});
+
+/**
+ * GET /api/admin/config
+ * Get all configuration values
+ */
+app.get("/config", async (c) => {
+  try {
+    const config = getAllConfig();
+    return c.json({
+      success: true,
+      config,
+    });
+  } catch (error) {
+    console.error("Error getting configuration:", error);
+    return c.json(
+      {
+        error: "Failed to get configuration",
+        message: error instanceof Error ? error.message : String(error),
+      },
+      500
+    );
+  }
+});
+
+/**
+ * PUT /api/admin/config
+ * Update configuration values
+ * Body: { key: string, value: string | number | boolean }
+ */
+app.put("/config", async (c) => {
+  try {
+    const body = await c.req.json();
+    const { key, value } = body;
+
+    if (!key || value === undefined) {
+      return c.json(
+        { error: "Missing required fields: key and value" },
+        400
+      );
+    }
+
+    // Update the configuration
+    updateConfig(key, value);
+
+    console.log(`✓ Configuration updated: ${key} = ${value}`);
+
+    return c.json({
+      success: true,
+      message: `Configuration '${key}' updated successfully`,
+      key,
+      value,
+    });
+  } catch (error) {
+    console.error("Error updating configuration:", error);
+    return c.json(
+      {
+        error: "Failed to update configuration",
         message: error instanceof Error ? error.message : String(error),
       },
       500

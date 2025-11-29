@@ -4,10 +4,10 @@
  */
 
 import {
-  TOKENIZER_IGNORE_STOP_WORDS,
-  TOKENIZER_MIN_WORD_LENGTH,
-  TOKENIZER_CASE_SENSITIVE,
-  TOKENIZER_KEEP_POSITIONS,
+  getTokenizerIgnoreStopWords,
+  getTokenizerMinWordLength,
+  getTokenizerCaseSensitive,
+  getTokenizerKeepPositions,
   STOP_WORDS,
 } from "../utils/const";
 
@@ -38,10 +38,10 @@ export class Tokenizer {
 
   constructor(config: Partial<TokenizerConfig> = {}) {
     this.config = {
-      removeStopWords: config.removeStopWords ?? TOKENIZER_IGNORE_STOP_WORDS,
-      minWordLength: config.minWordLength ?? TOKENIZER_MIN_WORD_LENGTH,
-      caseSensitive: config.caseSensitive ?? TOKENIZER_CASE_SENSITIVE,
-      keepPositions: config.keepPositions ?? TOKENIZER_KEEP_POSITIONS,
+      removeStopWords: config.removeStopWords ?? getTokenizerIgnoreStopWords(),
+      minWordLength: config.minWordLength ?? getTokenizerMinWordLength(),
+      caseSensitive: config.caseSensitive ?? getTokenizerCaseSensitive(),
+      keepPositions: config.keepPositions ?? getTokenizerKeepPositions(),
     };
   }
 
@@ -80,7 +80,7 @@ export class Tokenizer {
 
       // Filtrer les stop words
       if (
-        TOKENIZER_IGNORE_STOP_WORDS &&
+        getTokenizerIgnoreStopWords() &&
         this.config.removeStopWords &&
         STOP_WORDS.has(word)
       ) {

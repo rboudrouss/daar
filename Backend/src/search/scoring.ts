@@ -5,12 +5,12 @@
 
 import { getDatabase } from "../db/connection.js";
 import {
-  SEARCH_SCORING_BM25_WEIGHT,
-  SEARCH_SCORING_PAGERANK_WEIGHT,
-  SEARCH_SCORING_OCCURRENCE_WEIGHT,
-  SEARCH_SCORING_K1,
-  SEARCH_SCORING_B,
-  SEARCH_SCORING_ENABLE_PROXIMITY_BONUS,
+  getSearchScoringBm25Weight,
+  getSearchScoringPagerankWeight,
+  getSearchScoringOccurrenceWeight,
+  getSearchScoringK1,
+  getSearchScoringB,
+  getSearchScoringEnableProximityBonus,
 } from "../utils/const.js";
 import { ScoringConfig } from "../utils/types.js";
 
@@ -29,14 +29,14 @@ export class ScoringEngine {
   constructor(config: Partial<ScoringConfig> = {}) {
     this.db = getDatabase();
     this.config = {
-      bm25Weight: config.bm25Weight ?? SEARCH_SCORING_BM25_WEIGHT,
-      pageRankWeight: config.pageRankWeight ?? SEARCH_SCORING_PAGERANK_WEIGHT,
+      bm25Weight: config.bm25Weight ?? getSearchScoringBm25Weight(),
+      pageRankWeight: config.pageRankWeight ?? getSearchScoringPagerankWeight(),
       occurrenceWeight:
-        config.occurrenceWeight ?? SEARCH_SCORING_OCCURRENCE_WEIGHT,
-      k1: config.k1 ?? SEARCH_SCORING_K1,
-      b: config.b ?? SEARCH_SCORING_B,
+        config.occurrenceWeight ?? getSearchScoringOccurrenceWeight(),
+      k1: config.k1 ?? getSearchScoringK1(),
+      b: config.b ?? getSearchScoringB(),
       enableProximityBonus:
-        config.enableProximityBonus ?? SEARCH_SCORING_ENABLE_PROXIMITY_BONUS,
+        config.enableProximityBonus ?? getSearchScoringEnableProximityBonus(),
     };
 
     // Charger les statistiques de la bibliothèque

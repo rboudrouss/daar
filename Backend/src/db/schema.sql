@@ -85,3 +85,37 @@ INSERT OR IGNORE INTO library_metadata (key, value) VALUES
   ('last_indexed', ''),
   ('last_gutenberg_id', '0');
 
+-- Configuration de l'application
+CREATE TABLE IF NOT EXISTS app_config (
+  key TEXT PRIMARY KEY,
+  value TEXT NOT NULL,
+  type TEXT NOT NULL CHECK(type IN ('string', 'number', 'boolean')),
+  description TEXT,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Initialiser les configurations par défaut
+INSERT OR IGNORE INTO app_config (key, value, type, description) VALUES
+  -- Tokenizer settings
+  ('TOKENIZER_IGNORE_STOP_WORDS', 'true', 'boolean', 'Ignore stop words during tokenization'),
+  ('TOKENIZER_MIN_WORD_LENGTH', '2', 'number', 'Minimum word length to index'),
+  ('TOKENIZER_CASE_SENSITIVE', 'false', 'boolean', 'Case sensitive tokenization'),
+  ('TOKENIZER_KEEP_POSITIONS', 'true', 'boolean', 'Keep word positions in index'),
+
+  -- Search highlighting settings
+  ('SEARCH_HIGHLIGHT_SNIPPET_COUNT', '3', 'number', 'Number of snippets to return in search results'),
+  ('SEARCH_HIGHLIGHT_SNIPPET_LENGTH', '150', 'number', 'Length of each snippet in characters'),
+  ('SEARCH_HIGHLIGHT_CONTEXT_LENGTH_BEFORE', '100', 'number', 'Context length before matched term'),
+  ('SEARCH_HIGHLIGHT_CONTEXT_LENGTH_AFTER', '100', 'number', 'Context length after matched term'),
+
+  -- Gutenberg import settings
+  ('GUTENBERG_BATCH_SIZE', '30', 'number', 'Number of books to fetch per batch from Gutenberg'),
+
+  -- Search scoring settings
+  ('SEARCH_SCORING_BM25_WEIGHT', '0.6', 'number', 'Weight for BM25 score in final ranking'),
+  ('SEARCH_SCORING_PAGERANK_WEIGHT', '0.4', 'number', 'Weight for PageRank score in final ranking'),
+  ('SEARCH_SCORING_OCCURRENCE_WEIGHT', '0', 'number', 'Weight for term occurrence count in final ranking'),
+  ('SEARCH_SCORING_K1', '1.2', 'number', 'BM25 k1 parameter (term frequency saturation)'),
+  ('SEARCH_SCORING_B', '0.75', 'number', 'BM25 b parameter (length normalization)'),
+  ('SEARCH_SCORING_ENABLE_PROXIMITY_BONUS', 'true', 'boolean', 'Enable proximity bonus for nearby terms');
+

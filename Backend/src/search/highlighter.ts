@@ -4,13 +4,13 @@
 
 import * as fs from "fs";
 import { TextSnippet } from "../utils/types";
-import {
-  SEARCH_HIGHLIGHT_SNIPPET_COUNT,
-  SEARCH_HIGHLIGHT_SNIPPET_LENGTH,
-  SEARCH_HIGHLIGHT_CONTEXT_LENGTH_BEFORE,
-  SEARCH_HIGHLIGHT_CONTEXT_LENGTH_AFTER,
-} from "../utils/const";
 import { AhoCorasick } from "@monorepo/lib";
+import {
+  getSearchHighlightSnippetCount,
+  getSearchHighlightSnippetLength,
+  getSearchHighlightContextLengthBefore,
+  getSearchHighlightContextLengthAfter,
+} from "../utils/const";
 
 export interface HighlightOptions {
   snippetCount?: number; // Nombre de snippets à retourner
@@ -23,12 +23,14 @@ export interface HighlightOptions {
  * Classe pour générer des extraits de texte avec highlighting
  */
 export class Highlighter {
-  private defaultOptions: Required<HighlightOptions> = {
-    snippetCount: SEARCH_HIGHLIGHT_SNIPPET_COUNT,
-    snippetLength: SEARCH_HIGHLIGHT_SNIPPET_LENGTH,
-    contextBefore: SEARCH_HIGHLIGHT_CONTEXT_LENGTH_BEFORE,
-    contextAfter: SEARCH_HIGHLIGHT_CONTEXT_LENGTH_AFTER,
-  };
+  private getDefaultOptions(): Required<HighlightOptions> {
+    return {
+      snippetCount: getSearchHighlightSnippetCount(),
+      snippetLength: getSearchHighlightSnippetLength(),
+      contextBefore: getSearchHighlightContextLengthBefore(),
+      contextAfter: getSearchHighlightContextLengthAfter(),
+    };
+  }
 
   /**
    * Génère des snippets avec highlighting pour un livre
@@ -43,7 +45,7 @@ export class Highlighter {
     positions: Map<string, number[]>,
     options?: HighlightOptions
   ): TextSnippet[] {
-    const opts = { ...this.defaultOptions, ...options };
+    const opts = { ...this.getDefaultOptions(), ...options };
     console.log(`[HIGHLIGHTER] opts.snippetCount=${opts.snippetCount}`);
     console.log(`[HIGHLIGHTER] positions=${positions}`);
 

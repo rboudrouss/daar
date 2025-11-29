@@ -441,11 +441,11 @@ export default function SearchBar({
                   <div style={{ color: "#666" }}>
                     • Literals: <code style={{ backgroundColor: "#e0e0e0", padding: "2px 4px", borderRadius: "2px" }}>abc</code>, <code style={{ backgroundColor: "#e0e0e0", padding: "2px 4px", borderRadius: "2px" }}>123</code>
                     <br />
-                    • Operators: <code style={{ backgroundColor: "#e0e0e0", padding: "2px 4px", borderRadius: "2px" }}>*</code> (zero or more), <code style={{ backgroundColor: "#e0e0e0", padding: "2px 4px", borderRadius: "2px" }}>+</code> (one or more), <code style={{ backgroundColor: "#e0e0e0", padding: "2px 4px", borderRadius: "2px" }}>?</code> (optional)
+                    • Operators: <code style={{ backgroundColor: "#e0e0e0", padding: "2px 4px", borderRadius: "2px" }}>*</code> (zero or more)
                     <br />
                     • Alternation: <code style={{ backgroundColor: "#e0e0e0", padding: "2px 4px", borderRadius: "2px" }}>cat|dog</code>
                     <br />
-                    • Grouping: <code style={{ backgroundColor: "#e0e0e0", padding: "2px 4px", borderRadius: "2px" }}>(ab)+</code>
+                    • Grouping: <code style={{ backgroundColor: "#e0e0e0", padding: "2px 4px", borderRadius: "2px" }}>(ab)*</code>
                     <br />
                     • Any char: <code style={{ backgroundColor: "#e0e0e0", padding: "2px 4px", borderRadius: "2px" }}>.</code>
                     <br />

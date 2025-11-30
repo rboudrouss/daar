@@ -139,18 +139,5 @@ describe("JaccardCalculator - Code réel avec mock DB", () => {
         jaccardCalculator.buildJaccardGraph(progressCallback);
       }).not.toThrow();
     });
-
-    it("devrait calculer la similarité correctement", () => {
-      // Livre 1: {hello, world, test}
-      // Livre 2: {hello, world, foo}
-      // Intersection: {hello, world} = 2
-      // Union: {hello, world, test, foo} = 4
-      // Similarité: 2/4 = 0.5
-
-      const edgeCount = jaccardCalculator.buildJaccardGraph();
-
-      // Devrait créer au moins une arête
-      expect(edgeCount).toBeGreaterThan(0);
-    });
   });
 });

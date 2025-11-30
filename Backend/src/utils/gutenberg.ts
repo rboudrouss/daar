@@ -198,12 +198,14 @@ function sleep(ms: number): Promise<void> {
 export async function fetchGutendexMetadataBatch(
   bookIds: number[]
 ): Promise<Map<number, GutendexMetadata>> {
+  console.log(`[Gutendex Batch] Fetching metadata for ${bookIds.length} books`);
   const url = `https://gutendex.com/books?ids=${bookIds.join(",")}`;
   const metadataMap = new Map<number, GutendexMetadata>();
   let reponseJson: GutendexBatchResponse;
 
   try {
     const response = await fetch(url);
+    console.log(`[Gutendex Batch] Response: ${response.status}`);
 
     if (!response.ok) {
       console.warn(
@@ -218,9 +220,11 @@ export async function fetchGutendexMetadataBatch(
         );
         return metadataMap;
       } else {
+        console.log(`[Gutendex Batch] Retry successful`);
         reponseJson = (await retryResponse.json()) as GutendexBatchResponse;
       }
     } else {
+      console.log(`[Gutendex Batch] Response OK`);
       reponseJson = (await response.json()) as GutendexBatchResponse;
     }
   } catch (error) {
@@ -237,23 +241,27 @@ export async function fetchGutendexMetadataBatch(
       }
 
       reponseJson = (await retryResponse.json()) as GutendexBatchResponse;
+      console.log(`[Gutendex Batch] Retry successful`);
     } catch (retryError) {
       console.error(`[Gutendex Batch] Failed after retry:`, retryError);
       return metadataMap;
     }
+  }
+  console.log(
+    `[Gutendex Batch] Received metadata for ${reponseJson.results.length} books`
+  );
+  for (const book of reponseJson.results) {
+    metadataMap.set(book.id, book);
 
-    for (const book of reponseJson.results) {
-      metadataMap.set(book.id, book);
-
-      // Warn if missing critical metadata
-      if (!book.title || book.title.trim() === "") {
-        console.warn(`[Gutendex] Book ${book.id} has empty title!`);
-      }
-      if (!book.authors || book.authors.length === 0) {
-        console.warn(`[Gutendex] Book ${book.id} has no authors!`);
-      }
+    // Warn if missing critical metadata
+    if (!book.title || book.title.trim() === "") {
+      console.warn(`[Gutendex] Book ${book.id} has empty title!`);
+    }
+    if (!book.authors || book.authors.length === 0) {
+      console.warn(`[Gutendex] Book ${book.id} has no authors!`);
     }
   }
+  console.log(`[Gutendex Batch] Metadata ${JSON.stringify(metadataMap)}`);
   return metadataMap;
 }
 

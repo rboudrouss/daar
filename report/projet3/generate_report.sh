@@ -1,1 +1,1 @@
-pandoc *.md --pdf-engine=xelatex -o rapport.pdf
+pandoc *.md -F pandoc-plot --pdf-engine=xelatex -o rapport.pdf

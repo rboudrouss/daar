@@ -179,6 +179,7 @@ app.post("/import-gutenberg", async (c) => {
 
     // Mise à jour incrémentale du graphe de Jaccard si demandé
     let jaccardEdges = 0;
+    let pagerankScores = 0;
     if (autoJaccard && successCount > 0) {
       console.log(
         `\nUpdating Jaccard graph incrementally for ${successCount} new books...`
@@ -194,8 +195,15 @@ app.post("/import-gutenberg", async (c) => {
           }
         );
         console.log(`Jaccard graph updated with ${jaccardEdges} total edges`);
+
+        // Recalculate PageRank after Jaccard update
+        console.log(`\nRecalculating PageRank...`);
+        const pagerankCalculator = new PageRankCalculator();
+        const scores = pagerankCalculator.calculatePageRank();
+        pagerankScores = scores.length;
+        console.log(`PageRank recalculated for ${pagerankScores} books`);
       } catch (error) {
-        console.error("Failed to update Jaccard graph:", error);
+        console.error("Failed to update Jaccard graph or PageRank:", error);
       }
     }
 
@@ -206,7 +214,8 @@ app.post("/import-gutenberg", async (c) => {
       failedIds,
       lastGutenbergId: newLastId,
       jaccardEdges: autoJaccard ? jaccardEdges : undefined,
-      message: `Successfully imported ${successCount} books from Gutenberg${autoJaccard ? ` and updated Jaccard graph (${jaccardEdges} edges)` : ""}`,
+      pagerankScores: autoJaccard ? pagerankScores : undefined,
+      message: `Successfully imported ${successCount} books from Gutenberg${autoJaccard ? ` and updated Jaccard graph (${jaccardEdges} edges) and PageRank (${pagerankScores} scores)` : ""}`,
     });
   } catch (error) {
     console.error("Error importing from Gutenberg:", error);
@@ -573,14 +582,22 @@ app.post("/add-book", async (c) => {
 
     // Update Jaccard graph incrementally if requested
     let jaccardEdges = 0;
+    let pagerankScores = 0;
     if (autoJaccard) {
       console.log(`\nUpdating Jaccard graph incrementally for new book...`);
       try {
         const calculator = new JaccardCalculator();
         jaccardEdges = calculator.addBooksToJaccardGraph([indexedBook.id]);
         console.log(`Jaccard graph updated with ${jaccardEdges} total edges`);
+
+        // Recalculate PageRank after Jaccard update
+        console.log(`\nRecalculating PageRank...`);
+        const pagerankCalculator = new PageRankCalculator();
+        const scores = pagerankCalculator.calculatePageRank();
+        pagerankScores = scores.length;
+        console.log(`PageRank recalculated for ${pagerankScores} books`);
       } catch (error) {
-        console.error("Failed to update Jaccard graph:", error);
+        console.error("Failed to update Jaccard graph or PageRank:", error);
       }
     }
 
@@ -593,7 +610,8 @@ app.post("/add-book", async (c) => {
         wordCount: indexedBook.wordCount,
       },
       jaccardEdges: autoJaccard ? jaccardEdges : undefined,
-      message: `Successfully added book: ${title}${autoJaccard ? ` and updated Jaccard graph (${jaccardEdges} edges)` : ""}`,
+      pagerankScores: autoJaccard ? pagerankScores : undefined,
+      message: `Successfully added book: ${title}${autoJaccard ? ` and updated Jaccard graph (${jaccardEdges} edges) and PageRank (${pagerankScores} scores)` : ""}`,
     });
   } catch (error) {
     console.error("Error adding book:", error);

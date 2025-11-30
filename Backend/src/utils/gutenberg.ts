@@ -200,67 +200,32 @@ export async function fetchGutendexMetadataBatch(
 ): Promise<Map<number, GutendexMetadata>> {
   const url = `https://gutendex.com/books?ids=${bookIds.join(",")}`;
   const metadataMap = new Map<number, GutendexMetadata>();
+  let reponseJson: GutendexBatchResponse;
 
   try {
     const response = await fetch(url);
 
     if (!response.ok) {
-      // Retry en cas d'erreur
-      if (
-        response.status === 408 ||
-        response.status === 429 ||
-        response.status >= 500
-      ) {
-        console.warn(
-          `[Gutendex Batch] Failed with HTTP ${response.status}, retrying in 30s...`
+      console.warn(
+        `[Gutendex Batch] Failed with HTTP ${response.status}, retrying in 5m...`
+      );
+      await sleep(300_000); // 5 minutes
+
+      const retryResponse = await fetch(url);
+      if (!retryResponse.ok) {
+        console.error(
+          `[Gutendex Batch] Retry failed with HTTP ${retryResponse.status}`
         );
-        await sleep(30000);
-
-        const retryResponse = await fetch(url);
-        if (!retryResponse.ok) {
-          console.error(
-            `[Gutendex Batch] Retry failed with HTTP ${retryResponse.status}`
-          );
-          return metadataMap;
-        }
-
-        const retryData = (await retryResponse.json()) as GutendexBatchResponse;
-        for (const book of retryData.results) {
-          metadataMap.set(book.id, book);
-
-          // Warn if missing critical metadata
-          if (!book.title || book.title.trim() === "") {
-            console.warn(`[Gutendex] Book ${book.id} has empty title!`);
-          }
-          if (!book.authors || book.authors.length === 0) {
-            console.warn(`[Gutendex] Book ${book.id} has no authors!`);
-          }
-        }
         return metadataMap;
+      } else {
+        reponseJson = (await retryResponse.json()) as GutendexBatchResponse;
       }
-      console.error(`[Gutendex Batch] Failed with HTTP ${response.status}`);
-      return metadataMap;
+    } else {
+      reponseJson = (await response.json()) as GutendexBatchResponse;
     }
-
-    const data = (await response.json()) as GutendexBatchResponse;
-
-    for (const book of data.results) {
-      metadataMap.set(book.id, book);
-
-      // Warn if missing critical metadata
-      if (!book.title || book.title.trim() === "") {
-        console.warn(`[Gutendex] Book ${book.id} has empty title!`);
-      }
-      if (!book.authors || book.authors.length === 0) {
-        console.warn(`[Gutendex] Book ${book.id} has no authors!`);
-      }
-    }
-
-    return metadataMap;
   } catch (error) {
-    // Retry en cas d'erreur réseau
-    console.warn(`[Gutendex Batch] Network error, retrying in 30s...`);
-    await sleep(30000);
+    console.warn(`[Gutendex Batch] Network error, retrying in 5m...`);
+    await sleep(300_000);
 
     try {
       const retryResponse = await fetch(url);
@@ -271,185 +236,25 @@ export async function fetchGutendexMetadataBatch(
         return metadataMap;
       }
 
-      const retryData = (await retryResponse.json()) as GutendexBatchResponse;
-      for (const book of retryData.results) {
-        metadataMap.set(book.id, book);
-
-        // Warn if missing critical metadata
-        if (!book.title || book.title.trim() === "") {
-          console.warn(`[Gutendex] Book ${book.id} has empty title!`);
-        }
-        if (!book.authors || book.authors.length === 0) {
-          console.warn(`[Gutendex] Book ${book.id} has no authors!`);
-        }
-      }
-      return metadataMap;
+      reponseJson = (await retryResponse.json()) as GutendexBatchResponse;
     } catch (retryError) {
       console.error(`[Gutendex Batch] Failed after retry:`, retryError);
       return metadataMap;
     }
-  }
-}
 
-/**
- * Récupère les métadonnées d'un livre depuis l'API Gutendex
- * Retry une fois après 30 secondes en cas d'échec
- */
-export async function fetchGutendexMetadata(
-  bookId: number
-): Promise<GutendexMetadata | null> {
-  const url = `https://gutendex.com/books/${bookId}`;
-
-  // Premier essai
-  try {
-    const response = await fetch(url);
-
-    if (!response.ok) {
-      // Si timeout ou erreur serveur, retry après 30 secondes
-      if (
-        response.status === 408 ||
-        response.status === 429 ||
-        response.status >= 500
-      ) {
-        console.warn(
-          `[Gutendex] Book ${bookId} failed with HTTP ${response.status}, retrying in 30s...`
-        );
-        await sleep(30000);
-
-        // Deuxième essai
-        try {
-          const retryResponse = await fetch(url);
-          if (!retryResponse.ok) {
-            return null;
-          }
-          const data = (await retryResponse.json()) as GutendexMetadata;
-
-          // Warn if missing critical metadata
-          if (!data.title || data.title.trim() === "") {
-            console.warn(`[Gutendex] Book ${bookId} has empty title!`);
-          }
-          if (!data.authors || data.authors.length === 0) {
-            console.warn(`[Gutendex] Book ${bookId} has no authors!`);
-          }
-
-          return data;
-        } catch (retryError) {
-          console.error(
-            `[Gutendex] Retry failed for book ${bookId}:`,
-            retryError
-          );
-          return null;
-        }
-      }
-      return null;
-    }
-
-    const data = (await response.json()) as GutendexMetadata;
-
-    // Warn if missing critical metadata
-    if (!data.title || data.title.trim() === "") {
-      console.warn(`[Gutendex] Book ${bookId} has empty title!`);
-    }
-    if (!data.authors || data.authors.length === 0) {
-      console.warn(`[Gutendex] Book ${bookId} has no authors!`);
-    }
-
-    return data;
-  } catch (error) {
-    // En cas d'erreur réseau, retry après 30 secondes
-    console.warn(
-      `[Gutendex] Network error for book ${bookId}, retrying in 30s...`
-    );
-    await sleep(30000);
-
-    try {
-      const retryResponse = await fetch(url);
-      if (!retryResponse.ok) {
-        return null;
-      }
-      const data = (await retryResponse.json()) as GutendexMetadata;
+    for (const book of reponseJson.results) {
+      metadataMap.set(book.id, book);
 
       // Warn if missing critical metadata
-      if (!data.title || data.title.trim() === "") {
-        console.warn(`[Gutendex] Book ${bookId} has empty title!`);
+      if (!book.title || book.title.trim() === "") {
+        console.warn(`[Gutendex] Book ${book.id} has empty title!`);
       }
-      if (!data.authors || data.authors.length === 0) {
-        console.warn(`[Gutendex] Book ${bookId} has no authors!`);
+      if (!book.authors || book.authors.length === 0) {
+        console.warn(`[Gutendex] Book ${book.id} has no authors!`);
       }
-
-      return data;
-    } catch (retryError) {
-      console.error(
-        `[Gutendex] Failed to fetch metadata for book ${bookId} after retry:`,
-        retryError
-      );
-      return null;
     }
   }
-}
-
-/**
- * Extrait les métadonnées d'un texte Gutenberg (fallback)
- */
-export function extractGutenbergMetadata(
-  text: string,
-  bookId: number
-): {
-  title: string;
-  author: string;
-} {
-  const lines = text.split("\n");
-  let title = `Gutenberg Book ${bookId}`;
-  let author = "Unknown Author";
-  let foundTitle = false;
-  let foundAuthor = false;
-
-  // Chercher le titre et l'auteur dans les premières lignes
-  for (let i = 0; i < Math.min(100, lines.length); i++) {
-    const line = lines[i].trim();
-
-    // Chercher "Title:"
-    if (line.match(/^Title:\s*/i)) {
-      title = line.replace(/^Title:\s*/i, "").trim();
-      foundTitle = true;
-    }
-
-    // Chercher "Author:"
-    if (line.match(/^Author:\s*/i)) {
-      author = line.replace(/^Author:\s*/i, "").trim();
-      foundAuthor = true;
-    }
-
-    // Arrêter après "*** START OF"
-    if (line.includes("*** START OF")) {
-      break;
-    }
-  }
-
-  if (!foundTitle) {
-    console.warn(
-      `[Metadata Extraction] Could not find title in text for book ${bookId}, using default`
-    );
-  }
-  if (!foundAuthor) {
-    console.warn(
-      `[Metadata Extraction] Could not find author in text for book ${bookId}, using default`
-    );
-  }
-
-  // Nettoyer le titre
-  title = title.replace(/[^\w\s\-:,.']/g, "").trim();
-  if (title.length > 200) {
-    title = title.substring(0, 200) + "...";
-  }
-
-  // Nettoyer l'auteur
-  author = author.replace(/[^\w\s\-,.]/g, "").trim();
-  if (author.length > 100) {
-    author = author.substring(0, 100) + "...";
-  }
-
-  return { title, author };
+  return metadataMap;
 }
 
 /**
@@ -462,10 +267,7 @@ export async function downloadGutenbergBook(
   providedMetadata?: GutendexMetadata | null
 ): Promise<GutenbergBook | null> {
   // Utiliser les métadonnées fournies ou les récupérer depuis l'API
-  const metadata =
-    providedMetadata !== undefined
-      ? providedMetadata
-      : await fetchGutendexMetadata(bookId);
+  const metadata = providedMetadata;
 
   let title: string;
   let author: string;
@@ -497,13 +299,6 @@ export async function downloadGutenbergBook(
   if (!text) {
     console.error(`[Book ${bookId}] Failed to download text content`);
     return null;
-  }
-
-  // Si on n'a pas de métadonnées Gutendex, essayer d'extraire du texte
-  if (!metadata) {
-    const extracted = extractGutenbergMetadata(text, bookId);
-    title = extracted.title;
-    author = extracted.author;
   }
 
   // Sauvegarder le texte

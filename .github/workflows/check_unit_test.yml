@@ -5,7 +5,8 @@ on:
   pull_request: {}
 
 jobs:
-  test:
+  test-lib:
+    name: Test lib
     runs-on: ubuntu-latest
 
     steps:
@@ -21,21 +22,46 @@ jobs:
           corepack enable
           corepack prepare pnpm@8 --activate
 
-      - name: Install root dependencies
+      - name: Install root deps
         run: pnpm install --no-frozen-lockfile
 
-      - name: Install lib dependencies
+      - name: Install lib deps
         run: |
           cd lib
           pnpm install --no-frozen-lockfile
-          
-      - name: Run tests lib
+
+      - name: Run lib tests
         run: |
-          cd ../lib
+          cd lib
           pnpm test
-          
-      - name: Run tests backend
+
+
+  test-backend:
+    name: Test backend
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+
+      - name: Enable pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@8 --activate
+
+      - name: Install root deps
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Install backend deps
         run: |
           cd Backend
-          pnpm run test
+          pnpm install --no-frozen-lockfile
 
+      - name: Run backend tests
+        run: |
+          cd Backend
+          pnpm test

@@ -16,17 +16,31 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js with pnpm
+      # 1. Install Node (no pnpm cache yet)
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          package-manager: pnpm
-          cache: 'pnpm'
+
+      # 2. Install pnpm before enabling caching (required)
+      - name: Enable Corepack and prepare pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@8 --activate
+
+      # 3. Only now: enable pnpm cache
+      - name: Setup pnpm cache
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
 
+      # 4. Install deps
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # 5. Run tests for all workspaces
       - name: Run tests for all workspaces
         run: pnpm -w -r run test:run
         env:

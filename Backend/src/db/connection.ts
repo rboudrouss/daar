@@ -3,7 +3,7 @@
  */
 
 import Database from "better-sqlite3";
-import { readFileSync } from "fs";
+import { readFileSync, existsSync, mkdirSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 
@@ -23,6 +23,13 @@ export function initDatabase(
   }
 
   console.log(`Initializing database at ${dbPath}...`);
+
+  // Ensure the data directory exists
+  const dataDir = dirname(dbPath);
+  if (dataDir && dataDir !== "." && !existsSync(dataDir)) {
+    console.log(`Creating data directory: ${dataDir}`);
+    mkdirSync(dataDir, { recursive: true });
+  }
 
   db = new Database(dbPath, {
     verbose: process.env.NODE_ENV === "development" ? console.log : undefined,

@@ -336,4 +336,201 @@ export class JaccardCalculator {
       });
     }
   }
+
+  /**
+   * Ajoute des livres au graphe de Jaccard de manière incrémentale
+   * Compare uniquement les nouveaux livres avec les livres existants
+   * Beaucoup plus rapide que de reconstruire tout le graphe
+   */
+  addBooksToJaccardGraph(
+    newBookIds: number[],
+    onProgress?: (progress: IndexingProgress) => void
+  ): number {
+    console.log(
+      `\nAdding ${newBookIds.length} books to Jaccard graph (incremental)...`
+    );
+    console.log(`   Threshold: ${this.config.similarityThreshold}`);
+    console.log(`   Top-K neighbors: ${this.config.topK}\n`);
+
+    const overallStartTime = Date.now();
+
+    if (newBookIds.length === 0) {
+      console.log("No new books to add");
+      return 0;
+    }
+
+    // Récupérer tous les IDs de livres existants (excluant les nouveaux)
+    const allBooks = this.db
+      .prepare("SELECT id FROM books ORDER BY id")
+      .all() as Array<{ id: number }>;
+    const allBookIds = allBooks.map((b) => b.id);
+    const existingBookIds = allBookIds.filter((id) => !newBookIds.includes(id));
+
+    console.log(`Comparing ${newBookIds.length} new books with ${existingBookIds.length} existing books...`);
+
+    // Charger les termes de tous les nouveaux livres en une seule fois (optimisation)
+    console.log("Loading terms for new books...");
+    const newBooksTermsMap = this.loadBookTermsBatch(newBookIds);
+
+    // Stocker les similarités pour mise à jour Top-K
+    const allSimilarities = new Map<
+      number,
+      Array<{ bookId: number; similarity: number }>
+    >();
+
+    // Charger les Top-K existants pour tous les livres
+    console.log("Loading existing Top-K neighbors...");
+    const existingEdges = this.db
+      .prepare(
+        `
+      SELECT book_id_1, book_id_2, similarity FROM jaccard_edges
+    `
+      )
+      .all() as Array<{
+      book_id_1: number;
+      book_id_2: number;
+      similarity: number;
+    }>;
+
+    // Initialiser allSimilarities avec les arêtes existantes
+    for (const edge of existingEdges) {
+      if (!allSimilarities.has(edge.book_id_1)) {
+        allSimilarities.set(edge.book_id_1, []);
+      }
+      if (!allSimilarities.has(edge.book_id_2)) {
+        allSimilarities.set(edge.book_id_2, []);
+      }
+      allSimilarities
+        .get(edge.book_id_1)!
+        .push({ bookId: edge.book_id_2, similarity: edge.similarity });
+      allSimilarities
+        .get(edge.book_id_2)!
+        .push({ bookId: edge.book_id_1, similarity: edge.similarity });
+    }
+
+    let processedPairs = 0;
+    let processedBooks = 0;
+    const startTime = Date.now();
+
+    // Pour chaque nouveau livre
+    for (const newBookId of newBookIds) {
+      const newBookTerms = newBooksTermsMap.get(newBookId);
+      if (!newBookTerms || newBookTerms.size === 0) continue;
+
+      // Initialiser la liste de voisins pour ce nouveau livre
+      if (!allSimilarities.has(newBookId)) {
+        allSimilarities.set(newBookId, []);
+      }
+
+      // Trouver les candidats (livres existants qui partagent au moins un terme)
+      const candidates = this.getCandidatesForNewBook(newBookId, existingBookIds);
+
+      // Charger les termes des candidats par chunks
+      const candidateIds = Array.from(candidates);
+      for (let i = 0; i < candidateIds.length; i += 100) {
+        const candidateChunk = candidateIds.slice(i, i + 100);
+        const candidateTermsMap = this.loadBookTermsBatch(candidateChunk);
+
+        for (const existingBookId of candidateChunk) {
+          const existingBookTerms = candidateTermsMap.get(existingBookId);
+          if (!existingBookTerms || existingBookTerms.size === 0) continue;
+
+          const similarity = this.calculateJaccardSimilarity(
+            newBookTerms,
+            existingBookTerms
+          );
+          processedPairs++;
+
+          if (similarity >= this.config.similarityThreshold) {
+            // Ajouter aux voisins du nouveau livre
+            allSimilarities.get(newBookId)!.push({
+              bookId: existingBookId,
+              similarity,
+            });
+
+            // Ajouter aux voisins du livre existant
+            if (!allSimilarities.has(existingBookId)) {
+              allSimilarities.set(existingBookId, []);
+            }
+            allSimilarities.get(existingBookId)!.push({
+              bookId: newBookId,
+              similarity,
+            });
+          }
+        }
+      }
+
+      processedBooks++;
+
+      // Progression
+      if (onProgress && processedBooks % 5 === 0) {
+        const percentage = (processedBooks / newBookIds.length) * 100;
+        const elapsed = (Date.now() - startTime) / 1000;
+        const rate = processedBooks / elapsed;
+        const remaining = (newBookIds.length - processedBooks) / rate;
+
+        onProgress({
+          currentBook: processedBooks,
+          totalBooks: newBookIds.length,
+          currentPhase: "jaccard",
+          message: `Processing new book ${processedBooks}/${newBookIds.length} (${processedPairs} pairs, ~${remaining.toFixed(0)}s remaining)`,
+          percentage,
+        });
+      }
+    }
+
+    const calcElapsed = (Date.now() - startTime) / 1000;
+    console.log(
+      `\nCalculated ${processedPairs} similarities in ${calcElapsed.toFixed(2)}s`
+    );
+
+    // Supprimer toutes les anciennes arêtes et recréer avec Top-K
+    console.log("Applying Top-K and updating database...");
+    this.db.prepare("DELETE FROM jaccard_edges").run();
+    const edges = this.applyTopKAndInsert(allSimilarities);
+
+    const totalElapsed = (Date.now() - overallStartTime) / 1000;
+    console.log(`\nIncremental Jaccard update completed in ${totalElapsed.toFixed(2)}s`);
+    console.log(`   Processed ${processedPairs} pairs`);
+    console.log(`   Total edges: ${edges}\n`);
+
+    // Mettre à jour les métadonnées
+    this.db
+      .prepare(
+        `
+      UPDATE library_metadata SET value = ?, updated_at = CURRENT_TIMESTAMP WHERE key = 'jaccard_edges'
+    `
+      )
+      .run(edges.toString());
+
+    return edges;
+  }
+
+  /**
+   * Trouve les candidats pour un nouveau livre (livres existants qui partagent au moins un terme)
+   */
+  private getCandidatesForNewBook(
+    newBookId: number,
+    existingBookIds: number[]
+  ): Set<number> {
+    if (existingBookIds.length === 0) return new Set();
+
+    const placeholders = existingBookIds.map(() => "?").join(",");
+    const candidates = this.db
+      .prepare(
+        `
+      SELECT DISTINCT i2.book_id
+      FROM inverted_index i1
+      JOIN inverted_index i2 ON i1.term = i2.term
+      WHERE i1.book_id = ?
+        AND i2.book_id IN (${placeholders})
+        AND i2.book_id != ?
+    `
+      )
+      .all(newBookId, ...existingBookIds, newBookId) as Array<{
+      book_id: number;
+    }>;
+
+    return new Set(candidates.map((c) => c.book_id));
+  }
 }

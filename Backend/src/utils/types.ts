@@ -135,7 +135,6 @@ export interface SearchResponse {
 export interface ScoringConfig {
   bm25Weight: number; // Poids du score BM25
   pageRankWeight: number; // Poids du PageRank
-  occurrenceWeight: number; // Poids du nombre d'occurrences
   k1: number; // Paramètre BM25
   b: number; // Paramètre BM25
   enableProximityBonus: boolean; // Activer le bonus de proximité

@@ -7,7 +7,6 @@ import { getDatabase } from "../db/connection.js";
 import {
   getSearchScoringBm25Weight,
   getSearchScoringPagerankWeight,
-  getSearchScoringOccurrenceWeight,
   getSearchScoringK1,
   getSearchScoringB,
   getSearchScoringEnableProximityBonus,
@@ -31,8 +30,6 @@ export class ScoringEngine {
     this.config = {
       bm25Weight: config.bm25Weight ?? getSearchScoringBm25Weight(),
       pageRankWeight: config.pageRankWeight ?? getSearchScoringPagerankWeight(),
-      occurrenceWeight:
-        config.occurrenceWeight ?? getSearchScoringOccurrenceWeight(),
       k1: config.k1 ?? getSearchScoringK1(),
       b: config.b ?? getSearchScoringB(),
       enableProximityBonus:
@@ -437,39 +434,7 @@ export class ScoringEngine {
     return statsMap;
   }
 
-  /**
-   * Calcule le score basé sur les occurrences (simple)
-   */
-  calculateOccurrenceScore(bookId: number, queryTerms: string[]): number {
-    let totalOccurrences = 0;
 
-    for (const term of queryTerms) {
-      const result = this.db
-        .prepare(
-          `
-        SELECT term_frequency FROM inverted_index WHERE term = ? AND book_id = ?
-      `
-        )
-        .get(term, bookId) as { term_frequency: number } | undefined;
-
-      if (result) {
-        totalOccurrences += result.term_frequency;
-      }
-    }
-
-    // Normaliser par la longueur du document
-    const docLengthResult = this.db
-      .prepare(
-        `
-      SELECT word_count FROM books WHERE id = ?
-    `
-      )
-      .get(bookId) as { word_count: number } | undefined;
-
-    if (!docLengthResult || docLengthResult.word_count === 0) return 0;
-
-    return (totalOccurrences / docLengthResult.word_count) * 1000;
-  }
 
   /**
    * Met à jour la configuration du scoring

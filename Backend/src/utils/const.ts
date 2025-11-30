@@ -162,14 +162,7 @@ export function getSearchScoringPagerankWeight(): number {
   );
 }
 
-export function getSearchScoringOccurrenceWeight(): number {
-  return getConfig(
-    "SEARCH_SCORING_OCCURRENCE_WEIGHT",
-    "SEARCH_SCORING_OCCURRENCE_WEIGHT",
-    0,
-    "number"
-  );
-}
+
 
 export function getSearchScoringK1(): number {
   return getConfig("SEARCH_SCORING_K1", "SEARCH_SCORING_K1", 1.2, "number");

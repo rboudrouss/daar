@@ -2,14 +2,7 @@
 
 ## 1.1. Contexte
 
-Ce projet vise à développer une application web de moteur de recherche pour une bibliothèque numérique de documents textuels. Avec la numérisation massive des oeuvres littéraires, notamment via des initiatives comme le projet Gutenberg, les bibliothèques numériques contiennent désormais des dizaines de milliers de documents. Une telle volumétrie rend la recherche manuelle impossible et nécessite des outils de recherche performants.
-
-Des solutions industrielles telles qu'Elasticsearch répondent à ce besoin. Cependant, dans le cadre de ce projet, nous avons développé notre propre solution afin d'explorer les algorithmes de recherche, de scoring et de recommandation.
-
-Les algorithmes de recherche par expressions régulières (NFA, DFA, KMP, Aho-Corasick) ayant été traités dans le rapport du projet 1, nous ne les détaillerons pas ici. Ce rapport se concentre sur les structures de données, le calcul de similarité, le scoring des résultats et les fonctionnalités de recherche avancée.
-
-
-Ce rapport présente d'abord les structures de données utilisées (Section 2), puis détaille les algorithmes de similarité Jaccard (Section 3) et PageRank (Section 4). La section 5 décrit le système de scoring hybride. La section 6 présente l'optimisation de la recherche par expressions régulières. Les fonctionnalités de recherche floue et de highlighting sont présentées en section 7. Enfin, la section 8 analyse les performances et la section 9 conclut ce rapport.
+Nous presentons une application web de recherche textuelle de livres de la bibliothèque du projet Gutenberg. Nous avons cherché a reduire le nombre de librairie externes utilisées, en implementant nous-memes les algorithmes clefs de recherche et de classement, par exemple, nous n'utilisons aucune librairie de recherche textuelle preexistante (Lucene, ElasticSearch, etc.).
 
 ## 1.2. Architecture Technique
 

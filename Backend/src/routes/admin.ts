@@ -3,7 +3,10 @@
  */
 
 import { Hono } from "hono";
+import { existsSync, mkdirSync, writeFileSync } from "fs";
+import { join } from "path";
 import { getDatabase } from "../db/connection";
+import type { GutendexMetadata } from "../utils/gutenberg";
 import { adminAuth } from "../middleware/auth";
 import {
   downloadGutenbergBook,
@@ -20,6 +23,166 @@ const app = new Hono();
 // Appliquer le middleware d'authentification à toutes les routes admin
 app.use("*", adminAuth);
 
+// ============================================================================
+// Constants
+// ============================================================================
+
+const PATHS = {
+  BOOKS_DIR: "./data/books",
+  COVERS_DIR: "./data/covers",
+} as const;
+
+const LIMITS = {
+  GUTENBERG_COUNT: { MIN: 1, MAX: 1000 },
+  PARALLEL_DOWNLOADS: { MIN: 1, MAX: 10 },
+} as const;
+
+// ============================================================================
+// Helper Types
+// ============================================================================
+
+interface ImportGutenbergParams {
+  count: number;
+  autoJaccard: boolean;
+  parallelDownloads: number;
+}
+
+interface JaccardPagerankResult {
+  jaccardEdges: number;
+  pagerankScores: number;
+}
+
+// ============================================================================
+// Helper Functions
+// ============================================================================
+
+/**
+ * Parse and validate import parameters from request body
+ */
+function parseImportParams(body: Record<string, unknown>): ImportGutenbergParams {
+  return {
+    count: parseInt(String(body.count || "10")),
+    autoJaccard: body.autoJaccard !== false,
+    parallelDownloads: parseInt(String(body.parallelDownloads || "5")),
+  };
+}
+
+/**
+ * Validate import parameters and return error message if invalid
+ */
+function validateImportParams(params: ImportGutenbergParams): string | null {
+  const { count, parallelDownloads } = params;
+  const { GUTENBERG_COUNT, PARALLEL_DOWNLOADS } = LIMITS;
+
+  if (count < GUTENBERG_COUNT.MIN || count > GUTENBERG_COUNT.MAX) {
+    return `Count must be between ${GUTENBERG_COUNT.MIN} and ${GUTENBERG_COUNT.MAX}`;
+  }
+
+  if (parallelDownloads < PARALLEL_DOWNLOADS.MIN || parallelDownloads > PARALLEL_DOWNLOADS.MAX) {
+    return `parallelDownloads must be between ${PARALLEL_DOWNLOADS.MIN} and ${PARALLEL_DOWNLOADS.MAX}`;
+  }
+
+  return null;
+}
+
+/**
+ * Get the last Gutenberg ID from the database
+ */
+function getLastGutenbergId(): number {
+  const db = getDatabase();
+  const result = db
+    .prepare("SELECT value FROM library_metadata WHERE key = 'last_gutenberg_id'")
+    .get() as { value: string } | undefined;
+  return parseInt(result?.value || "0");
+}
+
+/**
+ * Update the last Gutenberg ID in the database
+ */
+function updateLastGutenbergId(newId: number): void {
+  const db = getDatabase();
+  db.prepare(
+    "UPDATE library_metadata SET value = ?, updated_at = CURRENT_TIMESTAMP WHERE key = 'last_gutenberg_id'"
+  ).run(newId.toString());
+}
+
+/**
+ * Split an array into batches of a given size
+ */
+function createBatches<T>(items: T[], batchSize: number): T[][] {
+  const batches: T[][] = [];
+  for (let i = 0; i < items.length; i += batchSize) {
+    batches.push(items.slice(i, i + batchSize));
+  }
+  return batches;
+}
+
+/**
+ * Download books in parallel with controlled concurrency
+ */
+async function downloadBooksInParallel(
+  batch: number[],
+  metadataMap: Map<number, GutendexMetadata>,
+  parallelDownloads: number
+): Promise<Array<{ bookId: number; book: unknown }>> {
+  const downloadPromises = batch.map((bookId) => {
+    const metadata = metadataMap.get(bookId);
+    return downloadGutenbergBook(bookId, metadata).then((book) => ({ bookId, book }));
+  });
+
+  const results: Array<{ bookId: number; book: unknown }> = [];
+  for (let i = 0; i < downloadPromises.length; i += parallelDownloads) {
+    const chunk = downloadPromises.slice(i, i + parallelDownloads);
+    const chunkResults = await Promise.all(chunk);
+    results.push(...chunkResults);
+    console.log(`   Downloaded ${Math.min(i + parallelDownloads, downloadPromises.length)}/${downloadPromises.length} books...`);
+  }
+
+  return results;
+}
+
+/**
+ * Update Jaccard graph and PageRank scores for newly indexed books
+ */
+function updateJaccardAndPagerank(bookIds: number[]): JaccardPagerankResult {
+  console.log(`\nUpdating Jaccard graph incrementally for ${bookIds.length} new books...`);
+
+  const calculator = new JaccardCalculator();
+  const jaccardEdges = calculator.addBooksToJaccardGraph(bookIds, (progress) => {
+    console.log(`   ${progress.currentBook}/${progress.totalBooks} - ${progress.message} (${progress.percentage.toFixed(1)}%)`);
+  });
+  console.log(`Jaccard graph updated with ${jaccardEdges} total edges`);
+
+  console.log(`\nRecalculating PageRank...`);
+  const pagerankCalculator = new PageRankCalculator();
+  const scores = pagerankCalculator.calculatePageRank();
+  console.log(`PageRank recalculated for ${scores.length} books`);
+
+  return { jaccardEdges, pagerankScores: scores.length };
+}
+
+/**
+ * Create a standardized error response
+ */
+function createErrorResponse(error: unknown, defaultMessage: string) {
+  return {
+    error: defaultMessage,
+    message: error instanceof Error ? error.message : String(error),
+  };
+}
+
+/**
+ * Ensure directories exist for file storage
+ */
+function ensureDirectoriesExist(): void {
+  if (!existsSync(PATHS.BOOKS_DIR)) {
+    mkdirSync(PATHS.BOOKS_DIR, { recursive: true });
+  }
+  if (!existsSync(PATHS.COVERS_DIR)) {
+    mkdirSync(PATHS.COVERS_DIR, { recursive: true });
+  }
+}
+
 /**
  * POST /api/admin/import-gutenberg
  * Importe N livres depuis Project Gutenberg avec téléchargement parallèle
@@ -28,180 +191,94 @@ app.use("*", adminAuth);
 app.post("/import-gutenberg", async (c) => {
   try {
     const body = await c.req.json();
-    const count = parseInt(body.count || "10");
-    const autoJaccard = body.autoJaccard !== false; // Par défaut: true
-    const parallelDownloads = parseInt(body.parallelDownloads || "5"); // 5 téléchargements parallèles par défaut
+    const params = parseImportParams(body);
 
-    if (count <= 0 || count > 1000) {
-      return c.json({ error: "Count must be between 1 and 1000" }, 400);
+    // Validate parameters
+    const validationError = validateImportParams(params);
+    if (validationError) {
+      return c.json({ error: validationError }, 400);
     }
 
-    if (parallelDownloads < 1 || parallelDownloads > 10) {
-      return c.json(
-        { error: "parallelDownloads must be between 1 and 10" },
-        400
-      );
-    }
+    const { count, autoJaccard, parallelDownloads } = params;
+    const lastGutenbergId = getLastGutenbergId();
 
-    const db = getDatabase();
-
-    // Récupérer le dernier ID Gutenberg
-    const lastIdResult = db
-      .prepare(
-        "SELECT value FROM library_metadata WHERE key = 'last_gutenberg_id'"
-      )
-      .get() as { value: string } | undefined;
-
-    let lastGutenbergId = parseInt(lastIdResult?.value || "0");
-
-    console.log(
-      `\nStarting Gutenberg import from ID ${lastGutenbergId + 1}...`
-    );
+    console.log(`\nStarting Gutenberg import from ID ${lastGutenbergId + 1}...`);
     console.log(`   Parallel downloads: ${parallelDownloads}`);
     console.log(`   Auto Jaccard update: ${autoJaccard}\n`);
 
+    // Generate book IDs to download
+    const bookIds = Array.from({ length: count }, (_, i) => lastGutenbergId + 1 + i);
+    const batches = createBatches(bookIds, getGutenbergBatchSize());
+
+    console.log(`Processing ${bookIds.length} books in ${batches.length} batches`);
+
     const failedIds: number[] = [];
-    const indexer = new BookIndexer();
     const newlyIndexedBookIds: number[] = [];
-
-    // Générer la liste des IDs à télécharger
-    const bookIds: number[] = [];
-    for (let i = 0; i < count; i++) {
-      bookIds.push(lastGutenbergId + 1 + i);
-    }
-
-    // Traiter par batches
-    const batchSize = getGutenbergBatchSize();
-    const batches: number[][] = [];
-    for (let i = 0; i < bookIds.length; i += batchSize) {
-      batches.push(bookIds.slice(i, i + batchSize));
-    }
-
-    console.log(
-      `Processing ${bookIds.length} books in ${batches.length} batches of ${batchSize}`
-    );
-
+    const indexer = new BookIndexer();
     let processedCount = 0;
 
+    // Process each batch
     for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
       const batch = batches[batchIndex];
-      console.log(
-        `\n[Batch ${batchIndex + 1}/${batches.length}] Fetching metadata for ${batch.length} books (IDs: ${batch[0]}-${batch[batch.length - 1]})...`
-      );
+      console.log(`\n[Batch ${batchIndex + 1}/${batches.length}] Processing ${batch.length} books (IDs: ${batch[0]}-${batch[batch.length - 1]})...`);
 
-      // Récupérer les métadonnées du batch
+      // Fetch metadata and download books
       const metadataMap = await fetchGutendexMetadataBatch(batch);
-      console.log(
-        `Received metadata for ${metadataMap.size}/${batch.length} books`
-      );
+      console.log(`Received metadata for ${metadataMap.size}/${batch.length} books`);
 
-      // Télécharger les livres en parallèle
-      console.log(
-        `\nDownloading ${batch.length} books with ${parallelDownloads} parallel connections...`
-      );
+      const downloadResults = await downloadBooksInParallel(batch, metadataMap, parallelDownloads);
 
-      const downloadPromises: Promise<{
-        bookId: number;
-        book: any;
-      }>[] = [];
-
-      for (const bookId of batch) {
-        const metadata = metadataMap.get(bookId) || null;
-        downloadPromises.push(
-          downloadGutenbergBook(bookId, metadata).then((book) => ({
-            bookId,
-            book,
-          }))
-        );
-      }
-
-      // Télécharger par chunks parallèles
-      const downloadResults: Array<{ bookId: number; book: any }> = [];
-      for (let i = 0; i < downloadPromises.length; i += parallelDownloads) {
-        const chunk = downloadPromises.slice(i, i + parallelDownloads);
-        const chunkResults = await Promise.all(chunk);
-        downloadResults.push(...chunkResults);
-
-        console.log(
-          `   Downloaded ${Math.min(i + parallelDownloads, downloadPromises.length)}/${downloadPromises.length} books...`
-        );
-      }
-
-      // Indexer les livres téléchargés
+      // Index downloaded books
       console.log(`\nIndexing ${downloadResults.length} books...`);
       for (const { bookId, book } of downloadResults) {
         processedCount++;
 
-        if (book) {
-          console.log(
-            `[${processedCount}/${count}] Indexing: ${book.title}...`
-          );
-
-          try {
-            const indexedBook = indexer.indexBook({
-              title: book.title,
-              author: book.author,
-              filePath: book.textFilePath,
-              coverImagePath: book.coverImagePath,
-            });
-            newlyIndexedBookIds.push(indexedBook.id);
-            console.log(`Successfully indexed: ${book.title}`);
-          } catch (error) {
-            console.error(`Failed to index ${book.title}:`, error);
-            failedIds.push(bookId);
-          }
-        } else {
+        if (!book) {
           failedIds.push(bookId);
           console.log(`Failed to download book ${bookId}`);
+          continue;
+        }
+
+        try {
+          const typedBook = book as { title: string; author: string; textFilePath: string; coverImagePath?: string };
+          console.log(`[${processedCount}/${count}] Indexing: ${typedBook.title}...`);
+
+          const indexedBook = indexer.indexBook({
+            title: typedBook.title,
+            author: typedBook.author,
+            filePath: typedBook.textFilePath,
+            coverImagePath: typedBook.coverImagePath,
+          });
+          newlyIndexedBookIds.push(indexedBook.id);
+          console.log(`Successfully indexed: ${typedBook.title}`);
+        } catch (error) {
+          const typedBook = book as { title: string };
+          console.error(`Failed to index ${typedBook.title}:`, error);
+          failedIds.push(bookId);
         }
       }
 
-      // Pause entre les batches (sauf pour le dernier)
+      // Pause between batches (except for the last one)
       if (batchIndex < batches.length - 1) {
-        console.log(
-          `\nBatch ${batchIndex + 1} complete. Waiting 1s before next batch...`
-        );
+        console.log(`\nBatch ${batchIndex + 1} complete. Waiting 1s before next batch...`);
         await new Promise((resolve) => setTimeout(resolve, 1000));
       }
     }
 
-    // Mettre à jour le dernier ID Gutenberg
+    // Update last Gutenberg ID and library metadata
     const newLastId = lastGutenbergId + count;
-    db.prepare(
-      "UPDATE library_metadata SET value = ?, updated_at = CURRENT_TIMESTAMP WHERE key = 'last_gutenberg_id'"
-    ).run(newLastId.toString());
+    updateLastGutenbergId(newLastId);
 
-    // Mettre à jour les statistiques de la bibliothèque
     console.log("\nUpdating library metadata...");
     indexer.updateLibraryMetadataFromDB();
 
     const successCount = newlyIndexedBookIds.length;
 
-    // Mise à jour incrémentale du graphe de Jaccard si demandé
-    let jaccardEdges = 0;
-    let pagerankScores = 0;
+    // Update Jaccard graph and PageRank if requested
+    let jaccardResult: JaccardPagerankResult = { jaccardEdges: 0, pagerankScores: 0 };
     if (autoJaccard && successCount > 0) {
-      console.log(
-        `\nUpdating Jaccard graph incrementally for ${successCount} new books...`
-      );
       try {
-        const calculator = new JaccardCalculator();
-        jaccardEdges = calculator.addBooksToJaccardGraph(
-          newlyIndexedBookIds,
-          (progress) => {
-            console.log(
-              `   ${progress.currentBook}/${progress.totalBooks} - ${progress.message} (${progress.percentage.toFixed(1)}%)`
-            );
-          }
-        );
-        console.log(`Jaccard graph updated with ${jaccardEdges} total edges`);
-
-        // Recalculate PageRank after Jaccard update
-        console.log(`\nRecalculating PageRank...`);
-        const pagerankCalculator = new PageRankCalculator();
-        const scores = pagerankCalculator.calculatePageRank();
-        pagerankScores = scores.length;
-        console.log(`PageRank recalculated for ${pagerankScores} books`);
+        jaccardResult = updateJaccardAndPagerank(newlyIndexedBookIds);
       } catch (error) {
         console.error("Failed to update Jaccard graph or PageRank:", error);
       }
@@ -213,21 +290,19 @@ app.post("/import-gutenberg", async (c) => {
       failed: failedIds.length,
       failedIds,
       lastGutenbergId: newLastId,
-      jaccardEdges: autoJaccard ? jaccardEdges : undefined,
-      pagerankScores: autoJaccard ? pagerankScores : undefined,
-      message: `Successfully imported ${successCount} books from Gutenberg${autoJaccard ? ` and updated Jaccard graph (${jaccardEdges} edges) and PageRank (${pagerankScores} scores)` : ""}`,
+      jaccardEdges: autoJaccard ? jaccardResult.jaccardEdges : undefined,
+      pagerankScores: autoJaccard ? jaccardResult.pagerankScores : undefined,
+      message: `Successfully imported ${successCount} books from Gutenberg${autoJaccard ? ` and updated Jaccard graph (${jaccardResult.jaccardEdges} edges) and PageRank (${jaccardResult.pagerankScores} scores)` : ""}`,
     });
   } catch (error) {
     console.error("Error importing from Gutenberg:", error);
-    return c.json(
-      {
-        error: "Failed to import books from Gutenberg",
-        message: error instanceof Error ? error.message : String(error),
-      },
-      500
-    );
+    return c.json(createErrorResponse(error, "Failed to import books from Gutenberg"), 500);
   }
 });
+
+// ============================================================================
+// Jaccard & PageRank Routes
+// ============================================================================
 
 /**
  * POST /api/admin/rebuild-jaccard
@@ -241,13 +316,9 @@ app.post("/rebuild-jaccard", async (c) => {
 
     console.log(`\nRebuilding Jaccard graph with threshold ${threshold}...`);
 
-    const calculator = new JaccardCalculator({
-      similarityThreshold: threshold,
-    });
+    const calculator = new JaccardCalculator({ similarityThreshold: threshold });
     const edgeCount = calculator.buildJaccardGraph((progress) => {
-      console.log(
-        `   ${progress.currentBook}/${progress.totalBooks} - ${progress.currentPhase} - ${progress.message} (${progress.percentage.toFixed(1)}%)`
-      );
+      console.log(`   ${progress.currentBook}/${progress.totalBooks} - ${progress.currentPhase} - ${progress.message} (${progress.percentage.toFixed(1)}%)`);
     });
 
     console.log(`Successfully built Jaccard graph with ${edgeCount} edges`);
@@ -260,13 +331,7 @@ app.post("/rebuild-jaccard", async (c) => {
     });
   } catch (error) {
     console.error("Error rebuilding Jaccard graph:", error);
-    return c.json(
-      {
-        error: "Failed to rebuild Jaccard graph",
-        message: error instanceof Error ? error.message : String(error),
-      },
-      500
-    );
+    return c.json(createErrorResponse(error, "Failed to rebuild Jaccard graph"), 500);
   }
 });
 
@@ -281,23 +346,18 @@ app.post("/calculate-pagerank", async (c) => {
     const iterations = parseInt(body.iterations || "100");
     const dampingFactor = parseFloat(body.dampingFactor || "0.85");
 
-    console.log(
-      `\nCalculating PageRank (max iterations: ${iterations}, damping: ${dampingFactor})...`
-    );
+    console.log(`\nCalculating PageRank (max iterations: ${iterations}, damping: ${dampingFactor})...`);
 
     const calculator = new PageRankCalculator({
       maxIterations: iterations,
       damping: dampingFactor,
     });
+
     const scores = calculator.calculatePageRank((progress) => {
-      console.log(
-        `   ${progress.currentBook}/${progress.totalBooks} - ${progress.currentPhase} - ${progress.message} (${progress.percentage.toFixed(1)}%)`
-      );
+      console.log(`   ${progress.currentBook}/${progress.totalBooks} - ${progress.currentPhase} - ${progress.message} (${progress.percentage.toFixed(1)}%)`);
     });
 
-    console.log(
-      `Successfully calculated PageRank scores for ${scores.length} books`
-    );
+    console.log(`Successfully calculated PageRank scores for ${scores.length} books`);
 
     return c.json({
       success: true,
@@ -308,15 +368,13 @@ app.post("/calculate-pagerank", async (c) => {
     });
   } catch (error) {
     console.error("Error calculating PageRank:", error);
-    return c.json(
-      {
-        error: "Failed to calculate PageRank",
-        message: error instanceof Error ? error.message : String(error),
-      },
-      500
-    );
+    return c.json(createErrorResponse(error, "Failed to calculate PageRank"), 500);
   }
 });
+
+// ============================================================================
+// Indexing Routes
+// ============================================================================
 
 /**
  * POST /api/admin/reindex
@@ -325,26 +383,21 @@ app.post("/calculate-pagerank", async (c) => {
 app.post("/reindex", async (c) => {
   try {
     const db = getDatabase();
-
     console.log("\nReindexing all books...");
 
-    // Récupérer tous les livres
-    const books = db.prepare("SELECT * FROM books").all() as Array<{
+    const books = db.prepare("SELECT id, title, file_path FROM books").all() as Array<{
       id: number;
       title: string;
-      author: string;
       file_path: string;
-      cover_image_path: string;
     }>;
-
     console.log(`Found ${books.length} books to reindex`);
 
-    // Supprimer l'ancien index
+    // Clear old index
     console.log("Deleting old index...");
     db.prepare("DELETE FROM inverted_index").run();
     db.prepare("DELETE FROM term_stats").run();
 
-    // Réindexer tous les livres
+    // Reindex all books
     const indexer = new BookIndexer();
     let reindexedCount = 0;
 
@@ -354,22 +407,15 @@ app.post("/reindex", async (c) => {
         reindexedCount++;
 
         if (reindexedCount % 10 === 0) {
-          console.log(
-            `Progress: ${reindexedCount}/${books.length} books reindexed`
-          );
+          console.log(`Progress: ${reindexedCount}/${books.length} books reindexed`);
         }
       } catch (error) {
-        console.error(
-          `Failed to reindex book ${book.id} (${book.title}):`,
-          error
-        );
+        console.error(`Failed to reindex book ${book.id} (${book.title}):`, error);
       }
     }
 
-    // Mettre à jour les statistiques de la bibliothèque
     console.log("\nUpdating library metadata...");
     indexer.updateLibraryMetadataFromDB();
-
     console.log(`Successfully reindexed ${reindexedCount} books`);
 
     return c.json({
@@ -379,13 +425,7 @@ app.post("/reindex", async (c) => {
     });
   } catch (error) {
     console.error("Error reindexing books:", error);
-    return c.json(
-      {
-        error: "Failed to reindex books",
-        message: error instanceof Error ? error.message : String(error),
-      },
-      500
-    );
+    return c.json(createErrorResponse(error, "Failed to reindex books"), 500);
   }
 });
 
@@ -408,44 +448,26 @@ app.post("/update-stats", async (c) => {
     });
   } catch (error) {
     console.error("Error updating library statistics:", error);
-    return c.json(
-      {
-        error: "Failed to update library statistics",
-        message: error instanceof Error ? error.message : String(error),
-      },
-      500
-    );
+    return c.json(createErrorResponse(error, "Failed to update library statistics"), 500);
   }
 });
 
-/**
- * GET /api/admin/config
- * Get all configuration values
- */
+// ============================================================================
+// Configuration Routes
+// ============================================================================
+
+/** GET /api/admin/config - Get all configuration values */
 app.get("/config", async (c) => {
   try {
     const config = getAllConfig();
-    return c.json({
-      success: true,
-      config,
-    });
+    return c.json({ success: true, config });
   } catch (error) {
     console.error("Error getting configuration:", error);
-    return c.json(
-      {
-        error: "Failed to get configuration",
-        message: error instanceof Error ? error.message : String(error),
-      },
-      500
-    );
+    return c.json(createErrorResponse(error, "Failed to get configuration"), 500);
   }
 });
 
-/**
- * PUT /api/admin/config
- * Update configuration values
- * Body: { key: string, value: string | number | boolean }
- */
+/** PUT /api/admin/config - Update configuration values */
 app.put("/config", async (c) => {
   try {
     const body = await c.req.json();
@@ -455,9 +477,7 @@ app.put("/config", async (c) => {
       return c.json({ error: "Missing required fields: key and value" }, 400);
     }
 
-    // Update the configuration
     updateConfig(key, value);
-
     console.log(`Configuration updated: ${key} = ${value}`);
 
     return c.json({
@@ -468,134 +488,122 @@ app.put("/config", async (c) => {
     });
   } catch (error) {
     console.error("Error updating configuration:", error);
-    return c.json(
-      {
-        error: "Failed to update configuration",
-        message: error instanceof Error ? error.message : String(error),
-      },
-      500
-    );
+    return c.json(createErrorResponse(error, "Failed to update configuration"), 500);
   }
 });
+
+// ============================================================================
+// Manual Book Addition Routes
+// ============================================================================
+
+const ALLOWED_COVER_TYPES = ["image/jpeg", "image/jpg", "image/png"] as const;
+
+interface AddBookFormData {
+  title: string;
+  author: string;
+  textFile: File;
+  coverImage?: File;
+  autoJaccard: boolean;
+}
+
+/**
+ * Parse and validate add-book form data
+ */
+function parseAddBookFormData(body: Record<string, unknown>): { data?: AddBookFormData; error?: string } {
+  const title = body["title"] as string;
+  const author = (body["author"] as string) || "Unknown Author";
+  const textFile = body["textFile"];
+  const coverImage = body["coverImage"];
+  const autoJaccard = body["autoJaccard"] !== "false";
+
+  if (!title?.trim()) {
+    return { error: "Title is required" };
+  }
+
+  if (!textFile || !(textFile instanceof File)) {
+    return { error: "Text file is required" };
+  }
+
+  if (!textFile.name.endsWith(".txt")) {
+    return { error: "Text file must be a .txt file" };
+  }
+
+  if (coverImage && coverImage instanceof File && !ALLOWED_COVER_TYPES.includes(coverImage.type as typeof ALLOWED_COVER_TYPES[number])) {
+    return { error: "Cover image must be a JPEG or PNG file" };
+  }
+
+  return {
+    data: {
+      title: title.trim(),
+      author: author.trim(),
+      textFile: textFile as File,
+      coverImage: coverImage instanceof File ? coverImage : undefined,
+      autoJaccard,
+    },
+  };
+}
+
+/**
+ * Save uploaded file to disk
+ */
+async function saveUploadedFile(file: File, directory: string, filename: string): Promise<string> {
+  const filePath = join(directory, filename);
+  const arrayBuffer = await file.arrayBuffer();
+  const buffer = Buffer.from(arrayBuffer);
+  writeFileSync(filePath, buffer);
+  return filePath;
+}
 
 /**
  * POST /api/admin/add-book
  * Add a single book manually with file uploads
- * Body: FormData with title, author (optional), textFile (required), coverImage (optional)
  */
 app.post("/add-book", async (c) => {
   try {
     const body = await c.req.parseBody();
+    const { data, error } = parseAddBookFormData(body);
 
-    // Extract fields
-    const title = body["title"] as string;
-    const author = (body["author"] as string) || "Unknown Author";
-    const textFile = body["textFile"];
-    const coverImage = body["coverImage"];
-    const autoJaccard = body["autoJaccard"] !== "false"; // Default true
-
-    // Validate required fields
-    if (!title || !title.trim()) {
-      return c.json({ error: "Title is required" }, 400);
+    if (error || !data) {
+      return c.json({ error }, 400);
     }
 
-    if (!textFile || !(textFile instanceof File)) {
-      return c.json({ error: "Text file is required" }, 400);
-    }
+    console.log(`\nAdding book manually: ${data.title} by ${data.author}`);
 
-    // Validate file types
-    if (!textFile.name.endsWith(".txt")) {
-      return c.json(
-        { error: "Text file must be a .txt file" },
-        400
-      );
-    }
+    // Ensure directories exist
+    ensureDirectoriesExist();
 
-    if (
-      coverImage &&
-      coverImage instanceof File &&
-      !["image/jpeg", "image/jpg", "image/png"].includes(coverImage.type)
-    ) {
-      return c.json(
-        { error: "Cover image must be a JPEG or PNG file" },
-        400
-      );
-    }
-
-    console.log(`\nAdding book manually: ${title} by ${author}`);
-
-    const { existsSync, mkdirSync, writeFileSync } = await import("fs");
-    const { join } = await import("path");
-
-    // Create directories if they don't exist
-    const booksDir = "./data/books";
-    const coversDir = "./data/covers";
-
-    if (!existsSync(booksDir)) {
-      mkdirSync(booksDir, { recursive: true });
-    }
-    if (!existsSync(coversDir)) {
-      mkdirSync(coversDir, { recursive: true });
-    }
-
-    // Generate unique filename based on timestamp
+    // Generate unique filenames
     const timestamp = Date.now();
-    const textFilename = `manual-${timestamp}.txt`;
-    const textFilePath = join(booksDir, textFilename);
-
-    // Save text file
-    const textArrayBuffer = await textFile.arrayBuffer();
-    const textBuffer = Buffer.from(textArrayBuffer);
-    writeFileSync(textFilePath, textBuffer);
-
+    const textFilePath = await saveUploadedFile(data.textFile, PATHS.BOOKS_DIR, `manual-${timestamp}.txt`);
     console.log(`Saved text file: ${textFilePath}`);
 
     // Save cover image if provided
     let coverImagePath: string | undefined;
-    if (coverImage && coverImage instanceof File) {
-      const ext = coverImage.name.split(".").pop() || "jpg";
-      const coverFilename = `manual-${timestamp}.${ext}`;
-      coverImagePath = join(coversDir, coverFilename);
-
-      const coverArrayBuffer = await coverImage.arrayBuffer();
-      const coverBuffer = Buffer.from(coverArrayBuffer);
-      writeFileSync(coverImagePath, coverBuffer);
-
+    if (data.coverImage) {
+      const ext = data.coverImage.name.split(".").pop() || "jpg";
+      coverImagePath = await saveUploadedFile(data.coverImage, PATHS.COVERS_DIR, `manual-${timestamp}.${ext}`);
       console.log(`Saved cover image: ${coverImagePath}`);
     }
 
     // Index the book
     const indexer = new BookIndexer();
-    console.log(`Indexing book: ${title}...`);
+    console.log(`Indexing book: ${data.title}...`);
 
     const indexedBook = indexer.indexBook({
-      title: title.trim(),
-      author: author.trim(),
+      title: data.title,
+      author: data.author,
       filePath: textFilePath,
       coverImagePath,
     });
 
-    console.log(`Successfully indexed book: ${title} (ID: ${indexedBook.id})`);
-
-    // Update library metadata
+    console.log(`Successfully indexed book: ${data.title} (ID: ${indexedBook.id})`);
     indexer.updateLibraryMetadataFromDB();
 
-    // Update Jaccard graph incrementally if requested
-    let jaccardEdges = 0;
-    let pagerankScores = 0;
-    if (autoJaccard) {
-      console.log(`\nUpdating Jaccard graph incrementally for new book...`);
+    // Update Jaccard graph and PageRank if requested
+    let jaccardResult: JaccardPagerankResult = { jaccardEdges: 0, pagerankScores: 0 };
+    if (data.autoJaccard) {
       try {
-        const calculator = new JaccardCalculator();
-        jaccardEdges = calculator.addBooksToJaccardGraph([indexedBook.id]);
-        console.log(`Jaccard graph updated with ${jaccardEdges} total edges`);
-
-        // Recalculate PageRank after Jaccard update
-        console.log(`\nRecalculating PageRank...`);
-        const pagerankCalculator = new PageRankCalculator();
-        const scores = pagerankCalculator.calculatePageRank();
-        pagerankScores = scores.length;
-        console.log(`PageRank recalculated for ${pagerankScores} books`);
+        jaccardResult = updateJaccardAndPagerank([indexedBook.id]);
       } catch (error) {
         console.error("Failed to update Jaccard graph or PageRank:", error);
       }
@@ -609,19 +617,13 @@ app.post("/add-book", async (c) => {
         author: indexedBook.author,
         wordCount: indexedBook.wordCount,
       },
-      jaccardEdges: autoJaccard ? jaccardEdges : undefined,
-      pagerankScores: autoJaccard ? pagerankScores : undefined,
-      message: `Successfully added book: ${title}${autoJaccard ? ` and updated Jaccard graph (${jaccardEdges} edges) and PageRank (${pagerankScores} scores)` : ""}`,
+      jaccardEdges: data.autoJaccard ? jaccardResult.jaccardEdges : undefined,
+      pagerankScores: data.autoJaccard ? jaccardResult.pagerankScores : undefined,
+      message: `Successfully added book: ${data.title}${data.autoJaccard ? ` and updated Jaccard graph (${jaccardResult.jaccardEdges} edges) and PageRank (${jaccardResult.pagerankScores} scores)` : ""}`,
     });
   } catch (error) {
     console.error("Error adding book:", error);
-    return c.json(
-      {
-        error: "Failed to add book",
-        message: error instanceof Error ? error.message : String(error),
-      },
-      500
-    );
+    return c.json(createErrorResponse(error, "Failed to add book"), 500);
   }
 });
 

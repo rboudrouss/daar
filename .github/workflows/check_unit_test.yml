@@ -63,5 +63,6 @@ jobs:
 
       - name: Run backend tests
         run: |
+          pnpm build:lib
           cd Backend
           pnpm test

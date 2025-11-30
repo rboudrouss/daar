@@ -9,8 +9,10 @@ import { ADMIN_PASSWORD } from "../utils/const";
  * Middleware pour vérifier le mot de passe admin
  */
 export const adminAuth = async (c: Context, next: Next) => {
+  // Si pas de mot de passe configuré, autoriser tout le monde
   if (!ADMIN_PASSWORD) {
-    return c.json({ error: "Admin password not configured on server" }, 500);
+    await next();
+    return;
   }
 
   // Récupérer le mot de passe depuis le header Authorization

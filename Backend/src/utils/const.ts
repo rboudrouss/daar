@@ -83,10 +83,7 @@ export function getTokenizerKeepPositions(): boolean {
   );
 }
 
-export const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
-if (!ADMIN_PASSWORD) {
-  throw new Error("ADMIN_PASSWORD is not defined");
-}
+export const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "admin";
 
 export const SEARCH_FUZZY_DEFAULT_MAX_DISTANCE = parseInt(
   process.env.SEARCH_FUZZY_DEFAULT_MAX_DISTANCE || "2"

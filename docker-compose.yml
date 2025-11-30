@@ -12,7 +12,7 @@ services:
       - PORT=3000
       - DB_PATH=/app/Backend/data/library.db
       - FRONTEND_PATH=/app/frontend/dist
-      - ADMIN_PASSWORD=password
+      - ADMIN_PASSWORD=admin
     volumes:
       # Persister la base de données
       - library-data:/app/Backend/data

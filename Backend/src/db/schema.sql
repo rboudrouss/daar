@@ -24,6 +24,8 @@ CREATE TABLE IF NOT EXISTS inverted_index (
 -- Index pour recherche rapide par terme
 CREATE INDEX IF NOT EXISTS idx_term ON inverted_index(term);
 CREATE INDEX IF NOT EXISTS idx_book_id ON inverted_index(book_id);
+-- Composite index for Jaccard similarity self-joins (term lookups with book_id filtering)
+CREATE INDEX IF NOT EXISTS idx_term_book ON inverted_index(term, book_id);
 
 -- Statistiques globales par terme (pour calcul IDF)
 CREATE TABLE IF NOT EXISTS term_stats (

@@ -2,22 +2,64 @@
 
 ## 1.1. Contexte
 
-Ce projet vise à développer une application web/mobile de moteur de recherche pour une bibliothèque numérique de documents textuels. Avec la numérisation massive des œuvres littéraires, notamment via des initiatives comme le projet Gutenberg, les bibliothèques numériques contiennent désormais des dizaines de milliers de documents. Une telle volumétrie rend la recherche manuelle impossible et nécessite des outils de recherche performants.
+Ce projet vise à développer une application web de moteur de recherche pour une bibliothèque numérique de documents textuels. Avec la numérisation massive des œuvres littéraires, notamment via des initiatives comme le projet Gutenberg, les bibliothèques numériques contiennent désormais des dizaines de milliers de documents. Une telle volumétrie rend la recherche manuelle impossible et nécessite des outils de recherche performants.
 
-Ce problème a déjà été résolu notamment par des bases de données type elasticsearch. Dans ce projet, nous avons choisi de développer notre propre solution en utilisant le moins de dépendance possible pour explorer les algorithmes de recherche et de recommandation.
+Des solutions industrielles telles qu'Elasticsearch répondent à ce besoin. Cependant, dans le cadre de ce projet, nous avons développé notre propre solution afin d'explorer les algorithmes de recherche, de scoring et de recommandation.
 
-Dans ce projet, nous feront explicitement le choix de ne pas décrire les algorithmes déjà décrits dans le rapport du projet 1, en effet nous avons utilisé exactement les mêmes implémentations.
+Les algorithmes de recherche par expressions régulières (NFA, DFA, KMP, Aho-Corasick) ayant été traités dans le rapport du projet 1, nous ne les détaillerons pas ici. Ce rapport se concentre sur les structures de données, le calcul de similarité, le scoring des résultats et les fonctionnalités de recherche avancée.
 
-## 1.2. Composants technique
+## 1.2. Architecture Technique
 
-Notre projet peut être décomposé en 3 couches :
+L'application est structurée en trois couches distinctes :
 
-- **La base de données** qui est dans `Backend/data/`, elle contient les fichiers textuels (et les images de couverture), et une base de données SQLite qui contient les informations sur les documents (titre, auteur, etc.), le reverse index, le graphe de Jaccard, etc...
+```{.mermaid}
+graph TB
+    subgraph Frontend["Frontend (React + TanStack Router)"]
+        UI[Interface utilisateur]
+        API_Client[Client API]
+    end
 
-- **Le backend** qui est dans `Backend/`, il s'agit d'un serveur Node.js (avec Hono) qui expose une API REST.
+    subgraph Backend["Backend (Node.js + Hono)"]
+        REST[API REST]
+        subgraph Search["Recherche"]
+            SE[SearchEngine]
+            SC[ScoringEngine]
+            FZ[FuzzyMatcher]
+            HL[Highlighter]
+        end
+        subgraph Index["Indexation"]
+            TK[Tokenizer]
+            IX[Indexer]
+            JC[JaccardCalculator]
+            PR[PageRank]
+        end
+    end
 
-- **Le frontend** qui est dans `Frontend/`, il s'agit d'une application React (avec TanStack Router).
+    subgraph Data["Couche Data"]
+        DB[(SQLite)]
+        TXT[Fichiers texte]
+    end
 
-## 1.4. Organisation du Rapport
+    UI --> API_Client
+    API_Client --> REST
+    REST --> SE
+    SE --> SC
+    SE --> FZ
+    SE --> HL
+    SE --> DB
+    IX --> TK
+    IX --> DB
+    JC --> DB
+    PR --> DB
+    DB --> TXT
+```
 
-TODO
+- **Couche Data** (`Backend/data/`) : fichiers textuels des livres, images de couverture, et base de données SQLite contenant l'index inversé, le graphe de Jaccard et les scores PageRank.
+
+- **Backend** (`Backend/`) : serveur Node.js utilisant le framework Hono, exposant une API REST pour la recherche, l'indexation et l'administration.
+
+- **Frontend** (`Frontend/`) : application React avec TanStack Router pour la navigation.
+
+## 1.3. Organisation du Rapport
+
+Ce rapport présente d'abord les structures de données utilisées (Section 2), puis détaille les algorithmes de similarité Jaccard (Section 3) et PageRank (Section 4). La section 5 décrit le système de scoring hybride. La section 6 présente l'optimisation de la recherche par expressions régulières. Les fonctionnalités de recherche floue et de highlighting sont présentées en section 7. Enfin, la section 8 analyse les performances et la section 9 conclut ce rapport.

@@ -21,8 +21,15 @@ jobs:
           corepack enable
           corepack prepare pnpm@8 --activate
 
-      - name: Install deps
+      - name: Install root dependencies
         run: pnpm install --no-frozen-lockfile
 
-      - name: Run tests
-        run: pnpm test
+      - name: Install lib dependencies
+        run: |
+          cd lib
+          pnpm install --no-frozen-lockfile
+
+      - name: Run tests (lib only)
+        run: |
+          cd lib
+          pnpm test

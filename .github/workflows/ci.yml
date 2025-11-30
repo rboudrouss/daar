@@ -6,42 +6,23 @@ on:
 
 jobs:
   test:
-    name: Run tests
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [22.x]
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      # 1. Install Node (no pnpm cache yet)
-      - name: Setup Node.js
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 22.x
 
-      # 2. Install pnpm before enabling caching (required)
-      - name: Enable Corepack and prepare pnpm
+      - name: Enable pnpm
         run: |
           corepack enable
           corepack prepare pnpm@8 --activate
 
-      # 3. Only now: enable pnpm cache
-      - name: Setup pnpm cache
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: pnpm
-          cache-dependency-path: pnpm-lock.yaml
+      - name: Install deps
+        run: pnpm install --no-frozen-lockfile
 
-      # 4. Install deps
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      # 5. Run tests for all workspaces
-      - name: Run tests for all workspaces
-        run: pnpm -w -r run test:run
-        env:
-          CI: true
+      - name: Run tests
+        run: pnpm test

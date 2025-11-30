@@ -32,7 +32,7 @@ Nous appliquons plusieurs optimisations pour réduire ce coût :
 
 2. **Minimum de termes partagés** : seules les paires ayant au moins 5 termes communs sont considérées
 
-3. **Pré-calcul des candidats** : une requête SQL identifie les paires potentiellement similaires avant le calcul exact
+3. **Pré-calcul des candidats** : une requête SQL identifie les paires potentiellement similaires avant le calcul exact. On peut perdre de potentielles paires, mais cela réduit drastiquement le nombre de comparaisons.
 
 ### 3.2.2. Pseudo-code
 
@@ -50,25 +50,7 @@ fonction buildJaccardGraph():
     insérer les arêtes dans la base
 ```
 
-### 3.2.3. Requête d'Identification des Candidats
-
-```sql
-WITH batch_terms AS (
-  SELECT term, book_id FROM inverted_index
-  WHERE book_id IN (batch_ids)
-)
-SELECT bt.book_id as book1, i2.book_id as book2, 
-       COUNT(*) as shared_terms
-FROM batch_terms bt
-JOIN term_stats ts ON bt.term = ts.term 
-  AND ts.document_frequency <= max_doc_freq
-JOIN inverted_index i2 ON bt.term = i2.term 
-  AND bt.book_id < i2.book_id
-GROUP BY bt.book_id, i2.book_id
-HAVING shared_terms >= min_shared_terms
-```
-
-## 3.3. Paramètres de Configuration
+## 3.3. Paramètres de Configuration du calcul de similarité
 
 | Paramètre | Valeur | Description |
 |-----------|--------|-------------|
@@ -82,6 +64,8 @@ HAVING shared_terms >= min_shared_terms
 - **Temps** : $O(n \times c \times \bar{t}^2)$ où $n$ est le nombre de livres, $c$ le nombre moyen de candidats par livre, et $\bar{t}$ le nombre moyen de termes par livre
 - **Espace** : $O(n \times k)$ arêtes stockées avec le filtre Top-K
 
+
+<!--
 ## 3.5. Exemple
 
 Considérons trois livres avec les termes suivants (après filtrage des stop words) :
@@ -96,4 +80,4 @@ Les similarités Jaccard classiques sont :
 - $J(B, C) = 0$
 
 Avec la pondération IDF, si "adventure" et "pirate" sont des termes rares (IDF élevé), la similarité $J_{IDF}(A, B)$ sera plus élevée, reflétant mieux leur proximité thématique.
-
+-->

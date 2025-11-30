@@ -29,7 +29,7 @@ CREATE INDEX idx_term ON inverted_index(term);
 CREATE INDEX idx_book_id ON inverted_index(book_id);
 ```
 
-Le champ `positions` stocke les positions en caractères de chaque occurrence, permettant le highlighting et le calcul de bonus de proximité.
+Le champ `positions` stocke les positions en caractères de chaque occurrence, permettant le highlighting et le calcul de bonus de proximité. (voir ...)
 
 ### 2.1.3. Complexité
 

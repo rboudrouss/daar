@@ -1,8 +1,8 @@
 # 5. Système de Scoring
 
-Le scoring des résultats de recherche est au cœur de la pertinence du moteur. Notre système combine plusieurs signaux pour produire un score final reflétant à la fois la correspondance textuelle et l'importance du document.
+Notre système combine plusieurs metriques pour produire un score final qui reflète la correspondance textuelle et l'importance du document.
 
-## 5.1. Score BM25 (Okapi BM25)
+## 5.1. Score BM25
 
 ### 5.1.1. Définition
 
@@ -35,8 +35,6 @@ Cette formule, légèrement différente du IDF classique, évite les valeurs né
 |-----------|--------|-------------|
 | $k_1$ | 1.2 | Saturation de la fréquence |
 | $b$ | 0.75 | Normalisation par la longueur |
-
-Ces valeurs sont des standards issus de la littérature en recherche d'information.
 
 ## 5.2. Score Hybride
 

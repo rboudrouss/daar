@@ -4,19 +4,13 @@
 
 ### 7.1.1. Corpus
 
-Le corpus de test est constitué de livres du projet Gutenberg :
-- **Nombre de livres** : 1700+
-- **Taille minimale** : 10 000 mots par livre
-- **Langues** : principalement anglais
-- **Genres** : fiction, non-fiction, poésie, théâtre
+Le corpus de test est constitué de 4000 premier livres du projet Gutenberg :
 
 ### 7.1.2. Configuration Matérielle
 
 Les tests ont été réalisés sur une machine avec :
-- Processeur : Intel Core i7
-- Mémoire : 16 Go RAM
-- Stockage : SSD NVMe
-- OS : Linux
+- Processeur : Intel Core i7 - 6 coeurs @ 3.8 GHz
+- Mémoire : 24 Go RAM
 
 ## 7.2. Performances d'Indexation
 
@@ -27,9 +21,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 books = [100, 500, 1000, 1500, 1700]
-indexing_time = [12, 58, 115, 175, 198]
-jaccard_time = [5, 45, 180, 420, 560]
-pagerank_time = [0.5, 2, 8, 18, 25]
+# Données d'estimation (simulées) conservant les ordres de grandeur – à remplacer par mesures réelles.
+indexing_time = [0.8, 4.0, 8.5, 12.5, 14.0]     # Indexation texte (s)
+jaccard_time  = [0.6, 3.0, 12.0, 30.0, 45.0]     # Construction graphe Jaccard (s)
+pagerank_time = [0.02, 0.10, 0.35, 0.80, 1.00]   # Calcul PageRank (s)
 
 fig, ax = plt.subplots(figsize=(10, 6))
 ax.plot(books, indexing_time, 'o-', label='Indexation (texte)', linewidth=2)
@@ -74,7 +69,7 @@ response_times = np.clip(response_times, 5, 300)
 
 fig, ax = plt.subplots(figsize=(10, 6))
 ax.hist(response_times, bins=50, edgecolor='black', alpha=0.7)
-ax.axvline(np.median(response_times), color='red', linestyle='--', 
+ax.axvline(np.median(response_times), color='red', linestyle='--',
            label=f'Médiane: {np.median(response_times):.0f}ms')
 ax.axvline(np.percentile(response_times, 95), color='orange', linestyle='--',
            label=f'P95: {np.percentile(response_times, 95):.0f}ms')
@@ -107,7 +102,7 @@ fig, ax = plt.subplots(figsize=(10, 6))
 bars = ax.bar(options, times, color=['#2ecc71', '#3498db', '#9b59b6', '#e74c3c', '#f39c12'])
 
 for bar, time in zip(bars, times):
-    ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 2, 
+    ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 2,
             f'{time}ms', ha='center', va='bottom', fontsize=11)
 
 ax.set_ylabel('Temps moyen (ms)', fontsize=12)
@@ -142,7 +137,7 @@ fig, ax = plt.subplots(figsize=(10, 6))
 bars = ax.bar(methods, precision_at_10, color=['#95a5a6', '#3498db', '#e74c3c', '#2ecc71'])
 
 for bar, p in zip(bars, precision_at_10):
-    ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.02, 
+    ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.02,
             f'{p:.0%}', ha='center', va='bottom', fontsize=12)
 
 ax.set_ylabel('Precision@10', fontsize=12)

@@ -12,23 +12,22 @@ Dans notre contexte, les "pages" sont les livres et les "liens" sont les arêtes
 
 Le score PageRank d'un sommet $v$ est défini par :
 
-$$PR(v) = \frac{1-d}{N} + d \sum_{u \in In(v)} \frac{PR(u)}{|Out(u)|}$$
+$PR(v) = \frac{1-d}{N} + \frac{d \cdot S}{N} + d \sum_{u \in \text{In}(v)} \frac{PR(u)}{\text{deg}^+(u)}$
+
+avec
+
+$S = \sum_{u \text{dangling}} \frac{PR(u)}{N}$
 
 où :
-- $d$ est le facteur d'amortissement (damping factor), typiquement 0.85
+- $d$ est le facteur d'amortissement (typiquement 0.85)
 - $N$ est le nombre total de sommets
-- $In(v)$ est l'ensemble des sommets pointant vers $v$
-- $|Out(u)|$ est le degré sortant de $u$
+- $\text{In}(v)$ est l'ensemble des sommets pointant vers $v$
+- $\text{deg}^+(u)$ est le degré sortant de $u$
+- Les sommets "dangling" sont ceux sans liens sortants
 
-Le terme $(1-d)/N$ représente la probabilité de "téléportation" vers un sommet aléatoire, évitant les pièges (sommets sans liens sortants).
+$d-1$ représente la probabilité de téléportation vers une page aléatoire, assurant que le surfeur ne reste pas bloqué. $S$ redistribue le score des sommets sans liens sortants.
 
-### 4.1.3. Forme Matricielle
-
-En notation matricielle, si $\mathbf{r}$ est le vecteur des scores PageRank et $\mathbf{M}$ la matrice de transition stochastique :
-
-$$\mathbf{r} = d \cdot \mathbf{M}^T \mathbf{r} + \frac{1-d}{N} \mathbf{1}$$
-
-Le vecteur $\mathbf{r}$ est le vecteur propre dominant de la matrice $(d \cdot \mathbf{M}^T + \frac{1-d}{N} \mathbf{J})$ où $\mathbf{J}$ est la matrice de uns.
+Ces ajout permettent la convergence de l'algorithme. Sans gestion des danglings, leur score accumulé ne contribuerait plus au score général, biaisant les résultats.
 
 ## 4.2. Implémentation
 
@@ -37,23 +36,21 @@ Le vecteur $\mathbf{r}$ est le vecteur propre dominant de la matrice $(d \cdot \
 ```
 fonction computePageRank(graph, d, maxIter, tolerance):
     N ← nombre de sommets
+    incomingEdges, outDegrees, danglingNodes ← prétraiter(graph)
     r ← vecteur de taille N initialisé à 1/N
-    
     pour i de 1 à maxIter:
-        r_new ← vecteur de zéros
-        
-        pour chaque sommet v:
-            somme ← 0
-            pour chaque voisin u de v:
-                somme ← somme + r[u] / degré(u)
-            r_new[v] ← (1-d)/N + d × somme
-        
-        diff ← ||r_new - r||_1
+        danglingSum ← somme des r[u] pour u dans danglingNodes
+        baseRank ← (1 - d)/N + d × (danglingSum / N)
+        r_new ← vecteur vide de taille N
+        pour chaque sommet v de 0 à N-1:
+            r_v ← baseRank
+            pour chaque u dans incomingEdges[v]:
+                r_v ← r_v + d × (r[u] / outDegrees[u])
+            r_new[v] ← r_v
+        diff ← somme des |r_new[v] - r[v]| pour tous les v
         r ← r_new
-        
         si diff < tolerance:
-            retourner r (convergé)
-    
+            retourner r
     retourner r
 ```
 
@@ -61,18 +58,9 @@ fonction computePageRank(graph, d, maxIter, tolerance):
 
 | Paramètre | Valeur | Description |
 |-----------|--------|-------------|
-| `damping` | 0.85 | Facteur d'amortissement |
-| `maxIterations` | 100 | Nombre maximum d'itérations |
+| `damping (d)` | 0.85 | Facteur d'amortissement |
+| `maxIter` | 100 | Nombre maximum d'itérations |
 | `tolerance` | $10^{-6}$ | Seuil de convergence |
-
-### 4.2.3. Convergence
-
-L'algorithme converge car la matrice de transition avec téléportation est :
-- Stochastique (colonnes somment à 1)
-- Apériodique (grâce à la téléportation)
-- Irréductible (tous les états accessibles)
-
-Par le théorème de Perron-Frobenius, il existe un unique vecteur propre dominant.
 
 ## 4.3. Application au Graphe de Jaccard
 
@@ -89,16 +77,9 @@ Un livre avec un PageRank élevé est :
 - Similaire à de nombreux autres livres
 - Connecté à des livres eux-mêmes centraux
 
-Ces livres peuvent être considérés comme des "œuvres de référence" dans leur domaine thématique.
-
 ## 4.4. Complexité
 
 - **Temps** : $O(k \times |E|)$ où $k$ est le nombre d'itérations et $|E|$ le nombre d'arêtes
 - **Espace** : $O(|V|)$ pour stocker les scores
 
-En pratique, la convergence est atteinte en 20-50 itérations pour notre corpus.
-
-## 4.5. Exemple de Résultats
-
-Sur notre corpus Gutenberg, les livres avec les PageRank les plus élevés sont généralement des classiques de la littérature anglaise (Shakespeare, Dickens) qui partagent un vocabulaire commun avec de nombreuses autres œuvres.
 

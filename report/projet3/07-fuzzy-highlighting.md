@@ -4,7 +4,7 @@
 
 ### 6.1.1. Motivation
 
-Les utilisateurs font fréquemment des fautes de frappe ou orthographiques. La recherche floue permet de trouver des résultats même lorsque la requête ne correspond pas exactement aux termes indexés.
+Les utilisateurs font fréquemment des fautes de frappe ou d'orthographe. Fuzzy Search permet de trouver des résultats même lorsque la requête ne correspond pas exactement aux termes indexés.
 
 ### 6.1.2. Distance de Levenshtein
 
@@ -31,11 +31,11 @@ La distance finale est $D[m][n]$.
 ```typescript
 function levenshteinDistance(a: string, b: string): number {
   const matrix: number[][] = [];
-  
+
   // Initialisation
   for (let i = 0; i <= b.length; i++) matrix[i] = [i];
   for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
-  
+
   // Remplissage
   for (let i = 1; i <= b.length; i++) {
     for (let j = 1; j <= a.length; j++) {
@@ -73,14 +73,6 @@ pour chaque terme t dans l'index:
 trier par distance croissante
 ```
 
-### 6.1.7. Exemple
-
-Pour la requête "advnture" (faute de frappe), avec distance maximale 2 :
-- "adventure" (distance 1) 
-- "aventure" (distance 2) 
-- "venture" (distance 2) 
-- "culture" (distance 4)
-
 ## 6.2. Highlighting
 
 ### 6.2.1. Objectif
@@ -115,8 +107,8 @@ Pour le highlighting de plusieurs termes simultanément, nous utilisons l'algori
 Pour la requête "treasure island" dans un document :
 
 ```html
-...the young Jim Hawkins discovers a 
-<mark>treasure</mark> map leading to a distant 
+...the young Jim Hawkins discovers a
+<mark>treasure</mark> map leading to a distant
 <mark>island</mark>...
 ```
 

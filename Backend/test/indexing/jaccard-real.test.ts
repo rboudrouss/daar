@@ -6,7 +6,14 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // Mock de la DB avant d'importer JaccardCalculator
 const mockDb = {
-  prepare: vi.fn((query: string) => {
+  prepare: vi.fn((query: string): Record<string, unknown> => {
+    // Mock pour compter les livres
+    if (query.includes("SELECT COUNT(*) as count FROM books")) {
+      return {
+        get: () => ({ count: 3 }),
+      };
+    }
+
     // Mock pour récupérer tous les livres
     if (query.includes("SELECT id FROM books")) {
       return {

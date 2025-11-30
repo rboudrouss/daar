@@ -52,7 +52,6 @@ export class Tokenizer {
     const regex = /[a-zà-ÿ0-9]+/gi;
     const words: Array<{ word: string; charPosition: number }> = [];
 
-    // Utiliser matchAll() au lieu de exec() en boucle (plus performant)
     const matches = text.matchAll(regex);
 
     for (const match of matches) {
@@ -79,11 +78,7 @@ export class Tokenizer {
       }
 
       // Filtrer les stop words
-      if (
-        getTokenizerIgnoreStopWords() &&
-        this.config.removeStopWords &&
-        STOP_WORDS.has(word)
-      ) {
+      if (this.config.removeStopWords && STOP_WORDS.has(word)) {
         continue;
       }
 
@@ -110,13 +105,10 @@ export class Tokenizer {
    * Tokenize une requête (même logique mais peut être différente)
    */
   tokenizeQuery(query: string): string[] {
-    // Pour les requêtes, on peut être moins strict
     const normalized = this.config.caseSensitive ? query : query.toLowerCase();
     const words = normalized.match(/[a-zà-ÿ0-9]+/gi) || [];
 
     return words.filter((word) => {
-      // Pas de filtre de longueur minimale pour les requêtes
-      // Pas de stop words pour les requêtes (l'utilisateur sait ce qu'il cherche)
       return word.length > 0;
     });
   }

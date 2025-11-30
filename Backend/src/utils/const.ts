@@ -16,6 +16,25 @@ export const JACCARD_DEFAULT_BATCH_SIZE = parseInt(
   process.env.JACCARD_BATCH_SIZE || "1000"
 );
 
+// Jaccard optimization settings (configurable via admin)
+export function getJaccardMaxTermFrequency(): number {
+  return getConfig(
+    "JACCARD_MAX_TERM_FREQUENCY",
+    "JACCARD_MAX_TERM_FREQUENCY",
+    0.7,
+    "number"
+  );
+}
+
+export function getJaccardMinSharedTerms(): number {
+  return getConfig(
+    "JACCARD_MIN_SHARED_TERMS",
+    "JACCARD_MIN_SHARED_TERMS",
+    5,
+    "number"
+  );
+}
+
 export const PAGERANK_DEFAULT_MAX_ITERATIONS = parseInt(
   process.env.PAGERANK_MAX_ITERATIONS || "100"
 );

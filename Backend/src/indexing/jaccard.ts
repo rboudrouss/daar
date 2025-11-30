@@ -107,6 +107,49 @@ export class JaccardCalculator {
     return unionWeight === 0 ? 0 : intersectionWeight / unionWeight;
   }
 
+  /**
+   * Traite les candidats pour un livre donné et calcule les similarités
+   * @returns le nombre de paires traitées
+   */
+  private processBookCandidates(
+    bookId: number,
+    bookTerms: Map<string, number>,
+    candidateIds: number[],
+    allSimilarities: Map<number, Array<{ bookId: number; similarity: number }>>,
+    maxTermFrequency: number,
+    shouldProcess: (candidateId: number) => boolean
+  ): number {
+    let processedPairs = 0;
+
+    for (let i = 0; i < candidateIds.length; i += CANDIDATE_CHUNK_SIZE) {
+      const candidateChunk = candidateIds.slice(i, i + CANDIDATE_CHUNK_SIZE);
+      const candidateTermsMap = this.loadBookTermsWithIDF(
+        candidateChunk,
+        maxTermFrequency
+      );
+
+      for (const candidateId of candidateChunk) {
+        if (!shouldProcess(candidateId)) continue;
+
+        const candidateTerms = candidateTermsMap.get(candidateId);
+        if (!candidateTerms || candidateTerms.size === 0) continue;
+
+        const similarity = this.calculateWeightedJaccardSimilarity(
+          bookTerms,
+          candidateTerms,
+          maxTermFrequency
+        );
+        processedPairs++;
+
+        if (similarity >= this.config.similarityThreshold) {
+          this.addSimilarity(allSimilarities, bookId, candidateId, similarity);
+        }
+      }
+    }
+
+    return processedPairs;
+  }
+
   /** Charge les termes d'un batch de livres avec leurs IDF */
   private loadBookTermsWithIDF(
     bookIds: number[],
@@ -146,35 +189,27 @@ export class JaccardCalculator {
   ): Map<number, Set<number>> {
     if (bookIds.length === 0) return new Map();
 
+    // Pre-compute max doc frequency threshold
+    const maxDocFreq = Math.floor(this.totalBooks * maxTermFrequency);
+
     const placeholders = bookIds.map(() => "?").join(",");
     const candidates = this.db
       .prepare(
         `
-        WITH term_frequencies AS (
-          SELECT term, COUNT(DISTINCT book_id) as doc_count
+        WITH batch_terms AS (
+          SELECT term, book_id
           FROM inverted_index
-          GROUP BY term
-        ),
-        total_books AS (
-          SELECT COUNT(*) as total FROM books
-        ),
-        valid_terms AS (
-          SELECT tf.term
-          FROM term_frequencies tf
-          CROSS JOIN total_books tb
-          WHERE CAST(tf.doc_count AS REAL) / tb.total <= ?
+          WHERE book_id IN (${placeholders})
         )
-        SELECT i1.book_id as book1, i2.book_id as book2, COUNT(DISTINCT i1.term) as shared_terms
-        FROM inverted_index i1
-        JOIN inverted_index i2 ON i1.term = i2.term
-        JOIN valid_terms vt ON i1.term = vt.term
-        WHERE i1.book_id IN (${placeholders})
-          AND i1.book_id < i2.book_id
-        GROUP BY i1.book_id, i2.book_id
+        SELECT bt.book_id as book1, i2.book_id as book2, COUNT(*) as shared_terms
+        FROM batch_terms bt
+        JOIN term_stats ts ON bt.term = ts.term AND ts.document_frequency <= ?
+        JOIN inverted_index i2 ON bt.term = i2.term AND bt.book_id < i2.book_id
+        GROUP BY bt.book_id, i2.book_id
         HAVING shared_terms >= ?
       `
       )
-      .all(maxTermFrequency, ...bookIds, minSharedTerms) as Array<{
+      .all(...bookIds, maxDocFreq, minSharedTerms) as Array<{
       book1: number;
       book2: number;
       shared_terms: number;
@@ -254,34 +289,14 @@ export class JaccardCalculator {
         const candidates = batchCandidatesMap.get(bookId1) || new Set<number>();
         const candidateIds = Array.from(candidates);
 
-        for (let i = 0; i < candidateIds.length; i += CANDIDATE_CHUNK_SIZE) {
-          const candidateChunk = candidateIds.slice(
-            i,
-            i + CANDIDATE_CHUNK_SIZE
-          );
-          const candidateTermsMap = this.loadBookTermsWithIDF(
-            candidateChunk,
-            maxTermFrequency
-          );
-
-          for (const bookId2 of candidateChunk) {
-            if (bookId2 <= bookId1) continue;
-
-            const terms2 = candidateTermsMap.get(bookId2);
-            if (!terms2 || terms2.size === 0) continue;
-
-            const similarity = this.calculateWeightedJaccardSimilarity(
-              terms1,
-              terms2,
-              maxTermFrequency
-            );
-            processedPairs++;
-
-            if (similarity >= this.config.similarityThreshold) {
-              this.addSimilarity(allSimilarities, bookId1, bookId2, similarity);
-            }
-          }
-        }
+        processedPairs += this.processBookCandidates(
+          bookId1,
+          terms1,
+          candidateIds,
+          allSimilarities,
+          maxTermFrequency,
+          (id) => id > bookId1 // only process pairs where bookId2 > bookId1
+        );
 
         processedBooks++;
         this.reportProgress(
@@ -436,6 +451,7 @@ export class JaccardCalculator {
     }
 
     const startTime = Date.now();
+    let debugtime = Date.now();
     this.loadTermDocFrequencies();
 
     const allBookIds = (
@@ -474,36 +490,14 @@ export class JaccardCalculator {
       );
       const candidateIds = Array.from(candidates);
 
-      for (let i = 0; i < candidateIds.length; i += CANDIDATE_CHUNK_SIZE) {
-        const candidateChunk = candidateIds.slice(i, i + CANDIDATE_CHUNK_SIZE);
-        const candidateTermsMap = this.loadBookTermsWithIDF(
-          candidateChunk,
-          maxTermFrequency
-        );
-
-        for (const existingBookId of candidateChunk) {
-          const existingBookTerms = candidateTermsMap.get(existingBookId);
-          if (!existingBookTerms || existingBookTerms.size === 0) continue;
-
-          const similarity = this.calculateWeightedJaccardSimilarity(
-            newBookTerms,
-            existingBookTerms,
-            maxTermFrequency
-          );
-          processedPairs++;
-
-          if (similarity >= this.config.similarityThreshold) {
-            if (!allSimilarities.has(existingBookId))
-              allSimilarities.set(existingBookId, []);
-            allSimilarities
-              .get(newBookId)!
-              .push({ bookId: existingBookId, similarity });
-            allSimilarities
-              .get(existingBookId)!
-              .push({ bookId: newBookId, similarity });
-          }
-        }
-      }
+      processedPairs += this.processBookCandidates(
+        newBookId,
+        newBookTerms,
+        candidateIds,
+        allSimilarities,
+        maxTermFrequency,
+        () => true // process all candidates
+      );
 
       processedBooks++;
       this.reportProgressIncremental(
@@ -593,46 +587,37 @@ export class JaccardCalculator {
   ): Set<number> {
     if (existingBookIds.length === 0) return new Set();
 
-    const placeholders = existingBookIds.map(() => "?").join(",");
+    // Pre-compute max doc frequency threshold
+    const maxDocFreq = Math.floor(this.totalBooks * maxTermFrequency);
+
     const candidates = this.db
       .prepare(
         `
-        WITH term_frequencies AS (
-          SELECT term, COUNT(DISTINCT book_id) as doc_count
-          FROM inverted_index
-          GROUP BY term
-        ),
-        total_books AS (
-          SELECT COUNT(*) as total FROM books
-        ),
-        valid_terms AS (
-          SELECT tf.term
-          FROM term_frequencies tf
-          CROSS JOIN total_books tb
-          WHERE CAST(tf.doc_count AS REAL) / tb.total <= ?
+        WITH new_book_terms AS (
+          SELECT i.term
+          FROM inverted_index i
+          JOIN term_stats ts ON i.term = ts.term AND ts.document_frequency <= ?
+          WHERE i.book_id = ?
         )
-        SELECT i2.book_id, COUNT(DISTINCT i1.term) as shared_terms
-        FROM inverted_index i1
-        JOIN inverted_index i2 ON i1.term = i2.term
-        JOIN valid_terms vt ON i1.term = vt.term
-        WHERE i1.book_id = ?
-          AND i2.book_id IN (${placeholders})
-          AND i2.book_id != ?
+        SELECT i2.book_id, COUNT(*) as shared_terms
+        FROM new_book_terms nbt
+        JOIN inverted_index i2 ON nbt.term = i2.term
+        WHERE i2.book_id != ?
         GROUP BY i2.book_id
         HAVING shared_terms >= ?
       `
       )
-      .all(
-        maxTermFrequency,
-        newBookId,
-        ...existingBookIds,
-        newBookId,
-        minSharedTerms
-      ) as Array<{
+      .all(maxDocFreq, newBookId, newBookId, minSharedTerms) as Array<{
       book_id: number;
       shared_terms: number;
     }>;
 
-    return new Set(candidates.map((c) => c.book_id));
+    // Filter to only existing books if the list is provided (for incremental updates)
+    const existingSet = new Set(existingBookIds);
+    return new Set(
+      candidates
+        .filter((c) => existingSet.has(c.book_id))
+        .map((c) => c.book_id)
+    );
   }
 }

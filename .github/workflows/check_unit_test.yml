@@ -29,7 +29,11 @@ jobs:
           cd lib
           pnpm install --no-frozen-lockfile
 
-      - name: Run tests (lib only)
+      - name: Run tests backend
         run: |
-          cd lib
+          cd Backend
+          pnpm run test
+      - name: Run tests lib
+        run: |
+          cd ../lib
           pnpm test

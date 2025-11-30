@@ -112,8 +112,8 @@ INSERT OR IGNORE INTO app_config (key, value, type, description) VALUES
   ('GUTENBERG_BATCH_SIZE', '30', 'number', 'Number of books to fetch per batch from Gutenberg'),
 
   -- Jaccard similarity settings
-  ('JACCARD_MAX_TERM_FREQUENCY', '0.7', 'number', 'Maximum term document frequency for Jaccard (ignore terms in >70% of books)'),
-  ('JACCARD_MIN_SHARED_TERMS', '5', 'number', 'Minimum shared terms required to compare two books for Jaccard similarity'),
+  ('JACCARD_MAX_TERM_FREQUENCY', '0.05', 'number', 'Maximum term document frequency for Jaccard (ignore terms in >70% of books)'),
+  ('JACCARD_MIN_SHARED_TERMS', '10', 'number', 'Minimum shared terms required to compare two books for Jaccard similarity'),
 
   -- Search scoring settings
   ('SEARCH_SCORING_BM25_WEIGHT', '0.5', 'number', 'Weight for BM25 score in final ranking'),

@@ -212,9 +212,9 @@ export async function fetchGutendexMetadataBatch(
         response.status >= 500
       ) {
         console.warn(
-          `[Gutendex Batch] Failed with HTTP ${response.status}, retrying in 2s...`
+          `[Gutendex Batch] Failed with HTTP ${response.status}, retrying in 30s...`
         );
-        await sleep(2000);
+        await sleep(30000);
 
         const retryResponse = await fetch(url);
         if (!retryResponse.ok) {
@@ -259,8 +259,8 @@ export async function fetchGutendexMetadataBatch(
     return metadataMap;
   } catch (error) {
     // Retry en cas d'erreur réseau
-    console.warn(`[Gutendex Batch] Network error, retrying in 2s...`);
-    await sleep(2000);
+    console.warn(`[Gutendex Batch] Network error, retrying in 30s...`);
+    await sleep(30000);
 
     try {
       const retryResponse = await fetch(url);
@@ -293,7 +293,7 @@ export async function fetchGutendexMetadataBatch(
 
 /**
  * Récupère les métadonnées d'un livre depuis l'API Gutendex
- * Retry une fois après 2 secondes en cas d'échec
+ * Retry une fois après 30 secondes en cas d'échec
  */
 export async function fetchGutendexMetadata(
   bookId: number
@@ -305,16 +305,16 @@ export async function fetchGutendexMetadata(
     const response = await fetch(url);
 
     if (!response.ok) {
-      // Si timeout ou erreur serveur, retry après 2 secondes
+      // Si timeout ou erreur serveur, retry après 30 secondes
       if (
         response.status === 408 ||
         response.status === 429 ||
         response.status >= 500
       ) {
         console.warn(
-          `[Gutendex] Book ${bookId} failed with HTTP ${response.status}, retrying in 2s...`
+          `[Gutendex] Book ${bookId} failed with HTTP ${response.status}, retrying in 30s...`
         );
-        await sleep(2000);
+        await sleep(30000);
 
         // Deuxième essai
         try {
@@ -356,11 +356,11 @@ export async function fetchGutendexMetadata(
 
     return data;
   } catch (error) {
-    // En cas d'erreur réseau, retry après 2 secondes
+    // En cas d'erreur réseau, retry après 30 secondes
     console.warn(
-      `[Gutendex] Network error for book ${bookId}, retrying in 2s...`
+      `[Gutendex] Network error for book ${bookId}, retrying in 30s...`
     );
-    await sleep(2000);
+    await sleep(30000);
 
     try {
       const retryResponse = await fetch(url);

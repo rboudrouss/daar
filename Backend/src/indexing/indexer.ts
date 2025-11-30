@@ -75,7 +75,7 @@ export class BookIndexer {
   }
 
   /**
-   * Indexe un seul livre
+   * Indexe un seul livre avec batch inserts optimisés
    */
   indexBook(metadata: BookMetadata): Book {
     console.log(`Indexing: ${metadata.title}`);
@@ -95,17 +95,8 @@ export class BookIndexer {
     const bookId = result.lastInsertRowid as number;
     const termCounts = this.tokenizer.countTerms(terms);
 
-    // Insérer dans l'index inversé (dans une transaction)
-    withTransaction(() => {
-      for (const [term, count] of termCounts.entries()) {
-        const termPositions = positions?.get(term) || [];
-        // Optimisation: sérialisation manuelle plus rapide que JSON.stringify
-        const positionsJson = this.serializePositions(termPositions);
-
-        this.stmtInsertIndex.run(term, bookId, count, positionsJson);
-        this.stmtUpdateTermStats.run(term, count, count);
-      }
-    });
+    // Insérer dans l'index inversé avec batch inserts (dans une transaction)
+    this.insertTermsBatch(bookId, termCounts, positions);
 
     console.log(
       `Indexed: ${metadata.title} (${totalTokens} words, ${termCounts.size} unique terms)`
@@ -122,7 +113,45 @@ export class BookIndexer {
   }
 
   /**
-   * Indexe plusieurs livres
+   * Insère les termes d'un livre par batch pour de meilleures performances
+   */
+  private insertTermsBatch(
+    bookId: number,
+    termCounts: Map<string, number>,
+    positions?: Map<string, number[]>
+  ): void {
+    const BATCH_SIZE = 500; // Insérer 500 termes à la fois
+    const terms = Array.from(termCounts.entries());
+
+    withTransaction(() => {
+      for (let i = 0; i < terms.length; i += BATCH_SIZE) {
+        const batch = terms.slice(i, i + BATCH_SIZE);
+
+        // Construire une requête multi-row INSERT pour l'index inversé
+        const indexPlaceholders = batch.map(() => "(?, ?, ?, ?)").join(", ");
+        const indexValues: any[] = [];
+        for (const [term, count] of batch) {
+          const termPositions = positions?.get(term) || [];
+          const positionsJson = this.serializePositions(termPositions);
+          indexValues.push(term, bookId, count, positionsJson);
+        }
+
+        this.db
+          .prepare(
+            `INSERT INTO inverted_index (term, book_id, term_frequency, positions) VALUES ${indexPlaceholders}`
+          )
+          .run(...indexValues);
+
+        // Mettre à jour les statistiques de termes
+        for (const [term, count] of batch) {
+          this.stmtUpdateTermStats.run(term, count, count);
+        }
+      }
+    });
+  }
+
+  /**
+   * Indexe plusieurs livres avec batch inserts optimisés
    */
   indexBooks(
     metadataList: BookMetadata[],
@@ -167,14 +196,8 @@ export class BookIndexer {
           const bookId = result.lastInsertRowid as number;
           const termCounts = this.tokenizer.countTerms(terms);
 
-          // Insérer les termes (déjà dans la transaction globale)
-          for (const [term, count] of termCounts.entries()) {
-            const termPositions = positions?.get(term) || [];
-            const positionsJson = this.serializePositions(termPositions);
-
-            this.stmtInsertIndex.run(term, bookId, count, positionsJson);
-            this.stmtUpdateTermStats.run(term, count, count);
-          }
+          // Insérer les termes avec batch inserts (déjà dans la transaction globale)
+          this.insertTermsBatchInTransaction(bookId, termCounts, positions);
 
           books.push({
             id: bookId,
@@ -203,6 +226,42 @@ export class BookIndexer {
     this.updateLibraryMetadata(books);
 
     return books;
+  }
+
+  /**
+   * Insère les termes d'un livre par batch (sans créer de transaction, pour usage dans une transaction existante)
+   */
+  private insertTermsBatchInTransaction(
+    bookId: number,
+    termCounts: Map<string, number>,
+    positions?: Map<string, number[]>
+  ): void {
+    const BATCH_SIZE = 500;
+    const terms = Array.from(termCounts.entries());
+
+    for (let i = 0; i < terms.length; i += BATCH_SIZE) {
+      const batch = terms.slice(i, i + BATCH_SIZE);
+
+      // Construire une requête multi-row INSERT pour l'index inversé
+      const indexPlaceholders = batch.map(() => "(?, ?, ?, ?)").join(", ");
+      const indexValues: any[] = [];
+      for (const [term, count] of batch) {
+        const termPositions = positions?.get(term) || [];
+        const positionsJson = this.serializePositions(termPositions);
+        indexValues.push(term, bookId, count, positionsJson);
+      }
+
+      this.db
+        .prepare(
+          `INSERT INTO inverted_index (term, book_id, term_frequency, positions) VALUES ${indexPlaceholders}`
+        )
+        .run(...indexValues);
+
+      // Mettre à jour les statistiques de termes
+      for (const [term, count] of batch) {
+        this.stmtUpdateTermStats.run(term, count, count);
+      }
+    }
   }
 
   /**

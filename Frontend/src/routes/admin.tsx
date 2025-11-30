@@ -26,6 +26,13 @@ function AdminPanel() {
   const [configLoading, setConfigLoading] = useState(false);
   const [editingConfig, setEditingConfig] = useState<Record<string, any>>({});
 
+  // Manual book upload state
+  const [bookTitle, setBookTitle] = useState("");
+  const [bookAuthor, setBookAuthor] = useState("");
+  const [textFile, setTextFile] = useState<File | null>(null);
+  const [coverImage, setCoverImage] = useState<File | null>(null);
+  const [autoJaccardManual, setAutoJaccardManual] = useState(true);
+
   async function callAdminAPI(endpoint: string, body: any = {}) {
     if (!password) {
       setMessage({ type: "error", text: "Please enter admin password" });
@@ -95,6 +102,73 @@ function AdminPanel() {
 
   async function handleUpdateStats() {
     await callAdminAPI("update-stats", {});
+  }
+
+  async function handleAddBook() {
+    if (!password) {
+      setMessage({ type: "error", text: "Please enter admin password" });
+      return;
+    }
+
+    if (!bookTitle.trim()) {
+      setMessage({ type: "error", text: "Book title is required" });
+      return;
+    }
+
+    if (!textFile) {
+      setMessage({ type: "error", text: "Text file is required" });
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      setMessage(null);
+
+      const formData = new FormData();
+      formData.append("title", bookTitle.trim());
+      formData.append("author", bookAuthor.trim() || "Unknown Author");
+      formData.append("textFile", textFile);
+      if (coverImage) {
+        formData.append("coverImage", coverImage);
+      }
+      formData.append("autoJaccard", String(autoJaccardManual));
+
+      const response = await fetch(`${API_BASE_URL}/api/admin/add-book`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${password}`,
+        },
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || data.message || "Request failed");
+      }
+
+      setMessage({ type: "success", text: data.message || "Book added successfully!" });
+
+      // Reset form
+      setBookTitle("");
+      setBookAuthor("");
+      setTextFile(null);
+      setCoverImage(null);
+
+      // Reset file inputs
+      const textInput = document.getElementById("textFileInput") as HTMLInputElement;
+      const coverInput = document.getElementById("coverImageInput") as HTMLInputElement;
+      if (textInput) textInput.value = "";
+      if (coverInput) coverInput.value = "";
+
+    } catch (err) {
+      setMessage({
+        type: "error",
+        text: err instanceof Error ? err.message : "Failed to add book",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   // Load configuration on mount
@@ -342,6 +416,193 @@ function AdminPanel() {
               }}
             >
               {isLoading ? "Processing..." : "Import"}
+            </button>
+          </div>
+        </div>
+
+        {/* Add Book Manually Section */}
+        <div
+          style={{
+            backgroundColor: "white",
+            borderRadius: "8px",
+            padding: "24px",
+            boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+            marginBottom: "24px",
+          }}
+        >
+          <h2
+            style={{
+              margin: "0 0 16px 0",
+              fontSize: "20px",
+              fontWeight: "600",
+            }}
+          >
+            📚 Add Book Manually
+          </h2>
+          <p style={{ margin: "0 0 16px 0", color: "#666", fontSize: "14px" }}>
+            Upload a book manually by providing a title, optional author, text file (.txt), and optional cover image.
+          </p>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+            {/* Title Input */}
+            <div>
+              <label
+                style={{
+                  display: "block",
+                  marginBottom: "8px",
+                  fontWeight: "500",
+                  fontSize: "14px",
+                }}
+              >
+                Title *
+              </label>
+              <input
+                type="text"
+                value={bookTitle}
+                onChange={(e) => setBookTitle(e.target.value)}
+                placeholder="Enter book title"
+                style={{
+                  width: "100%",
+                  padding: "12px",
+                  fontSize: "16px",
+                  border: "1px solid #ddd",
+                  borderRadius: "4px",
+                  boxSizing: "border-box",
+                }}
+              />
+            </div>
+
+            {/* Author Input */}
+            <div>
+              <label
+                style={{
+                  display: "block",
+                  marginBottom: "8px",
+                  fontWeight: "500",
+                  fontSize: "14px",
+                }}
+              >
+                Author (optional)
+              </label>
+              <input
+                type="text"
+                value={bookAuthor}
+                onChange={(e) => setBookAuthor(e.target.value)}
+                placeholder="Enter author name (default: Unknown Author)"
+                style={{
+                  width: "100%",
+                  padding: "12px",
+                  fontSize: "16px",
+                  border: "1px solid #ddd",
+                  borderRadius: "4px",
+                  boxSizing: "border-box",
+                }}
+              />
+            </div>
+
+            {/* Text File Input */}
+            <div>
+              <label
+                style={{
+                  display: "block",
+                  marginBottom: "8px",
+                  fontWeight: "500",
+                  fontSize: "14px",
+                }}
+              >
+                Text File (.txt) *
+              </label>
+              <input
+                id="textFileInput"
+                type="file"
+                accept=".txt"
+                onChange={(e) => setTextFile(e.target.files?.[0] || null)}
+                style={{
+                  width: "100%",
+                  padding: "12px",
+                  fontSize: "14px",
+                  border: "1px solid #ddd",
+                  borderRadius: "4px",
+                  boxSizing: "border-box",
+                }}
+              />
+              {textFile && (
+                <p style={{ margin: "8px 0 0 0", fontSize: "12px", color: "#666" }}>
+                  Selected: {textFile.name} ({(textFile.size / 1024).toFixed(2)} KB)
+                </p>
+              )}
+            </div>
+
+            {/* Cover Image Input */}
+            <div>
+              <label
+                style={{
+                  display: "block",
+                  marginBottom: "8px",
+                  fontWeight: "500",
+                  fontSize: "14px",
+                }}
+              >
+                Cover Image (optional)
+              </label>
+              <input
+                id="coverImageInput"
+                type="file"
+                accept="image/jpeg,image/jpg,image/png"
+                onChange={(e) => setCoverImage(e.target.files?.[0] || null)}
+                style={{
+                  width: "100%",
+                  padding: "12px",
+                  fontSize: "14px",
+                  border: "1px solid #ddd",
+                  borderRadius: "4px",
+                  boxSizing: "border-box",
+                }}
+              />
+              {coverImage && (
+                <p style={{ margin: "8px 0 0 0", fontSize: "12px", color: "#666" }}>
+                  Selected: {coverImage.name} ({(coverImage.size / 1024).toFixed(2)} KB)
+                </p>
+              )}
+            </div>
+
+            {/* Auto Jaccard Checkbox */}
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <input
+                type="checkbox"
+                id="autoJaccardManual"
+                checked={autoJaccardManual}
+                onChange={(e) => setAutoJaccardManual(e.target.checked)}
+                style={{ width: "18px", height: "18px", cursor: "pointer" }}
+              />
+              <label
+                htmlFor="autoJaccardManual"
+                style={{
+                  fontSize: "14px",
+                  color: "#666",
+                  cursor: "pointer",
+                }}
+              >
+                Automatically update Jaccard graph (recommended)
+              </label>
+            </div>
+
+            {/* Submit Button */}
+            <button
+              onClick={handleAddBook}
+              disabled={isLoading}
+              style={{
+                padding: "12px 24px",
+                fontSize: "16px",
+                backgroundColor: isLoading ? "#ccc" : "#2196F3",
+                color: "white",
+                border: "none",
+                borderRadius: "4px",
+                cursor: isLoading ? "not-allowed" : "pointer",
+                fontWeight: "500",
+              }}
+            >
+              {isLoading ? "Adding Book..." : "Add Book"}
             </button>
           </div>
         </div>

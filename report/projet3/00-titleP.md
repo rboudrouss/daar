@@ -42,6 +42,8 @@ header-includes:
    \end{center}
 \end{titlepage}
 
+\setcounter{secnumdepth}{4}
+\setcounter{tocdepth}{2}
 \tableofcontents
 
 \newpage

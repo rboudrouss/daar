@@ -1,21 +1,21 @@
-# 7. Recherche Floue et Highlighting
+# Recherche Floue et Highlighting
 
-## 6.1. Recherche Floue (Fuzzy Search)
+## Recherche Floue (Fuzzy Search)
 
-### 6.1.1. Motivation
+### Motivation
 
 Les utilisateurs font fréquemment des fautes de frappe ou d'orthographe. Fuzzy Search permet de trouver des résultats même lorsque la requête ne correspond pas exactement aux termes indexés.
 
-### 6.1.2. Distance de Levenshtein
+### Distance de Levenshtein
 
 La distance de Levenshtein (ou distance d'édition) entre deux chaînes est le nombre minimum d'opérations élémentaires pour transformer l'une en l'autre :
 - **Insertion** d'un caractère
 - **Suppression** d'un caractère
 - **Substitution** d'un caractère
 
-### 6.1.3. Algorithme
+### Algorithme
 
-L'algorithme utilise la programmation dynamique. Pour deux chaînes $a$ de longueur $m$ et $b$ de longueur $n$, on construit une matrice $D$ de taille $(m+1) \times (n+1)$ :
+Pour deux chaînes $a$ de longueur $m$ et $b$ de longueur $n$, on construit une matrice $D$ de taille $(m+1) \times (n+1)$ :
 
 $$D[i][j] = \begin{cases}
 i & \text{si } j = 0 \\
@@ -26,7 +26,7 @@ D[i-1][j-1] & \text{si } a[i] = b[j] \\
 
 La distance finale est $D[m][n]$.
 
-### 6.1.4. Implémentation
+### Implémentation
 
 ```typescript
 function levenshteinDistance(a: string, b: string): number {
@@ -54,12 +54,12 @@ function levenshteinDistance(a: string, b: string): number {
 }
 ```
 
-### 6.1.5. Complexité
+### Complexité
 
 - **Temps** : $O(m \times n)$
 - **Espace** : $O(m \times n)$, réductible à $O(\min(m, n))$ avec optimisation
 
-### 6.1.6. Expansion de Requête
+### Expansion de Requête
 
 Lors d'une recherche floue, chaque terme de la requête est étendu avec les termes de l'index ayant une distance inférieure ou égale au seuil (par défaut 2) :
 
@@ -73,13 +73,13 @@ pour chaque terme t dans l'index:
 trier par distance croissante
 ```
 
-## 6.2. Highlighting
+## Highlighting
 
-### 6.2.1. Objectif
+### Objectif
 
 Le highlighting consiste à générer des extraits de texte (snippets) mettant en évidence les termes recherchés. Cela permet à l'utilisateur d'évaluer rapidement la pertinence d'un résultat.
 
-### 6.2.2. Génération de Snippets
+### Génération de Snippets
 
 L'algorithme utilise les positions stockées dans l'index inversé :
 
@@ -89,11 +89,11 @@ L'algorithme utilise les positions stockées dans l'index inversé :
 4. Fusionner les contextes adjacents si ils se chevauchent
 5. Appliquer les balises `<mark>` autour des termes
 
-### 6.2.3. Multi-Pattern Matching avec Aho-Corasick
+### Multi-Pattern Matching avec Aho-Corasick
 
 Pour le highlighting de plusieurs termes simultanément, nous utilisons l'algorithme Aho-Corasick (décrit dans le rapport du projet 1). Cet algorithme permet de rechercher tous les termes en un seul parcours du texte.
 
-### 6.2.4. Paramètres
+### Paramètres
 
 | Paramètre | Valeur | Description |
 |-----------|--------|-------------|
@@ -102,7 +102,7 @@ Pour le highlighting de plusieurs termes simultanément, nous utilisons l'algori
 | `contextBefore` | 100 | Caractères de contexte avant |
 | `contextAfter` | 100 | Caractères de contexte après |
 
-### 6.2.5. Exemple de Sortie
+### Exemple de Sortie
 
 Pour la requête "treasure island" dans un document :
 
@@ -111,8 +111,3 @@ Pour la requête "treasure island" dans un document :
 <mark>treasure</mark> map leading to a distant
 <mark>island</mark>...
 ```
-
-### 6.2.6. Optimisation
-
-Le highlighting n'est appliqué qu'aux résultats paginés (après tri et limite), évitant ainsi un travail inutile sur les résultats non affichés.
-

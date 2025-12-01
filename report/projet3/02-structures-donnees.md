@@ -1,10 +1,10 @@
-# 2. Structures de Données
+# Structures de Données
 
-## 2.1. Index Inversé
+## Index Inversé
 
-### 2.1.1. Définition
+### Définition
 
-L'index inversé est la structure de données fondamentale pour la recherche textuelle. Contrairement à un index direct (document → termes), l'index inversé associe chaque terme à la liste des documents le contenant.
+Pour la recherche textuelle, nous utilisons un index inversé avec positions. il associe chaque terme à la liste des documents le contenant, avec la fréquence et les positions d'occurrence. (Les positions seront utiles pour le highlighting et le calcul de bonus de proximité, nous expliquerons cela plus tard.)
 
 Formellement, pour un corpus $D = \{d_1, d_2, ..., d_n\}$ et un vocabulaire $V$, l'index inversé $I$ est défini par :
 
@@ -12,7 +12,7 @@ $$I : V \rightarrow \mathcal{P}(D \times \mathbb{N} \times \mathbb{N}^*)$$
 
 où chaque entrée contient le document, la fréquence du terme, et les positions d'occurrence.
 
-### 2.1.2. Implémentation
+### Implémentation
 
 Notre index inversé est stocké dans SQLite avec le schéma suivant :
 
@@ -29,15 +29,15 @@ CREATE INDEX idx_term ON inverted_index(term);
 CREATE INDEX idx_book_id ON inverted_index(book_id);
 ```
 
-Le champ `positions` stocke les positions en caractères de chaque occurrence, permettant le highlighting et le calcul de bonus de proximité. (voir ...)
+Le champ `positions` stocke les positions en caractères de chaque occurrence, permettant le highlighting et le calcul de bonus de proximité.
 
-### 2.1.3. Complexité
+### Complexité
 
 - Recherche d'un terme : $O(1)$ grâce à l'index SQL sur `term`
 - Insertion d'un terme : $O(\log n)$ pour la mise à jour de l'index B-tree
 - Espace : $O(|V| \times \bar{d})$ où $\bar{d}$ est le nombre moyen de documents par terme
 
-## 2.2. Statistiques des Termes
+## Statistiques des Termes
 
 Pour le calcul des scores BM25 et IDF, nous maintenons des statistiques globales :
 
@@ -49,17 +49,17 @@ CREATE TABLE term_stats (
 );
 ```
 
-Ces statistiques sont mises à jour lors de l'indexation et permettent un calcul efficace de l'IDF :
+Ces statistiques sont mises à jour lors de l'indexation et permettent notamment de calculer l'IDF :
 
 $$IDF(t) = \log\left(\frac{N}{df(t)}\right)$$
 
 où $N$ est le nombre total de documents et $df(t)$ le nombre de documents contenant le terme $t$.
 
-## 2.3. Graphe de Jaccard
+## Graphe de Jaccard
 
-### 2.3.1. Représentation
+### Représentation
 
-Le graphe de similarité de Jaccard modélise les relations entre documents. Chaque livre est un sommet, et une arête pondérée relie deux livres si leur similarité dépasse un seuil.
+Le graphe de similarité de Jaccard modélise les relations entre documents. Chaque livre est un sommet, et une arête pondérée relie deux livres.
 
 ```sql
 CREATE TABLE jaccard_edges (
@@ -70,13 +70,13 @@ CREATE TABLE jaccard_edges (
 );
 ```
 
-### 2.3.2. Propriétés du Graphe
+### Propriétés du Graphe
 
 Le graphe est non-orienté (stocké avec $book\_id\_1 < book\_id\_2$) et pondéré. Pour optimiser l'espace, seules les $k$ meilleures arêtes par sommet sont conservées (Top-K).
 
 Avec $n$ livres et $k = 50$ voisins maximum par livre, le nombre d'arêtes est borné par $O(n \times k)$.
 
-## 2.4. Scores PageRank
+## Scores PageRank
 
 Les scores PageRank pré-calculés sont stockés pour éviter un recalcul à chaque requête :
 
@@ -87,9 +87,9 @@ CREATE TABLE pagerank (
 );
 ```
 
-## 2.5. Tokenizer
+## Tokenizer
 
-Le tokenizer transforme le texte brut en termes indexables. Sa configuration influence directement la qualité de l'index :
+Le tokenizer transforme le texte brut en termes indexables. Nous avons implémenté un tokenizer simple qui découpe le texte en mots, en ignorant la ponctuation et les caractères spéciaux. Voici les paramètres configurables et leurs valeurs par défaut :
 
 | Paramètre | Valeur | Description |
 |-----------|--------|-------------|
@@ -97,6 +97,3 @@ Le tokenizer transforme le texte brut en termes indexables. Sa configuration inf
 | `removeStopWords` | true | Filtrage des mots vides |
 | `caseSensitive` | false | Normalisation en minuscules |
 | `keepPositions` | true | Conservation des positions |
-
-Le tokenizer utilise une expression régulière pour extraire les mots : `/[a-zà-ÿ0-9]+/gi`, supportant ainsi les caractères accentués.
-

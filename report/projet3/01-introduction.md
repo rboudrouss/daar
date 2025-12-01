@@ -1,10 +1,14 @@
-# 1. Introduction
+# Introduction
 
-## 1.1. Contexte
+Lien vers la vidéo de présentation : **[https://www.youtube.com/watch?v=nyT_8-T6X7Y](https://www.youtube.com/watch?v=nyT_8-T6X7Y)**
 
-Nous presentons une application web de recherche textuelle de livres de la bibliothèque du projet Gutenberg. Nous avons cherché a reduire le nombre de librairie externes utilisées, en implementant nous-memes les algorithmes clefs de recherche et de classement, par exemple, nous n'utilisons aucune librairie de recherche textuelle preexistante (Lucene, ElasticSearch, etc.).
+Il est peut-être possible de trouver une instance en ligne à l'adresse **[https://daar.rboud.com](https://daar.rboud.com)**. Cependant, il est possible que l'instance soit down à tout moment, et il est préférable de lancer le code localement.
 
-## 1.2. Architecture Technique
+## Contexte
+
+Nous presentons une application web de recherche textuelle de livres de la bibliothèque du projet Gutenberg. Nous avons cherché a reduire le nombre de librairie externes utilisées, en implementant nous-memes les algorithmes clefs de recherche et de classement, par exemple, nous n'utilisons aucune librairie de recherche textuelle preexistante (Lucene, ElasticSearch, etc...).
+
+## Architecture Technique
 
 L'application est structurée en trois couches distinctes :
 
@@ -56,36 +60,52 @@ graph TB
 
 - **Frontend** (`Frontend/`) : application React avec TanStack Router pour la navigation.
 
-## 1.3. Contributions et Choix de Conception
+## Contributions et Choix de Conception
 
-### Fonctionnalité explicite de “Recherche”
+**Fonctionnalité explicite de Recherche** :
 
-- **Index inversé**: fréquences + positions pour BM25 & highlighting.
-- **Tokenizer**: filtrage stop words / casse / longueur.
-- **BM25**: normalisation longueur + IDF dynamique.
-- **Bonus proximité & titre**: multiplicateurs de pertinence.
-- **Batch inserts**: + prepared statements pour vitesse.
+- Tokenization puis indexation dans une reverse index
+- Plusieurs options de tokenization (stop words, casse, longueur)
 
-### Recherche avancée
+**Recherche avec Regex**:
 
-- **Regex multi‑algos**: NFA/DFA/Aho‑Corasick selon motif.
-- **Fuzzy**: Levenshtein + cache pour fautes.
-- **Highlighting**: via positions stockées.
-- **Hybridation**: mix exact + fuzzy filtré par scoring.
-- **PageRank**: injecté dans score hybride.
+- Support de regex en utilisant un NFA avec cache DFA (expliqué dans le projet 1)
+- Analyse le pattern regex pour générer une requête SQL optimisée qui filtre les termes candidats
 
-### Classement
 
-- **PageRank Jaccard**: graphe Top‑K, similarité IDF.
-- **BM25**: k1, b ajustables + IDF lissé.
-- **Score hybride**: BM25 + PageRank pondéré.
-- **Bonus contextuels**: proximité + titre multiplicatifs.
-- **Filtrage fréquence**: exclusion termes très fréquents.
+**Classement** :
 
-### Suggestion
+- Graphe de Jaccard pondéré par IDF
+- PageRank sur le graphe de Jaccard
+- Score hybride BM25 + PageRank
+- Bonus de proximité et de titre
 
-- **Jaccard + clics**: voisins Top‑K combinés à l’usage.
-- **Score combiné**: similarité × popularité.
-- **Fallback PageRank**: si peu d’historique.
-- **Fusion sources**: somme des scores + batch fetch.
-- **Explicabilité**: champ `reason` (pagerank/jaccard/hybrid).
+**Suggestion** :
+
+- Livres similaires basées sur jaccard et pagerank (dans la page de détail d'un livre)
+- Suggestions de livres les plus cliqués dans la page d'accueil
+- Suggestions de livre proches des livres populaires dans la page d'accueil
+
+**Ajouts** :
+
+- Recherche floue (Levenshtein)
+- Highlighting des résultats
+- Interface Admin pour configurer tout les paramètres de l'application
+
+## Execution du code
+
+Il est recommendé d'utiliser docker compose pour lancer le serveur avec la commande `docker compose up` (ou `doker-compose up`).
+
+Sinon il faut :
+
+- Installer [Node.js](https://nodejs.org/en/download/) avec NPM si vous ne l'avez pas déjà.
+- Installer [pnpm](https://pnpm.io/installation). Généralement il faut juste `npm install -g pnpm`.  
+- Lancer `pnpm install` dans le root du projet pour installer les dépendances.  
+- Lancer `pnpm build` dans le root du projet pour build le projet.  
+- Entrer dans le dossier Backend et lancer `pnpm start` ou `pnpm run dev`pour lancer le serveur.  
+- Aller sur [http://localhost:3000](http://localhost:3000) pour accéder à l'application.
+
+Commencez par aller sur l'interface Admin sur **[http://localhost:3000/admin](http://localhost:3000/admin)** pour importer les livres et configurer l'application.  
+Pensez à ajouter un livre, avant d'en rajouter plusieurs.  
+Utilisez le mot de passe `admin` pour vous connecter.  
+Faites attention, à partir d'un certain point, la construction du graphe de jaccard peut prendre plusieurs minutes. (Il est conseillé de commencer avec un `JACCARD_MAX_TERM_FREQUENCY` haut ~50% pour des petites quantités de livres (< 100), et de le baisser drastiquement à 5%)

@@ -1,14 +1,16 @@
-# 4. Algorithme PageRank
+# Algorithme PageRank
 
-## 4.1. Définition
+Nous avons choisi d'utiliser pagerank car pour un projet de l'UE AAGA, nous avons rendu un rapport où nous avons étudié l'algorithme.
 
-### 4.1.1. Principe
+## Définition
+
+### Principe
 
 PageRank est un algorithme développé par Larry Page et Sergey Brin pour classer les pages web. Il modélise un "surfeur aléatoire" qui navigue de page en page en suivant les liens. La probabilité stationnaire de se trouver sur une page définit son score PageRank.
 
 Dans notre contexte, les "pages" sont les livres et les "liens" sont les arêtes du graphe de Jaccard. Un livre avec un PageRank élevé est un livre central, connecté à de nombreux autres livres importants.
 
-### 4.1.2. Formule Itérative
+### Formule Itérative
 
 Le score PageRank d'un sommet $v$ est défini par :
 
@@ -27,11 +29,11 @@ où :
 
 $d-1$ représente la probabilité de téléportation vers une page aléatoire, assurant que le surfeur ne reste pas bloqué. $S$ redistribue le score des sommets sans liens sortants.
 
-Ces ajout permettent la convergence de l'algorithme. Sans gestion des danglings, leur score accumulé ne contribuerait plus au score général, biaisant les résultats.
+Ces ajout permettent permettent de gérer les sommets sans liens sortants et certain cas de boucles qui accumuleront un score.
 
-## 4.2. Implémentation
+## Implémentation
 
-### 4.2.1. Algorithme Itératif (Power Iteration)
+### Algorithme Itératif (Power Iteration)
 
 ```
 fonction computePageRank(graph, d, maxIter, tolerance):
@@ -54,7 +56,7 @@ fonction computePageRank(graph, d, maxIter, tolerance):
     retourner r
 ```
 
-### 4.2.2. Paramètres
+### Paramètres
 
 | Paramètre | Valeur | Description |
 |-----------|--------|-------------|
@@ -62,24 +64,9 @@ fonction computePageRank(graph, d, maxIter, tolerance):
 | `maxIter` | 100 | Nombre maximum d'itérations |
 | `tolerance` | $10^{-6}$ | Seuil de convergence |
 
-## 4.3. Application au Graphe de Jaccard
+## Complexité
 
-### 4.3.1. Conversion du Graphe
-
-Le graphe de Jaccard est non-orienté et pondéré. Pour l'utiliser avec PageRank :
-
-1. Chaque arête non-orientée devient deux arêtes orientées
-2. Les poids de similarité sont utilisés pour pondérer les transitions
-
-### 4.3.2. Interprétation
-
-Un livre avec un PageRank élevé est :
-- Similaire à de nombreux autres livres
-- Connecté à des livres eux-mêmes centraux
-
-## 4.4. Complexité
-
-- **Temps** : $O(k \times |E|)$ où $k$ est le nombre d'itérations et $|E|$ le nombre d'arêtes
+- **Temps** : $O(k \times \bar{d})$ où $k$ est le nombre d'itérations et $\bar{d}$ le degré moyen entrant, qui est directement limité par le Top-k du graphe de Jaccard, donc au maximum 50 dans notre cas.
 - **Espace** : $O(|V|)$ pour stocker les scores
 
 

@@ -1,15 +1,15 @@
-# 6. Recherche Avancée par Regex
+# Recherche Avancée par Regex
 
-## 6.1. Problématique
+## Problématique
 
-En utilisant les Regex, on ameliore grandement la granularité des recherches.Cependant, appliquer un automate (NFA ou DFA) à chaque terme de l'index est coûteux. Si un vocabulaire atteint 500 000 termes (proche de notre base de donnée), une approche naïve serait impraticable.
+Nous voulons supporter des recherches avancées via des expressions régulières. Cependant, appliquer un automate à chaque terme de l'index est coûteux. Si un vocabulaire atteint 500 000 termes (proche de notre base de donnée), une approche naïve serait impraticable.
 
-## 6.2. Architecture de la Solution
+## Architecture de la Solution
 
 Notre approche combine deux niveaux de filtrage :
 
 1. **Pré-filtrage SQL** : réduire le nombre de candidats en exploitant la structure du pattern
-2. **Validation NFA** : appliquer l'automate uniquement aux termes candidats
+2. **Validation NFA** : appliquer l'automate uniquement aux termes candidats si nécessaire
 
 ```{.mermaid}
 graph LR
@@ -28,7 +28,7 @@ graph LR
     E --> K
 ```
 
-## 6.3. Analyse du Pattern
+## Analyse du Pattern
 
 Le module `PatternAnalyzer` examine l'arbre syntaxique pour déterminer le type de pattern :
 
@@ -43,11 +43,11 @@ Le module `PatternAnalyzer` examine l'arbre syntaxique pour déterminer le type 
 | `match_all` | `.*` | `1=1` (tous) |
 | `complex` | `(ab)*c*` | |
 
-### 6.3.1. Contraintes de Longueur
+### Contraintes de Longueur
 
-Pour les patterns complexes, l'analyseur calcule les bornes de longueur minimale et maximale. Par exemple, le pattern `a..b` a une longueur exacte de 4, permettant d'ajouter `LENGTH(term) = 4` à la requête SQL.
+Pour les patterns complexes, l'analyseur essaie de calculer les bornes de longueur minimale et maximale. Par exemple, le pattern `a..b` a une longueur exacte de 4, permettant d'ajouter `LENGTH(term) = 4` à la requête SQL.
 
-## 6.4. Construction de la Requête SQL
+## Construction de la Requête SQL
 
 Le module `SqlQueryBuilder` génère une clause WHERE optimisée :
 
@@ -59,14 +59,14 @@ interface SqlQuery {
 }
 ```
 
-### 6.4.2. Indicateur NFA
+### Indicateur NFA
 
 L'attribut `needsNfaFiltering` indique si le filtrage SQL est suffisant :
 - `false` pour `exact`, `alternation`, `sql_pattern` : le SQL est exact
 - `true` pour les autres : validation NFA requise
 
 
-## 6.6. Pipeline Complette
+## Pipeline Complette
 
 ```typescript
 function searchRegex(pattern: string): SearchResult[] {

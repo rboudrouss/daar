@@ -367,7 +367,7 @@ function AdminPanel() {
               fontWeight: "600",
             }}
           >
-            📥 Import Books from Gutenberg
+             Import Books from Gutenberg
           </h2>
           <p style={{ margin: "0 0 16px 0", color: "#666", fontSize: "14px" }}>
             Download and index books from Project Gutenberg. The system will
@@ -437,7 +437,7 @@ function AdminPanel() {
               fontWeight: "600",
             }}
           >
-            📚 Add Book Manually
+             Add Book Manually
           </h2>
           <p style={{ margin: "0 0 16px 0", color: "#666", fontSize: "14px" }}>
             Upload a book manually by providing a title, optional author, text file (.txt), and optional cover image.
@@ -624,7 +624,7 @@ function AdminPanel() {
               fontWeight: "600",
             }}
           >
-            🔗 Rebuild Jaccard Graph
+             Rebuild Jaccard Graph
           </h2>
           <p style={{ margin: "0 0 16px 0", color: "#666", fontSize: "14px" }}>
             Rebuild the similarity graph between books. Run this after importing

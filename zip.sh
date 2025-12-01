@@ -1,3 +1,3 @@
 #! /bin/bash
-cp report/projet1/rapport.pdf ./DAAR-Projet1-Rapport-Boudrouss-Breton.pdf
-7z a daar-projet-offline-BOUDROUSS-BRETON.zip report/* cli/* lib/* data/* pnpm-lock.yaml pnpm-workspace.yaml tsconfig.base.json tsconfig.json .gitignore package.json README.md egrep DAAR-Projet1-Rapport-Boudrouss-Breton.pdf -xr!lib/dist -xr!lib/node_modules -xr!cli/node_modules
+cp report/projet1/rapport.pdf ./DAAR-Projet3-Rapport-Boudrouss-Breton-Durbin.pdf
+7z a daar-projet-web-BOUDROUSS-BRETON-DURBIN.zip report/projet1/rapport.pdf lib/* -xr!lib/dist -xr!lib/node_modules Backend/* -xr!Backend/node_modules -xr!Backend/dist -xr!Backend/data Frontend/* -xr!Frontend/node_modules -xr!Frontend/dist Dockerfile docker-compose.yml .dockerignore pnpm-lock.yaml pnpm-workspace.yaml tsconfig.base.json tsconfig.json .gitignore package.json LIEN-VIDEO.txt DAAR-Projet3-Rapport-Boudrouss-Breton-Durbin.pdf

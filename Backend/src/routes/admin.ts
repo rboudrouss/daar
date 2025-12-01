@@ -145,13 +145,30 @@ async function downloadBooksInParallel(
  * Update Jaccard graph and PageRank scores for newly indexed books
  */
 function updateJaccardAndPagerank(bookIds: number[]): JaccardPagerankResult {
-  console.log(`\nUpdating Jaccard graph incrementally for ${bookIds.length} new books...`);
-
   const calculator = new JaccardCalculator();
-  const jaccardEdges = calculator.addBooksToJaccardGraph(bookIds, (progress) => {
-    console.log(`   ${progress.currentBook}/${progress.totalBooks} - ${progress.message} (${progress.percentage.toFixed(1)}%)`);
-  });
-  console.log(`Jaccard graph updated with ${jaccardEdges} total edges`);
+
+  // Check if Jaccard graph already exists
+  const db = getDatabase();
+  const existingEdges = db.prepare("SELECT COUNT(*) as count FROM jaccard_edges").get() as { count: number };
+  const hasExistingGraph = existingEdges.count > 0;
+
+  let jaccardEdges: number;
+
+  if (hasExistingGraph) {
+    // Incremental update for existing graph
+    console.log(`\nUpdating Jaccard graph incrementally for ${bookIds.length} new books...`);
+    jaccardEdges = calculator.addBooksToJaccardGraph(bookIds, (progress) => {
+      console.log(`   ${progress.currentBook}/${progress.totalBooks} - ${progress.message} (${progress.percentage.toFixed(1)}%)`);
+    });
+    console.log(`Jaccard graph updated with ${jaccardEdges} total edges`);
+  } else {
+    // First time: build full graph
+    console.log(`\nBuilding Jaccard graph for the first time...`);
+    jaccardEdges = calculator.buildJaccardGraph((progress) => {
+      console.log(`   ${progress.currentBook}/${progress.totalBooks} - ${progress.currentPhase} - ${progress.message} (${progress.percentage.toFixed(1)}%)`);
+    });
+    console.log(`Jaccard graph built with ${jaccardEdges} total edges`);
+  }
 
   console.log(`\nRecalculating PageRank...`);
   const pagerankCalculator = new PageRankCalculator();

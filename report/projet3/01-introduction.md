@@ -107,4 +107,4 @@ Sinon il faut :
 
 Commencez par aller sur l'interface Admin sur **[http://localhost:3000/admin](http://localhost:3000/admin)** pour importer les livres et configurer l'application.  
 Utilisez le mot de passe `admin` pour vous connecter.  
-Faites attention, à partir d'un certain point, la construction du graphe de jaccard peut prendre plusieurs minutes. (Il est conseillé de commencer avec un `JACCARD_MAX_TERM_FREQUENCY` haut ~80% pour des petites quantités de livres (< 300), et de le baisser drastiquement à 5%)
+Faites attention, à partir d'un certain point, la construction du graphe de jaccard peut prendre plusieurs minutes. (Il est conseillé de commencer avec un `JACCARD_MAX_TERM_FREQUENCY` haut ~90% pour des petites quantités de livres (< 150), et de le baisser pour des plus grandes quantités de livres)

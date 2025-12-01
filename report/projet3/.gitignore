@@ -2,3 +2,6 @@
 *dist/
 *.tsbuildinfo
 .pandocenv/
+*.png
+!imgs/
+plots/

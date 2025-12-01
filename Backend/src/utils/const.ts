@@ -4,6 +4,22 @@
  */
 
 import { getConfig } from "./config.js";
+import { getDatabase } from "../db/connection.js";
+
+/**
+ * Récupère le nombre total de livres depuis library_metadata
+ */
+function getTotalBooks(): number {
+  try {
+    const db = getDatabase();
+    const result = db
+      .prepare("SELECT value FROM library_metadata WHERE key = 'total_books'")
+      .get() as { value: string } | undefined;
+    return result ? parseInt(result.value, 10) : 0;
+  } catch {
+    return 0;
+  }
+}
 
 // Constants with DEFAULT can be passed as parameters (not configurable via admin)
 export const JACCARD_DEFAULT_THRESHOLD = parseFloat(
@@ -17,7 +33,11 @@ export const JACCARD_DEFAULT_BATCH_SIZE = parseInt(
 );
 
 // Jaccard optimization settings (configurable via admin)
+// Pour moins de 100 livres, on désactive les optimisations pour éviter de rater des similarités
 export function getJaccardMaxTermFrequency(): number {
+  if (getTotalBooks() < 100) {
+    return 1; // Pas de filtrage par fréquence
+  }
   return getConfig(
     "JACCARD_MAX_TERM_FREQUENCY",
     "JACCARD_MAX_TERM_FREQUENCY",
@@ -27,6 +47,9 @@ export function getJaccardMaxTermFrequency(): number {
 }
 
 export function getJaccardMinSharedTerms(): number {
+  if (getTotalBooks() < 100) {
+    return 0; // Pas de minimum de termes partagés
+  }
   return getConfig(
     "JACCARD_MIN_SHARED_TERMS",
     "JACCARD_MIN_SHARED_TERMS",

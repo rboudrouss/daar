@@ -145,6 +145,7 @@ async function downloadBooksInParallel(
  * Update Jaccard graph and PageRank scores for newly indexed books
  */
 function updateJaccardAndPagerank(bookIds: number[]): JaccardPagerankResult {
+  console.log(`\n[DEBUG] Updating Jaccard graph and PageRank...`);
   const calculator = new JaccardCalculator();
 
   // Check if Jaccard graph already exists
@@ -153,7 +154,9 @@ function updateJaccardAndPagerank(bookIds: number[]): JaccardPagerankResult {
   const hasExistingGraph = existingEdges.count > 0;
 
   let jaccardEdges: number;
+  
 
+  console.log(`[DEBUG] hasExistingGraph: ${hasExistingGraph}, existingEdges: ${existingEdges.count}`);
   if (hasExistingGraph) {
     // Incremental update for existing graph
     console.log(`\nUpdating Jaccard graph incrementally for ${bookIds.length} new books...`);

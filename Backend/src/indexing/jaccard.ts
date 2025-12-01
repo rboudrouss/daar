@@ -451,7 +451,6 @@ export class JaccardCalculator {
     }
 
     const startTime = Date.now();
-    let debugtime = Date.now();
     this.loadTermDocFrequencies();
 
     const allBookIds = (
